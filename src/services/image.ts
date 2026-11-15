@@ -11,6 +11,9 @@ export interface NormalizedImage {
   width: number;
   height: number;
   bytes: number;
+  originalWidth: number;
+  originalHeight: number;
+  resized: boolean;
 }
 
 export interface NormalizeImageOptions {
@@ -83,6 +86,16 @@ export async function normalizeImage(
     throw new AppError("invalid_image", "Image dimensions could not be read", 400);
   }
 
+  const sourceWidth = metadata.width;
+  const sourceHeight = metadata.height;
+
+  // EXIF orientations 5-8 rotate the image by 90 degrees, swapping the axes.
+  const orientation = metadata.orientation ?? 1;
+  const swapsAxes = orientation >= 5 && orientation <= 8;
+  const originalWidth = swapsAxes ? sourceHeight : sourceWidth;
+  const originalHeight = swapsAxes ? sourceWidth : sourceHeight;
+  const resized = Math.max(originalWidth, originalHeight) > options.maxDimension;
+
   const hasAlpha = Boolean(metadata.hasAlpha);
   const pipeline = sharp(input, {
     failOn: "error",
@@ -112,8 +125,11 @@ export async function normalizeImage(
   return {
     dataUrl: `data:${mime};base64,${output.toString("base64")}`,
     mime,
-    width: outputMetadata.width ?? metadata.width,
-    height: outputMetadata.height ?? metadata.height,
+    width: outputMetadata.width ?? originalWidth,
+    height: outputMetadata.height ?? originalHeight,
     bytes: output.length,
+    originalWidth,
+    originalHeight,
+    resized,
   };
 }

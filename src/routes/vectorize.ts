@@ -129,6 +129,22 @@ export async function registerVectorizeRoute(
         maxDimension: deps.config.maxImageDimension,
       });
 
+      request.log.info(
+        {
+          requestId: request.id,
+          downsampled: image.resized,
+          from: `${image.originalWidth}x${image.originalHeight}`,
+          to: `${image.width}x${image.height}`,
+          scale: image.resized
+            ? Number((image.width / image.originalWidth).toFixed(3))
+            : 1,
+          originalBytes: buffer.length,
+          bytes: image.bytes,
+          mime: image.mime,
+        },
+        image.resized ? "image downsampled" : "image not downsampled",
+      );
+
       if (deps.semaphore.pending >= deps.config.maxQueue) {
         throw new AppError(
           "rate_limited",

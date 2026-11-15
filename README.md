@@ -61,8 +61,8 @@ real environment variables take precedence.
 | `OPENROUTER_APP_TITLE` | `vector` | OpenRouter `X-Title` header |
 | `OPENROUTER_PROVIDER` | — | Optional JSON provider-routing object |
 | `PROMPT_PATH` | `prompts/vectorize.md` | System prompt file |
-| `MAX_UPLOAD_BYTES` | `10485760` | Max upload size (10 MiB) |
-| `MAX_IMAGE_DIMENSION` | `1568` | Longest side sent upstream |
+| `MAX_UPLOAD_BYTES` | `10485760` | Max upload size (10 MiB), a safety cap |
+| `MAX_IMAGE_DIMENSION` | `1568` | Longest side sent upstream; larger images are downscaled |
 | `MAX_CONCURRENCY` | `4` | Concurrent upstream calls |
 | `MAX_QUEUE` | `32` | Max queued requests before `429` |
 | `RETRY_ON_INVALID_SVG` | `1` | Repair retries after an invalid SVG |
@@ -226,5 +226,8 @@ docker run --rm -p 8080:8080 \
 - No authentication; deploy behind a trusted network boundary or add a gateway.
 - The service sanitizes SVG output, but you should still serve untrusted SVGs with a
   restrictive CSP (the service sets one on its own responses).
-- Image inputs are downscaled to `MAX_IMAGE_DIMENSION` before upload to control token
-  usage. The model is responsible for mapping the subject onto the 1024×1024 canvas.
+- Image inputs are downscaled to `MAX_IMAGE_DIMENSION` (default **1568 px on the
+  longest side**) before the VLM call. 1568 is a common vision-model sweet spot: it
+  preserves enough detail for edge tracing while keeping image tokens low. The
+  `MAX_UPLOAD_BYTES` limit is a separate safety cap on the raw upload.
+- The model is responsible for mapping the subject onto the 1024×1024 canvas.
