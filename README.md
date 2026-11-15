@@ -80,8 +80,8 @@ The service fails fast at boot if required configuration is missing. It also fai
 
 Prompt files are versioned by filename: `v001-vectorize.md` is selected with
 `PROMPT_VERSION=v001`, `v002-rig-ready-flat-vectoriser.md` with `PROMPT_VERSION=v002`,
-and `v006-parallax-depth-vectorizer.md` with `PROMPT_VERSION=v006`. v006 is the
-depth-annotated variant used by the parallax rig.
+and `v010-rig-joints.md` with `PROMPT_VERSION=v010`. v010 is the depth-annotated
+variant with Level-1 joint sockets/anchors used by the parallax rig.
 
 ## API
 
@@ -121,7 +121,7 @@ response (`?format=json`) to read the `warnings` array.
   "svg": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1024 1024\" ...>...</svg>",
   "rig": {
     "format": "vector.parallax",
-    "version": 1,
+    "version": 2,
     "viewBox": [0, 0, 1024, 1024],
     "cursor": { "space": "normalized", "neutral": [0.5, 0.5] },
     "defaults": {
@@ -141,6 +141,7 @@ response (`?format=json`) to read the `warnings` array.
         "depth": 0.12,
         "pivot": [650, 450],
         "gain": 1,
+        "weld": 1,
         "baseTransform": null,
         "translate": {
           "x": { "const": 0, "cx": -4.8, "cy": 0 },
@@ -155,6 +156,14 @@ response (`?format=json`) to read the `warnings` array.
           "neutral": 0.9646
         },
         "rotate": { "const": 0, "cx": 0.36, "cy": -0.36 }
+      }
+    ],
+    "anchors": [
+      {
+        "id": "neck",
+        "host": "torso",
+        "point": [650, 620],
+        "members": [{ "node": "head", "frame": "shared" }]
       }
     ],
     "synthetic": false,
@@ -184,6 +193,9 @@ explicit cursor-driven functions for every animated element.
 | `data-z` | Absolute depth: `0` far, `0.5` neutral, `1` near. Required on animated elements. |
 | `data-pivot` | `"x,y"` pivot for scale/rotation, in the parent's coordinate space. |
 | `data-parallax` | Optional motion gain multiplier (default `1`). |
+| `data-sockets` | Host-side joint declarations: `"name:x,y name:x,y"` in root coordinates. |
+| `data-anchor` | Child-side weld: a space-separated list of socket names. |
+| `data-weld` | Optional weld strength `0…1` (default `1`); below `1` leaves a hint of independent slide. |
 | `clip-path` | Put silhouette clips on the parent `<g>`, not on highlight primitives, so highlights can slide inside the mask. |
 
 The rig is read in a normalized cursor space, with `(0.5, 0.5)` at rest. For a node,
@@ -213,13 +225,47 @@ compose to the absolute depth `z`. `scale.neutral` is the proximity value at res
 subtracting it makes the neutral cursor exactly identity. An existing
 `baseTransform` is appended after the parallax transform.
 
+#### Joint welds
+
+Free-floating depth translation makes adjacent top-level parts drift apart. A
+`data-anchor` welds a part's joint onto a socket declared by another part, so the
+connection survives cursor motion:
+
+```xml
+<g id="torso" data-z="0.32" data-pivot="500,480"
+   data-sockets="neck:760,560 shoulder-left:560,470">…</g>
+<g id="head" data-z="0.55" data-anchor="neck">…</g>
+<g id="arm" data-z="0.70" data-pivot="560,470"
+   data-anchor="shoulder-left">…</g>
+```
+
+- Coordinates are root-space `x,y`; an anchored part's pivot defaults to its socket
+  point, so its depth motion becomes a swing about the joint.
+- All Level-1 parts should be siblings under one root wrapper. When host and member
+  share a parent frame the weld is `shared`; when the host is the member's nearest
+  animated ancestor the weld is `local` and only the relative translation is cancelled.
+- At runtime each member's joint is moved onto the host's joint:
+
+```text
+A(node, q) = pivot + t + s * R(r) * (q - pivot)
+delta      = A(host, q) + hostCorrection - A(member, q)
+member.tx += delta.x * weld
+member.ty += delta.y * weld
+```
+
+`resolveAnchorCorrections()` resolves hosts first, so multi-hop chains stay welded.
+A node with several sockets receives the average delta. The review preview mirrors
+this function and offers an **Anchors** toggle that draws each welded joint and the
+member's pre-weld position.
+
 The derivation also:
 
 - injects stable ids for animated elements that lack one;
 - wraps a clipped highlight primitive in a static `<g clip-path="…">` so the
   primitive can move inside its mask (a group's own clip is left in place);
 - emits warnings for out-of-range depths, duplicate ids, non-ascending paint order,
-  and a depth spread below `0.35`;
+  a depth spread below `0.35`, unknown/duplicate sockets, anchor cycles, and anchor
+  nodes that cross animated frames;
 - falls back to synthetic paint-order depth for older SVGs without `data-z`, so
   existing v005 conversions remain interactive. The fallback is marked with
   `"synthetic": true` and intentionally does not warn.
@@ -287,8 +333,9 @@ checkerboard background; a **Dark bg/Light bg** button toggles the checkerboard 
 It injects the SVG into a shadow root, tracks the pointer in normalized cursor space,
 and applies each rig node's transform on an animation frame. Motion is fixed at the
 strongest setting; **Play** runs a demo path and **Reset** returns the cursor to
-neutral. Older conversions without a stored rig are normalized and given synthetic
-paint-order depth on demand.
+neutral. **Anchors** overlays each welded joint (green dot), the member's pre-weld
+position (red ring), and the correction the weld applies. Older conversions without a
+stored rig are normalized and given synthetic paint-order depth on demand.
 
 Read-only review endpoints:
 
@@ -346,7 +393,8 @@ wrapper groups; the rig references those ids.
 ├── prompts/
 │   ├── v001-vectorize.md     # default geometric-fidelity prompt
 │   ├── v002-rig-ready-flat-vectoriser.md
-│   └── v006-parallax-depth-vectorizer.md
+│   ├── v006-parallax-depth-vectorizer.md
+│   └── v010-rig-joints.md    # parallax depth + Level-1 joint welds
 ├── public/
 │   └── review.html           # dependency-free review UI
 ├── samples/

@@ -25,6 +25,7 @@ const RIG = {
     neutralZ: 0.5,
   },
   nodes: [],
+  anchors: [],
   synthetic: false,
   warnings: [],
 } satisfies ParallaxRig;

@@ -474,7 +474,7 @@
         return Object.is(rounded, -0) ? "0" : String(rounded);
       }
 
-      function evaluateParallaxNode(node, cursor, viewBox, multipliers) {
+      function evaluateParallaxMotion(node, cursor, viewBox, multipliers) {
         const cx = (cursor.x - 0.5) * 2;
         const cy = (cursor.y - 0.5) * 2;
         const shift = multipliers.shift;
@@ -510,13 +510,109 @@
           node.rotate.const +
           (node.rotate.cx * cx + node.rotate.cy * cy) * rotateMultiplier;
 
+        return { tx: tx, ty: ty, scale: scale, rotate: rotate };
+      }
+
+      function transformForMotion(node, motion, correction) {
+        const dx = correction ? correction.dx : 0;
+        const dy = correction ? correction.dy : 0;
         return (
-          "translate(" + formatMotion(tx) + " " + formatMotion(ty) + ") " +
+          "translate(" + formatMotion(motion.tx + dx) + " " + formatMotion(motion.ty + dy) + ") " +
           "translate(" + formatMotion(node.pivot[0]) + " " + formatMotion(node.pivot[1]) + ") " +
-          "rotate(" + formatMotion(rotate) + ") " +
-          "scale(" + formatMotion(scale) + ") " +
+          "rotate(" + formatMotion(motion.rotate) + ") " +
+          "scale(" + formatMotion(motion.scale) + ") " +
           "translate(" + formatMotion(-node.pivot[0]) + " " + formatMotion(-node.pivot[1]) + ")"
         );
+      }
+
+      // Keep in sync with nodePoint() in src/services/parallax.ts.
+      function nodePoint(node, motion, point, correction) {
+        const radians = (motion.rotate * Math.PI) / 180;
+        const cos = Math.cos(radians);
+        const sin = Math.sin(radians);
+        const pivotX = node.pivot[0];
+        const pivotY = node.pivot[1];
+        const dx = point[0] - pivotX;
+        const dy = point[1] - pivotY;
+        return [
+          pivotX + motion.tx + (correction ? correction.dx : 0) +
+            motion.scale * (cos * dx - sin * dy),
+          pivotY + motion.ty + (correction ? correction.dy : 0) +
+            motion.scale * (sin * dx + cos * dy),
+        ];
+      }
+
+      // Keep in sync with resolveAnchorCorrections() in src/services/parallax.ts.
+      function resolveAnchorCorrections(rig, motions) {
+        const corrections = new Map();
+        for (const node of rig.nodes) {
+          corrections.set(node.id, { dx: 0, dy: 0 });
+        }
+        const anchors = rig.anchors || [];
+        if (anchors.length === 0) return corrections;
+
+        const nodeById = new Map();
+        for (const node of rig.nodes) nodeById.set(node.id, node);
+
+        const byMember = new Map();
+        for (const anchor of anchors) {
+          for (const member of anchor.members) {
+            const list = byMember.get(member.node) || [];
+            list.push(anchor);
+            byMember.set(member.node, list);
+          }
+        }
+
+        const resolved = new Set();
+        const resolving = new Set();
+        function resolve(id) {
+          if (resolved.has(id) || resolving.has(id)) return;
+          resolving.add(id);
+          const node = nodeById.get(id);
+          const motion = motions.get(id);
+          if (node && motion) {
+            const nodeAnchors = byMember.get(id) || [];
+            let sumX = 0;
+            let sumY = 0;
+            let count = 0;
+            for (const anchor of nodeAnchors) {
+              resolve(anchor.host);
+              const host = nodeById.get(anchor.host);
+              const hostMotion = motions.get(anchor.host);
+              let membership = null;
+              for (const member of anchor.members) {
+                if (member.node === id) membership = member;
+              }
+              if (!host || !hostMotion || !membership) continue;
+              const joint = anchor.point;
+              const own = nodePoint(node, motion, joint);
+              let targetX = joint[0];
+              let targetY = joint[1];
+              if (membership.frame === "shared") {
+                const hostPoint = nodePoint(
+                  host,
+                  hostMotion,
+                  joint,
+                  corrections.get(anchor.host),
+                );
+                targetX = hostPoint[0];
+                targetY = hostPoint[1];
+              }
+              const weld = typeof node.weld === "number" ? node.weld : 1;
+              sumX += (targetX - own[0]) * weld;
+              sumY += (targetY - own[1]) * weld;
+              count += 1;
+            }
+            if (count > 0) {
+              corrections.set(id, { dx: sumX / count, dy: sumY / count });
+            }
+          }
+          resolving.delete(id);
+          resolved.add(id);
+        }
+
+        for (const node of rig.nodes) resolve(node.id);
+        return corrections;
       }
 
       function sanitizeSvg(root) {
@@ -606,9 +702,20 @@
         svg.setAttribute("preserveAspectRatio", "xMidYMid meet");
         shadow.appendChild(svg);
 
+        const hasAnchors = Array.isArray(rig.anchors) && rig.anchors.length > 0;
+        const overlay = document.createElementNS(svg.namespaceURI, "g");
+        overlay.setAttribute("id", "parallax-anchor-overlay");
+        overlay.setAttribute("pointer-events", "none");
+        svg.appendChild(overlay);
+
         const byId = new Map();
         for (const element of shadow.querySelectorAll("[id]")) {
           byId.set(element.id, element);
+        }
+
+        const nodeById = new Map();
+        for (const node of rig.nodes) {
+          nodeById.set(node.id, node);
         }
 
         const baseTransforms = new Map();
@@ -641,17 +748,98 @@
           raf: 0,
           lastTime: 0,
           destroyed: false,
+          anchorsVisible: false,
         };
 
+        function renderAnchorOverlay(motions, corrections) {
+          if (!state.anchorsVisible || !hasAnchors) {
+            if (overlay.childNodes.length > 0) overlay.replaceChildren();
+            return;
+          }
+          const doc = svg.ownerDocument;
+          const fragment = doc.createDocumentFragment();
+
+          function mark(tag, attributes) {
+            const element = doc.createElementNS(svg.namespaceURI, tag);
+            for (const name of Object.keys(attributes)) {
+              element.setAttribute(name, String(attributes[name]));
+            }
+            fragment.appendChild(element);
+          }
+
+          for (const anchor of rig.anchors) {
+            const host = nodeById.get(anchor.host);
+            const hostMotion = motions.get(anchor.host);
+            if (!host || !hostMotion) continue;
+            const hostPoint = nodePoint(
+              host,
+              hostMotion,
+              anchor.point,
+              corrections.get(anchor.host),
+            );
+
+            for (const member of anchor.members) {
+              if (member.frame !== "shared") continue;
+              const memberNode = nodeById.get(member.node);
+              const motion = motions.get(member.node);
+              if (!memberNode || !motion) continue;
+              const before = nodePoint(memberNode, motion, anchor.point);
+              mark("line", {
+                x1: before[0],
+                y1: before[1],
+                x2: hostPoint[0],
+                y2: hostPoint[1],
+                stroke: "#ef4444",
+                "stroke-width": 3,
+                "stroke-dasharray": "10 8",
+                "stroke-linecap": "round",
+                opacity: 0.85,
+              });
+              mark("circle", {
+                cx: before[0],
+                cy: before[1],
+                r: 15,
+                fill: "none",
+                stroke: "#ef4444",
+                "stroke-width": 3,
+                opacity: 0.9,
+              });
+            }
+
+            mark("circle", {
+              cx: hostPoint[0],
+              cy: hostPoint[1],
+              r: 10,
+              fill: "#22c55e",
+              stroke: "#052e16",
+              "stroke-width": 2,
+            });
+          }
+
+          overlay.replaceChildren(fragment);
+        }
+
         function apply(cursor) {
+          const motions = new Map();
+          for (const node of rig.nodes) {
+            motions.set(
+              node.id,
+              evaluateParallaxMotion(
+                node,
+                cursor,
+                rig.viewBox,
+                state.multipliers,
+              ),
+            );
+          }
+          const corrections = resolveAnchorCorrections(rig, motions);
           for (const node of rig.nodes) {
             const element = byId.get(node.id);
             if (!element) continue;
-            const transform = evaluateParallaxNode(
+            const transform = transformForMotion(
               node,
-              cursor,
-              rig.viewBox,
-              state.multipliers,
+              motions.get(node.id),
+              corrections.get(node.id),
             );
             const base = baseTransforms.get(node.id);
             element.setAttribute(
@@ -659,6 +847,7 @@
               base ? transform + " " + base : transform,
             );
           }
+          renderAnchorOverlay(motions, corrections);
         }
 
         function frame(now) {
@@ -704,6 +893,7 @@
         stage.addEventListener("pointerleave", onLeave);
 
         const checkerboardButton = $("p-checkerboard");
+        const anchorsButton = $("p-anchors");
         const play = $("p-play");
         const reset = $("p-reset");
 
@@ -727,6 +917,27 @@
           darkCheckerboard = !darkCheckerboard;
           stage.classList.toggle("checkerboard-dark", darkCheckerboard);
           syncCheckerboardButton();
+        });
+
+        function syncAnchorsButton() {
+          if (!anchorsButton) return;
+          if (!hasAnchors) {
+            anchorsButton.disabled = true;
+            anchorsButton.title = "This rig has no joint welds";
+            anchorsButton.textContent = "No anchors";
+            return;
+          }
+          anchorsButton.textContent = state.anchorsVisible ? "Hide anchors" : "Anchors";
+          anchorsButton.setAttribute(
+            "aria-pressed",
+            state.anchorsVisible ? "true" : "false",
+          );
+        }
+        syncAnchorsButton();
+        listen(anchorsButton, "click", () => {
+          state.anchorsVisible = !state.anchorsVisible;
+          syncAnchorsButton();
+          apply(state.current);
         });
 
         listen(play, "click", () => {
@@ -806,6 +1017,7 @@
         const outputActions = interactive
           ? '<div class="preview-actions">' +
             '<button id="p-checkerboard" type="button" aria-pressed="false">Dark bg</button>' +
+            '<button id="p-anchors" type="button" aria-pressed="false">Anchors</button>' +
             '<button id="p-play">Play</button><button id="p-reset">Reset</button></div>'
           : "";
 

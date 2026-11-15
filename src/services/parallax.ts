@@ -56,15 +56,28 @@ export interface ParallaxNode {
   depth: number;
   pivot: [number, number];
   gain: number;
+  /** Weld strength used when this node is anchored to a socket. */
+  weld: number;
   baseTransform: string | null;
   translate: { x: Linear2D; y: Linear2D };
   scale: Scale2D;
   rotate: Linear2D;
 }
 
+export interface ParallaxAnchor {
+  /** Socket name authored through `data-sockets`. */
+  id: string;
+  /** Node that owns the socket and is not corrected. */
+  host: string;
+  /** Joint rest position in viewBox coordinates. */
+  point: [number, number];
+  /** Nodes welded to this point. */
+  members: Array<{ node: string; frame: "shared" | "local" }>;
+}
+
 export interface ParallaxRig {
   format: "vector.parallax";
-  version: 1;
+  version: 1 | 2;
   viewBox: [number, number, number, number];
   cursor: { space: "normalized"; neutral: [number, number] };
   defaults: {
@@ -76,6 +89,8 @@ export interface ParallaxRig {
     neutralZ: number;
   };
   nodes: ParallaxNode[];
+  /** Joint welds derived from `data-sockets` / `data-anchor`. */
+  anchors: ParallaxAnchor[];
   /** True when depth was inferred from paint order instead of authored data-z. */
   synthetic: boolean;
   warnings: string[];
@@ -139,6 +154,9 @@ interface ElementInfo {
   id: string | undefined;
   zAttr: string | undefined;
   pivotAttr: string | undefined;
+  anchorAttr: string | undefined;
+  socketsAttr: string | undefined;
+  weld: number;
   gain: number;
   hasClip: boolean;
   opacity: number;
@@ -179,6 +197,77 @@ function parseGain(value: string | undefined): number {
   }
   const parsed = Number.parseFloat(value);
   return Number.isFinite(parsed) && parsed > 0 ? parsed : 1;
+}
+
+/** Clamped weld strength; 1 pins the joint exactly, 0 disables the correction. */
+function parseWeld(value: string | undefined): number {
+  if (!value) {
+    return 1;
+  }
+  const parsed = Number.parseFloat(value);
+  return Number.isFinite(parsed) ? Math.min(1, Math.max(0, parsed)) : 1;
+}
+
+interface SocketDecl {
+  name: string;
+  point: [number, number];
+}
+
+/** Parses `name:x,y name:x,y` into socket declarations. */
+function parseSockets(
+  value: string | undefined,
+  onInvalid: (token: string) => void,
+): SocketDecl[] {
+  if (!value) {
+    return [];
+  }
+  const sockets: SocketDecl[] = [];
+  for (const token of value.trim().split(/[\s;]+/)) {
+    if (!token) {
+      continue;
+    }
+    const separator = token.search(/[:=]/);
+    if (separator <= 0) {
+      onInvalid(token);
+      continue;
+    }
+    const name = token.slice(0, separator).trim();
+    const coords = token
+      .slice(separator + 1)
+      .split(",")
+      .map((part) => Number.parseFloat(part));
+    const [x, y] = coords;
+    if (!name || coords.length !== 2 || x === undefined || y === undefined) {
+      onInvalid(token);
+      continue;
+    }
+    if (!Number.isFinite(x) || !Number.isFinite(y)) {
+      onInvalid(token);
+      continue;
+    }
+    sockets.push({ name, point: [x, y] });
+  }
+  return sockets;
+}
+
+/** Parses whitespace/comma separated anchor names. */
+function parseAnchorNames(value: string | undefined): string[] {
+  if (!value) {
+    return [];
+  }
+  return value
+    .trim()
+    .split(/[\s,]+/)
+    .map((name) => name.trim())
+    .filter(Boolean);
+}
+
+function pointsClose(
+  left: [number, number],
+  right: [number, number],
+  tolerance: number,
+): boolean {
+  return Math.hypot(left[0] - right[0], left[1] - right[1]) <= tolerance;
 }
 
 function parseOpacity(value: string | undefined): number {
@@ -247,6 +336,9 @@ function buildTree($: CheerioAPI): { root: ElementInfo; all: ElementInfo[] } {
       id: $el.attr("id"),
       zAttr: $el.attr("data-z"),
       pivotAttr: $el.attr("data-pivot"),
+      anchorAttr: $el.attr("data-anchor"),
+      socketsAttr: $el.attr("data-sockets"),
+      weld: parseWeld($el.attr("data-weld")),
       gain: parseGain($el.attr("data-parallax")),
       hasClip: $el.attr("clip-path") !== undefined,
       opacity: parseOpacity($el.attr("opacity") ?? $el.attr("fill-opacity")),
@@ -520,6 +612,196 @@ export function deriveParallaxRig(
     parentAnimated.set(info, cursor);
   }
 
+  // Joint welds: a part declares sockets, its structural children reference them.
+  const anchorPointByInfo = new Map<ElementInfo, [number, number]>();
+  const anchors: ParallaxAnchor[] = [];
+
+  if (!synthetic) {
+    const socketByName = new Map<
+      string,
+      { info: ElementInfo; point: [number, number] }
+    >();
+
+    for (const info of all) {
+      if (!info.socketsAttr) {
+        continue;
+      }
+      if (info.zAttr === undefined) {
+        warnings.push(
+          `data-sockets on ${describeElement(info)} is ignored because the element has no data-z`,
+        );
+        continue;
+      }
+      const declared = parseSockets(info.socketsAttr, (token) => {
+        warnings.push(
+          `invalid data-sockets token "${token}" on ${describeElement(info)}`,
+        );
+      });
+      for (const socket of declared) {
+        const existing = socketByName.get(socket.name);
+        if (existing) {
+          warnings.push(
+            `duplicate socket name "${socket.name}" on ${describeElement(info)}; keeping the first declaration`,
+          );
+          continue;
+        }
+        const [x, y] = socket.point;
+        if (x < viewBox[0] || y < viewBox[1] ||
+            x > viewBox[0] + viewBox[2] || y > viewBox[1] + viewBox[3]) {
+          warnings.push(
+            `socket "${socket.name}" on ${describeElement(info)} lies outside the viewBox`,
+          );
+        }
+        socketByName.set(socket.name, { info, point: socket.point });
+      }
+    }
+
+    // Anchored members and the anchor-graph edges used for cycle detection.
+    const anchorParents = new Map<ElementInfo, ElementInfo[]>();
+    const anchorHostByInfo = new Map<ElementInfo, string>();
+    const memberFrames = new Map<ElementInfo, "shared" | "local">();
+
+    const createsCycle = (member: ElementInfo, host: ElementInfo): boolean => {
+      const stack: ElementInfo[] = [host];
+      const seen = new Set<ElementInfo>();
+      while (stack.length > 0) {
+        const current = stack.pop();
+        if (!current) {
+          break;
+        }
+        if (current === member) {
+          return true;
+        }
+        if (seen.has(current)) {
+          continue;
+        }
+        seen.add(current);
+        for (const next of anchorParents.get(current) ?? []) {
+          stack.push(next);
+        }
+      }
+      return false;
+    };
+
+    for (const info of all) {
+      if (!info.anchorAttr) {
+        continue;
+      }
+      if (info.zAttr === undefined) {
+        warnings.push(
+          `data-anchor on ${describeElement(info)} is ignored because the element has no data-z`,
+        );
+        continue;
+      }
+      const names = parseAnchorNames(info.anchorAttr);
+      if (names.length === 0) {
+        warnings.push(
+          `empty data-anchor on ${describeElement(info)}; ignored`,
+        );
+        continue;
+      }
+      const memberId = idByInfo.get(info);
+      if (!memberId) {
+        continue;
+      }
+
+      for (const name of names) {
+        const socket = socketByName.get(name);
+        if (!socket) {
+          warnings.push(
+            `data-anchor "${name}" on ${describeElement(info)} has no matching data-sockets declaration`,
+          );
+          continue;
+        }
+        if (socket.info === info) {
+          warnings.push(
+            `data-anchor "${name}" on ${describeElement(info)} points at its own socket; ignored`,
+          );
+          continue;
+        }
+        const hostId = idByInfo.get(socket.info);
+        if (!hostId) {
+          warnings.push(
+            `socket "${name}" is declared on ${describeElement(socket.info)} which is not animated; ignored`,
+          );
+          continue;
+        }
+
+        const memberParent = parentAnimated.get(info) ?? null;
+        const hostParent = parentAnimated.get(socket.info) ?? null;
+        let frame: "shared" | "local";
+        if (memberParent === hostParent) {
+          frame = "shared";
+        } else if (memberParent === socket.info) {
+          frame = "local";
+        } else {
+          warnings.push(
+            `data-anchor "${name}" on ${describeElement(info)} crosses animated frames; weld ignored`,
+          );
+          continue;
+        }
+
+        if (createsCycle(info, socket.info)) {
+          warnings.push(
+            `data-anchor "${name}" on ${describeElement(info)} creates a cycle; weld ignored`,
+          );
+          continue;
+        }
+
+        const previousFrame = memberFrames.get(info);
+        if (previousFrame && previousFrame !== frame) {
+          warnings.push(
+            `data-anchor "${name}" on ${describeElement(info)} mixes shared and local frames; weld ignored`,
+          );
+          continue;
+        }
+        memberFrames.set(info, frame);
+
+        let anchor = anchors.find((candidate) => candidate.id === name);
+        if (!anchor) {
+          anchor = {
+            id: name,
+            host: hostId,
+            point: [socket.point[0], socket.point[1]],
+            members: [],
+          };
+          anchors.push(anchor);
+        }
+        if (anchor.host !== hostId) {
+          warnings.push(
+            `socket "${name}" is claimed by more than one host; keeping the first`,
+          );
+          continue;
+        }
+        if (anchor.members.some((member) => member.node === memberId)) {
+          continue;
+        }
+        anchor.members.push({ node: memberId, frame });
+
+        const parents = anchorParents.get(info) ?? [];
+        parents.push(socket.info);
+        anchorParents.set(info, parents);
+        anchorHostByInfo.set(info, name);
+
+        if (!anchorPointByInfo.has(info)) {
+          anchorPointByInfo.set(info, [socket.point[0], socket.point[1]]);
+        }
+      }
+    }
+
+    // A part with a single joint should pivot around that joint.
+    for (const [info, point] of anchorPointByInfo) {
+      const explicit = info.pivotAttr ? parsePivot(info.pivotAttr) : undefined;
+      if (explicit && !pointsClose(explicit, point, 8)) {
+        warnings.push(
+          `data-pivot on ${describeElement(info)} is ${Math.round(
+            Math.hypot(explicit[0] - point[0], explicit[1] - point[1]),
+          )} units from its socket "${anchorHostByInfo.get(info) ?? "?"}"; pivots should sit on the joint`,
+        );
+      }
+    }
+  }
+
   const pivotByInfo = new Map<ElementInfo, [number, number]>();
   const nodes: ParallaxNode[] = [];
 
@@ -538,10 +820,12 @@ export function deriveParallaxRig(
         `invalid data-pivot "${pivotAttr}" on <${info.tag}>; using geometry`,
       );
     }
+    const anchorPoint = anchorPointByInfo.get(info);
+    pivot ??= anchorPoint ? [anchorPoint[0], anchorPoint[1]] : undefined;
     pivot ??= geometryPivot($, info);
     pivot ??= parent ? pivotByInfo.get(parent) : undefined;
     pivot ??= center;
-    if (!info.pivotAttr && !synthetic && !parent) {
+    if (!info.pivotAttr && !anchorPoint && !synthetic && !parent) {
       warnings.push(
         `animated <${info.tag}> has no data-pivot; using its geometry center`,
       );
@@ -588,6 +872,7 @@ export function deriveParallaxRig(
       depth,
       pivot,
       gain: info.gain,
+      weld: info.weld,
       baseTransform: info.baseTransform ?? null,
       translate: {
         x: { const: 0, cx: translateGain, cy: 0 },
@@ -655,7 +940,7 @@ export function deriveParallaxRig(
 
   const rig: ParallaxRig = {
     format: "vector.parallax",
-    version: 1,
+    version: anchors.length > 0 ? 2 : 1,
     viewBox,
     cursor: { space: "normalized", neutral: [0.5, 0.5] },
     defaults: {
@@ -667,6 +952,7 @@ export function deriveParallaxRig(
       neutralZ: settings.neutralZ,
     },
     nodes,
+    anchors,
     synthetic,
     warnings: [...new Set(warnings)],
   };
@@ -726,14 +1012,163 @@ export function transformForNode(
   cursor: ParallaxCursor,
   viewBox: [number, number, number, number],
   multipliers: ParallaxMultipliers = {},
+  correction?: AnchorCorrection,
 ): string {
   const motion = evaluateParallaxNode(node, cursor, viewBox, multipliers);
+  const tx = motion.tx + (correction?.dx ?? 0);
+  const ty = motion.ty + (correction?.dy ?? 0);
   const [pivotX, pivotY] = node.pivot;
   return (
-    `translate(${formatNumber(motion.tx)} ${formatNumber(motion.ty)}) ` +
+    `translate(${formatNumber(tx)} ${formatNumber(ty)}) ` +
     `translate(${formatNumber(pivotX)} ${formatNumber(pivotY)}) ` +
     `rotate(${formatNumber(motion.rotate)}) ` +
     `scale(${formatNumber(motion.scale)}) ` +
     `translate(${formatNumber(-pivotX)} ${formatNumber(-pivotY)})`
   );
+}
+
+export interface AnchorCorrection {
+  dx: number;
+  dy: number;
+}
+
+/** Applies a node's own transform (and optional weld correction) to a point. */
+export function nodePoint(
+  node: ParallaxNode,
+  motion: ParallaxMotion,
+  point: [number, number],
+  correction?: AnchorCorrection,
+): [number, number] {
+  const radians = (motion.rotate * Math.PI) / 180;
+  const cos = Math.cos(radians);
+  const sin = Math.sin(radians);
+  const [pivotX, pivotY] = node.pivot;
+  const dx = point[0] - pivotX;
+  const dy = point[1] - pivotY;
+  return [
+    pivotX + motion.tx + (correction?.dx ?? 0) + motion.scale * (cos * dx - sin * dy),
+    pivotY + motion.ty + (correction?.dy ?? 0) + motion.scale * (sin * dx + cos * dy),
+  ];
+}
+
+/**
+ * Resolves joint welds for a cursor position.
+ *
+ * Each anchored node gets a translation delta that puts its joint exactly on
+ * the host's joint. Hosts are resolved first, so multi-hop anchor chains stay
+ * welded. A node with several anchors receives the weighted average delta.
+ */
+export function resolveAnchorCorrections(
+  rig: ParallaxRig,
+  cursor: ParallaxCursor,
+  viewBox: [number, number, number, number],
+  multipliers: ParallaxMultipliers = {},
+): Map<string, AnchorCorrection> {
+  const nodeById = new Map(rig.nodes.map((node) => [node.id, node]));
+  const motionById = new Map<string, ParallaxMotion>();
+  for (const node of rig.nodes) {
+    motionById.set(
+      node.id,
+      evaluateParallaxNode(node, cursor, viewBox, multipliers),
+    );
+  }
+
+  const corrections = new Map<string, AnchorCorrection>();
+  for (const node of rig.nodes) {
+    corrections.set(node.id, { dx: 0, dy: 0 });
+  }
+
+  const anchors = rig.anchors ?? [];
+  if (anchors.length === 0) {
+    return corrections;
+  }
+
+  const anchorsByMember = new Map<string, ParallaxAnchor[]>();
+  for (const anchor of anchors) {
+    for (const member of anchor.members) {
+      const list = anchorsByMember.get(member.node) ?? [];
+      list.push(anchor);
+      anchorsByMember.set(member.node, list);
+    }
+  }
+
+  const resolved = new Set<string>();
+  const resolving = new Set<string>();
+
+  const resolve = (id: string): void => {
+    if (resolved.has(id) || resolving.has(id)) {
+      return;
+    }
+    resolving.add(id);
+    const node = nodeById.get(id);
+    const motion = motionById.get(id);
+    if (node && motion) {
+      const nodeAnchors = anchorsByMember.get(id) ?? [];
+      let sumX = 0;
+      let sumY = 0;
+      let count = 0;
+      for (const anchor of nodeAnchors) {
+        resolve(anchor.host);
+        const host = nodeById.get(anchor.host);
+        const hostMotion = motionById.get(anchor.host);
+        const membership = anchor.members.find(
+          (member) => member.node === id,
+        );
+        if (!host || !hostMotion || !membership) {
+          continue;
+        }
+        const joint = anchor.point;
+        const own = nodePoint(node, motion, joint);
+        let targetX = joint[0];
+        let targetY = joint[1];
+        if (membership.frame === "shared") {
+          const hostCorrection = corrections.get(anchor.host);
+          const hostPoint = nodePoint(
+            host,
+            hostMotion,
+            joint,
+            hostCorrection,
+          );
+          targetX = hostPoint[0];
+          targetY = hostPoint[1];
+        }
+        sumX += (targetX - own[0]) * node.weld;
+        sumY += (targetY - own[1]) * node.weld;
+        count += 1;
+      }
+      if (count > 0) {
+        corrections.set(id, { dx: sumX / count, dy: sumY / count });
+      }
+    }
+    resolving.delete(id);
+    resolved.add(id);
+  };
+
+  for (const node of rig.nodes) {
+    resolve(node.id);
+  }
+
+  return corrections;
+}
+
+/** Convenience wrapper: transforms for every rig node at one cursor. */
+export function resolveRigTransforms(
+  rig: ParallaxRig,
+  cursor: ParallaxCursor,
+  multipliers: ParallaxMultipliers = {},
+): Map<string, string> {
+  const corrections = resolveAnchorCorrections(
+    rig,
+    cursor,
+    rig.viewBox,
+    multipliers,
+  );
+  const transforms = new Map<string, string>();
+  for (const node of rig.nodes) {
+    transforms.set(
+      node.id,
+      transformForNode(node, cursor, rig.viewBox, multipliers, corrections.get(node.id)),
+    );
+  }
+  return transforms;
 }

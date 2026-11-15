@@ -3,6 +3,9 @@ import { describe, expect, it } from "vitest";
 import {
   deriveParallaxRig,
   evaluateParallaxNode,
+  nodePoint,
+  resolveAnchorCorrections,
+  resolveRigTransforms,
   transformForNode,
   type ParallaxNode,
 } from "../src/services/parallax.js";
@@ -39,6 +42,28 @@ const LEGACY_SVG = [
   '      <circle cx="40" cy="40" r="60" fill="#fff" opacity="0.4" clip-path="url(#clip-body)"/>',
   "    </g>",
   '    <g id="front"><circle cx="600" cy="500" r="120" fill="#f00"/></g>',
+  "  </g>",
+  "</svg>",
+].join("\n");
+
+const ANCHOR_SVG = [
+  '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="100%" height="100%">',
+  '  <g id="subject" data-z="0.5" data-pivot="512,512">',
+  '    <g id="torso" data-z="0.32" data-pivot="500,480" data-sockets="neck:760,560 shoulder-left:560,470">',
+  '      <path id="torso-base" d="M 400 400 L 700 400 L 700 700 L 400 700 Z" fill="#888888" stroke="none"/>',
+  "    </g>",
+  '    <g id="head" data-z="0.55" data-sockets="crown:760,470" data-anchor="neck">',
+  '      <path id="head-base" d="M 650 400 L 880 400 L 880 620 L 650 620 Z" fill="#cccccc" stroke="none"/>',
+  '      <g id="left-eye" data-z="0.66" data-pivot="720,520">',
+  '        <circle cx="720" cy="520" r="30" fill="#111111" stroke="none"/>',
+  "      </g>",
+  "    </g>",
+  '    <g id="headwear" data-z="0.62" data-anchor="crown" data-pivot="760,470">',
+  '      <path id="headwear-base" d="M 690 380 L 830 380 L 830 470 L 690 470 Z" fill="#ff8800" stroke="none"/>',
+  "    </g>",
+  '    <g id="front-arm" data-z="0.7" data-anchor="shoulder-left" data-pivot="560,470">',
+  '      <path id="arm-base" d="M 520 440 L 600 440 L 600 760 L 520 760 Z" fill="#aaaaaa" stroke="none"/>',
+  "    </g>",
   "  </g>",
   "</svg>",
 ].join("\n");
@@ -233,5 +258,222 @@ describe("parallax evaluation", () => {
     });
     expect(neutral.scale).toBeCloseTo(1, 10);
     expect(neutral.rotate).toBeCloseTo(0, 10);
+  });
+});
+
+describe("parallax joint welds", () => {
+  const multipliers = { shift: 2, scale: 3.33, rotate: 3.33 };
+
+  function jointFor(rig: ReturnType<typeof deriveParallaxRig>["rig"], id: string, point: [number, number], cursor: { x: number; y: number }) {
+    const node = nodeById(rig.nodes, id);
+    const motion = evaluateParallaxNode(node, cursor, rig.viewBox, multipliers);
+    const correction = resolveAnchorCorrections(
+      rig,
+      cursor,
+      rig.viewBox,
+      multipliers,
+    ).get(id);
+    return nodePoint(node, motion, point, correction);
+  }
+
+  it("derives sockets and anchor welds with joint pivots", () => {
+    const { rig } = deriveParallaxRig(ANCHOR_SVG);
+
+    expect(rig.version).toBe(2);
+    expect(rig.warnings).toEqual([]);
+    expect(rig.anchors.map((anchor) => anchor.id)).toEqual([
+      "neck",
+      "crown",
+      "shoulder-left",
+    ]);
+
+    const neck = rig.anchors[0];
+    expect(neck?.host).toBe("torso");
+    expect(neck?.point).toEqual([760, 560]);
+    expect(neck?.members).toEqual([{ node: "head", frame: "shared" }]);
+
+    const head = nodeById(rig.nodes, "head");
+    expect(head.pivot).toEqual([760, 560]);
+    expect(head.weld).toBe(1);
+
+    // The nested eye is not anchored; it inherits the head's weld.
+    const eye = nodeById(rig.nodes, "left-eye");
+    expect(eye.pivot).toEqual([720, 520]);
+    expect(rig.anchors.some((anchor) =>
+      anchor.members.some((member) => member.node === "left-eye"),
+    )).toBe(false);
+  });
+
+  it("keeps multi-hop joints pinned at cursor extremes", () => {
+    const { rig } = deriveParallaxRig(ANCHOR_SVG);
+
+    for (const cursor of [
+      { x: 1, y: 0.5 },
+      { x: 0.1, y: 0.9 },
+      { x: 0.5, y: 0 },
+    ]) {
+      const torsoNeck = jointFor(rig, "torso", [760, 560], cursor);
+      const headNeck = jointFor(rig, "head", [760, 560], cursor);
+      expect(headNeck[0]).toBeCloseTo(torsoNeck[0], 8);
+      expect(headNeck[1]).toBeCloseTo(torsoNeck[1], 8);
+
+      const headCrown = jointFor(rig, "head", [760, 470], cursor);
+      const headwearCrown = jointFor(rig, "headwear", [760, 470], cursor);
+      expect(headwearCrown[0]).toBeCloseTo(headCrown[0], 8);
+      expect(headwearCrown[1]).toBeCloseTo(headCrown[1], 8);
+
+      const torsoShoulder = jointFor(rig, "torso", [560, 470], cursor);
+      const armShoulder = jointFor(rig, "front-arm", [560, 470], cursor);
+      expect(armShoulder[0]).toBeCloseTo(torsoShoulder[0], 8);
+      expect(armShoulder[1]).toBeCloseTo(torsoShoulder[1], 8);
+    }
+  });
+
+  it("cancels relative translation for a weld inside the host's frame", () => {
+    const svg = [
+      '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">',
+      '  <g id="torso" data-z="0.3" data-pivot="500,500" data-sockets="neck:700,500">',
+      '    <rect x="400" y="400" width="200" height="200" fill="#888"/>',
+      '    <g id="head" data-z="0.7" data-anchor="neck">',
+      '      <rect x="650" y="380" width="100" height="120" fill="#ccc"/>',
+      "    </g>",
+      "  </g>",
+      "</svg>",
+    ].join("\n");
+
+    const { rig } = deriveParallaxRig(svg);
+    expect(rig.warnings).toEqual([]);
+    expect(rig.anchors[0]?.members).toEqual([
+      { node: "head", frame: "local" },
+    ]);
+
+    const cursor = { x: 1, y: 0.2 };
+    const head = nodeById(rig.nodes, "head");
+    const motion = evaluateParallaxNode(head, cursor, rig.viewBox, multipliers);
+    const correction = resolveAnchorCorrections(
+      rig,
+      cursor,
+      rig.viewBox,
+      multipliers,
+    ).get("head");
+    const joint = nodePoint(head, motion, [700, 500], correction);
+    expect(joint[0]).toBeCloseTo(700, 8);
+    expect(joint[1]).toBeCloseTo(500, 8);
+  });
+
+  it("actually corrects a visible separation", () => {
+    const { rig } = deriveParallaxRig(ANCHOR_SVG);
+    const cursor = { x: 1, y: 0.5 };
+    const head = nodeById(rig.nodes, "head");
+    const torso = nodeById(rig.nodes, "torso");
+    const motion = (node: ParallaxNode) =>
+      evaluateParallaxNode(node, cursor, rig.viewBox, multipliers);
+
+    const rawHead = nodePoint(head, motion(head), [760, 560]);
+    const rawTorso = nodePoint(torso, motion(torso), [760, 560]);
+    const rawGap = Math.hypot(rawHead[0] - rawTorso[0], rawHead[1] - rawTorso[1]);
+    expect(rawGap).toBeGreaterThan(2);
+  });
+
+  it("is identity at the neutral cursor", () => {
+    const { rig } = deriveParallaxRig(ANCHOR_SVG);
+    const corrections = resolveAnchorCorrections(
+      rig,
+      { x: 0.5, y: 0.5 },
+      rig.viewBox,
+    );
+    for (const correction of corrections.values()) {
+      expect(correction.dx).toBeCloseTo(0, 10);
+      expect(correction.dy).toBeCloseTo(0, 10);
+    }
+  });
+
+  it("honours a partial weld", () => {
+    const svg = ANCHOR_SVG.replace(
+      'data-anchor="shoulder-left"',
+      'data-anchor="shoulder-left" data-weld="0.5"',
+    );
+    const cursor = { x: 1, y: 0.5 };
+    const full = deriveParallaxRig(ANCHOR_SVG).rig;
+    const half = deriveParallaxRig(svg).rig;
+    const fullCorrection = resolveAnchorCorrections(
+      full,
+      cursor,
+      full.viewBox,
+      multipliers,
+    ).get("front-arm");
+    const halfCorrection = resolveAnchorCorrections(
+      half,
+      cursor,
+      half.viewBox,
+      multipliers,
+    ).get("front-arm");
+
+    expect(nodeById(half.nodes, "front-arm").weld).toBe(0.5);
+    expect(halfCorrection?.dx).toBeCloseTo((fullCorrection?.dx ?? 0) * 0.5, 10);
+    expect(halfCorrection?.dy).toBeCloseTo((fullCorrection?.dy ?? 0) * 0.5, 10);
+  });
+
+  it("emits warnings for malformed weld metadata", () => {
+    const svg = [
+      '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">',
+      '  <g id="subject" data-z="0.5" data-pivot="512,512">',
+      '    <g id="body" data-z="0.35" data-pivot="500,500" data-sockets="neck:700,500 neck:710,500">',
+      '      <rect x="400" y="400" width="200" height="200" fill="#888"/>',
+      "    </g>",
+      '    <g id="head" data-z="0.6" data-anchor="neck" data-pivot="600,500">',
+      '      <rect x="650" y="400" width="100" height="100" fill="#ccc"/>',
+      "    </g>",
+      '    <g id="hat" data-z="0.7" data-anchor="missing" data-pivot="700,450">',
+      '      <rect x="660" y="380" width="80" height="40" fill="#f80"/>',
+      "    </g>",
+      '    <g id="static" data-anchor="neck">',
+      '      <rect x="0" y="0" width="10" height="10" fill="#000"/>',
+      "    </g>",
+      "  </g>",
+      "</svg>",
+    ].join("\n");
+
+    const { rig } = deriveParallaxRig(svg);
+    const warnings = rig.warnings.join(" ");
+
+    expect(warnings).toContain("duplicate socket name");
+    expect(warnings).toContain("has no matching data-sockets");
+    expect(warnings).toContain("has no data-z");
+    expect(warnings).toContain("from its socket");
+  });
+
+  it("rejects anchor cycles", () => {
+    const svg = [
+      '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">',
+      '  <g id="subject" data-z="0.5" data-pivot="512,512">',
+      '    <g id="a" data-z="0.3" data-pivot="300,300" data-sockets="to-b:300,300" data-anchor="to-a">',
+      '      <rect x="0" y="0" width="10" height="10" fill="#888"/>',
+      "    </g>",
+      '    <g id="b" data-z="0.6" data-pivot="700,700" data-sockets="to-a:700,700" data-anchor="to-b">',
+      '      <rect x="0" y="0" width="10" height="10" fill="#ccc"/>',
+      "    </g>",
+      "  </g>",
+      "</svg>",
+    ].join("\n");
+
+    const { rig } = deriveParallaxRig(svg);
+    expect(rig.warnings.join(" ")).toContain("creates a cycle");
+    expect(rig.anchors).toHaveLength(1);
+  });
+
+  it("resolves every node transform with weld corrections", () => {
+    const { rig } = deriveParallaxRig(ANCHOR_SVG);
+    const transforms = resolveRigTransforms(rig, { x: 1, y: 1 }, multipliers);
+
+    expect(transforms.size).toBe(rig.nodes.length);
+    expect(transforms.get("pivot")).toBeUndefined();
+    expect(transforms.get("head")).toContain("translate(");
+  });
+
+  it("leaves rigs without anchors at version 1", () => {
+    const { rig } = deriveParallaxRig(DEPTH_SVG);
+    expect(rig.version).toBe(1);
+    expect(rig.anchors).toEqual([]);
   });
 });
