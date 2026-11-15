@@ -27,6 +27,16 @@ const VALID_SVG = [
   "```",
 ].join("\n");
 
+// Non-ASCII warning text used to end up in a response header and made Fastify
+// throw ERR_INVALID_CHAR, turning a successful conversion into a 500.
+const NON_ASCII_WARNING_SVG = [
+  "```xml",
+  '<svg xmlns="http://www.w3.org/2000/svg" viewBox="😀" width="100%" height="100%">',
+  '  <circle cx="512" cy="512" r="200" fill="#ff0000" stroke="none"/>',
+  "</svg>",
+  "```",
+].join("\n");
+
 const PROMPT: PromptBundle = {
   text: "You are a vector illustrator.",
   version: "testversion",
@@ -216,6 +226,32 @@ describe("POST /v1/vectorize", () => {
       "back",
       "front",
     ]);
+  });
+
+  it("keeps non-ASCII warnings out of response headers", async () => {
+    const client = new FakeClient([NON_ASCII_WARNING_SVG]);
+    const app = await makeApp(client);
+    const png = await makePng();
+    const payload = { image: png.toString("base64") };
+
+    const svgResponse = await app.inject({
+      method: "POST",
+      url: "/v1/vectorize",
+      payload,
+    });
+    expect(svgResponse.statusCode).toBe(200);
+    expect(svgResponse.headers["x-svg-warnings"]).toBeUndefined();
+
+    const jsonResponse = await app.inject({
+      method: "POST",
+      url: "/v1/vectorize?format=json",
+      payload,
+    });
+    expect(jsonResponse.statusCode).toBe(200);
+    expect(jsonResponse.headers["x-svg-warnings"]).toBeUndefined();
+    const { warnings } = jsonResponse.json() as { warnings: string[] };
+    expect(warnings.join(" ")).toContain("invalid viewBox");
+    expect(warnings.some((warning) => warning.includes("😀"))).toBe(true);
   });
 
   it("persists conversions and exposes them through the review API", async () => {

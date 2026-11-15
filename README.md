@@ -109,8 +109,10 @@ Content-Disposition: inline; filename="vector.svg"
 X-Request-Id: f47ac10b-58cc-4372-a567-0e02b2c3d479
 X-Model: google/gemini-2.5-flash
 X-Prompt-Version: 62966b3d919e
-X-Svg-Warnings: removed raster <image> element
 ```
+
+Parser and rig warnings are not exposed as response headers; request the JSON
+response (`?format=json`) to read the `warnings` array.
 
 **JSON response**:
 

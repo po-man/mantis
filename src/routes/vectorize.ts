@@ -2,7 +2,6 @@ import type { FastifyInstance, FastifyRequest } from "fastify";
 import type { Config } from "../config.js";
 import { AppError, isAppError } from "../lib/errors.js";
 import type { Semaphore } from "../lib/semaphore.js";
-import { truncate } from "../lib/text.js";
 import { decodeImagePayload, normalizeImage } from "../services/image.js";
 import type { ChatClient } from "../services/openrouter.js";
 import type { PromptBundle } from "../services/prompt.js";
@@ -289,13 +288,6 @@ export async function registerVectorizeRoute(
         "content-security-policy",
         "default-src 'none'; style-src 'unsafe-inline'",
       );
-
-      if (result.warnings.length > 0) {
-        reply.header(
-          "x-svg-warnings",
-          truncate(result.warnings.join("; "), 1000),
-        );
-      }
 
       if (format === "json") {
         return reply.send({

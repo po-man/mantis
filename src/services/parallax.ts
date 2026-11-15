@@ -645,7 +645,7 @@ export function deriveParallaxRig(
           ) {
             warnings.push(
               `paint order is not ascending by data-z near <${current.tag}> ` +
-                `(${previousZ.toFixed(2)} → ${currentZ.toFixed(2)})`,
+                `(${previousZ.toFixed(2)} -> ${currentZ.toFixed(2)})`,
             );
           }
         }
