@@ -84,6 +84,7 @@ function emptyRig(warning: string): ParallaxRig {
       neutralZ: 0.5,
     },
     nodes: [],
+    anchors: [],
     synthetic: false,
     warnings: [warning],
   };
