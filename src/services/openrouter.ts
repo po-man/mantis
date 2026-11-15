@@ -22,6 +22,7 @@ export interface OpenRouterResult {
   finishReason: string | null;
   usage: TokenUsage | null;
   model: string;
+  latencyMs: number;
 }
 
 export interface UpstreamLogger {
@@ -198,6 +199,7 @@ export class OpenRouterClient implements ChatClient {
     const content = extractContent(choice?.message?.content);
     const usage = mapUsage(payload.usage);
     const model = payload.model ?? this.config.openrouterModel;
+    const latencyMs = Math.round(performance.now() - startedAt);
 
     options.logger?.info(
       {
@@ -206,7 +208,7 @@ export class OpenRouterClient implements ChatClient {
         promptTokens: usage?.promptTokens ?? 0,
         completionTokens: usage?.completionTokens ?? 0,
         totalTokens: usage?.totalTokens ?? 0,
-        latencyMs: Math.round(performance.now() - startedAt),
+        latencyMs,
         finishReason: choice?.finish_reason ?? null,
         contentLength: content.length,
       },
@@ -226,6 +228,7 @@ export class OpenRouterClient implements ChatClient {
       finishReason: choice?.finish_reason ?? null,
       usage,
       model,
+      latencyMs,
     };
   }
 }

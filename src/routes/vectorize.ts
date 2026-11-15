@@ -1,18 +1,30 @@
 import type { FastifyInstance, FastifyRequest } from "fastify";
 import type { Config } from "../config.js";
-import { AppError } from "../lib/errors.js";
+import { AppError, isAppError } from "../lib/errors.js";
 import type { Semaphore } from "../lib/semaphore.js";
 import { truncate } from "../lib/text.js";
 import { decodeImagePayload, normalizeImage } from "../services/image.js";
 import type { ChatClient } from "../services/openrouter.js";
 import type { PromptBundle } from "../services/prompt.js";
-import { vectorizeImage } from "../services/vectorize.js";
+import type {
+  ConversionInputImage,
+  ConversionMetrics,
+  ConversionStore,
+} from "../services/store.js";
+import {
+  aggregateUsage,
+  vectorizeImage,
+  type LlmCallMetric,
+  type VectorizeResult,
+} from "../services/vectorize.js";
 
 export interface VectorizeRouteDeps {
   config: Config;
   prompt: PromptBundle;
+  promptId: number;
   client: ChatClient;
   semaphore: Semaphore;
+  store: ConversionStore;
 }
 
 type OutputFormat = "svg" | "json";
@@ -31,6 +43,50 @@ function resolveFormat(request: FastifyRequest): OutputFormat {
     return "json";
   }
   return "svg";
+}
+
+function failureDetails(error: unknown): {
+  attempts?: number;
+  calls: LlmCallMetric[];
+} {
+  if (!isAppError(error) || !error.details || typeof error.details !== "object") {
+    return { calls: [] };
+  }
+  const details = error.details as Record<string, unknown>;
+  return {
+    attempts:
+      typeof details.attempts === "number" ? details.attempts : undefined,
+    calls: Array.isArray(details.calls)
+      ? (details.calls as LlmCallMetric[])
+      : [],
+  };
+}
+
+function buildMetrics(
+  calls: LlmCallMetric[],
+  latencyMs: number,
+): ConversionMetrics {
+  const usage = aggregateUsage(calls);
+  return {
+    latencyMs,
+    upstreamLatencyMs: calls.reduce((total, call) => total + call.latencyMs, 0),
+    promptTokens: usage?.promptTokens ?? 0,
+    completionTokens: usage?.completionTokens ?? 0,
+    totalTokens: usage?.totalTokens ?? 0,
+    calls,
+  };
+}
+
+function persistConversion(
+  deps: VectorizeRouteDeps,
+  request: FastifyRequest,
+  entry: Parameters<ConversionStore["record"]>[0],
+): void {
+  try {
+    deps.store.record(entry);
+  } catch (error) {
+    request.log.error({ err: error }, "failed to persist conversion");
+  }
 }
 
 async function readImageBuffer(
@@ -122,12 +178,25 @@ export async function registerVectorizeRoute(
       },
     },
     async (request, reply) => {
+      const startedAt = performance.now();
       const format = resolveFormat(request);
       const buffer = await readImageBuffer(request, deps.config);
       const image = await normalizeImage(buffer, {
         maxBytes: deps.config.maxUploadBytes,
         maxDimension: deps.config.maxImageDimension,
       });
+
+      const input: ConversionInputImage = {
+        mime: image.mime,
+        width: image.width,
+        height: image.height,
+        bytes: image.bytes,
+        originalWidth: image.originalWidth,
+        originalHeight: image.originalHeight,
+        originalBytes: buffer.length,
+        downsampled: image.resized,
+        data: image.data,
+      };
 
       request.log.info(
         {
@@ -145,24 +214,68 @@ export async function registerVectorizeRoute(
         image.resized ? "image downsampled" : "image not downsampled",
       );
 
-      if (deps.semaphore.pending >= deps.config.maxQueue) {
-        throw new AppError(
-          "rate_limited",
-          "Too many queued requests; retry shortly",
-          429,
-        );
+      let result: VectorizeResult;
+      try {
+        if (deps.semaphore.pending >= deps.config.maxQueue) {
+          throw new AppError(
+            "rate_limited",
+            "Too many queued requests; retry shortly",
+            429,
+          );
+        }
+
+        const release = await deps.semaphore.acquire();
+        try {
+          result = await vectorizeImage(deps, image, {
+            requestId: request.id,
+            logger: request.log,
+          });
+        } finally {
+          release();
+        }
+      } catch (error) {
+        const details = failureDetails(error);
+        persistConversion(deps, request, {
+          requestId: request.id,
+          status: "error",
+          model: null,
+          promptId: deps.promptId,
+          attempts: details.attempts ?? 0,
+          input,
+          output: null,
+          metrics: buildMetrics(
+            details.calls,
+            Math.round(performance.now() - startedAt),
+          ),
+          error: {
+            code: isAppError(error) ? error.code : "internal_error",
+            message:
+              error instanceof Error ? error.message : "Unknown error",
+          },
+        });
+        throw error;
       }
 
-      const release = await deps.semaphore.acquire();
-      let result;
-      try {
-        result = await vectorizeImage(deps, image, {
-          requestId: request.id,
-          logger: request.log,
-        });
-      } finally {
-        release();
-      }
+      persistConversion(deps, request, {
+        requestId: request.id,
+        status: "success",
+        model: result.model,
+        promptId: deps.promptId,
+        attempts: result.attempts,
+        input,
+        output: {
+          svg: result.svg,
+          bytes: result.stats.bytes,
+          elements: result.stats.elements,
+          paths: result.stats.paths,
+          warnings: result.warnings,
+        },
+        metrics: buildMetrics(
+          result.calls,
+          Math.round(performance.now() - startedAt),
+        ),
+        error: null,
+      });
 
       reply.header("x-request-id", request.id);
       reply.header("x-model", result.model);

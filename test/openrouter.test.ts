@@ -24,6 +24,8 @@ function makeConfig(baseUrl: string, overrides: Partial<Config> = {}): Config {
     maxQueue: 4,
     retryOnInvalidSvg: 1,
     requestTimeoutMs: 10_000,
+    databasePath: ":memory:",
+    reviewUiEnabled: false,
     ...overrides,
   };
 }

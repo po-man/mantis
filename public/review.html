@@ -1,0 +1,591 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>vector · review</title>
+    <style>
+      :root {
+        color-scheme: dark;
+        --bg: #0d1117;
+        --panel: #161b22;
+        --panel-2: #1c2330;
+        --border: #30363d;
+        --text: #e6edf3;
+        --muted: #8b949e;
+        --accent: #58a6ff;
+        --good: #3fb950;
+        --bad: #f85149;
+        --warn: #d29922;
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--text);
+        font: 14px/1.5 ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+      }
+      header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        padding: 20px 24px 12px;
+      }
+      h1 { margin: 0; font-size: 20px; letter-spacing: -0.02em; }
+      h2 { margin: 0; font-size: 16px; }
+      p.sub { margin: 2px 0 0; color: var(--muted); font-size: 13px; }
+      main { padding: 0 24px 32px; }
+      button, select, input {
+        font: inherit;
+        color: var(--text);
+        background: var(--panel-2);
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        padding: 7px 10px;
+      }
+      button { cursor: pointer; }
+      button:hover { border-color: var(--accent); }
+      button:disabled { opacity: 0.45; cursor: default; }
+      button.primary { background: #1f6feb; border-color: #1f6feb; }
+      .stats {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 10px;
+        margin-bottom: 14px;
+      }
+      .card {
+        background: var(--panel);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 12px 14px;
+      }
+      .card .label { color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: 0.04em; }
+      .card .value { font-size: 22px; font-weight: 650; margin-top: 2px; }
+      .filters {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        align-items: center;
+        margin-bottom: 12px;
+      }
+      .filters input { min-width: 150px; }
+      .table-wrap {
+        background: var(--panel);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        overflow: auto;
+      }
+      table { width: 100%; border-collapse: collapse; min-width: 980px; }
+      th, td { padding: 9px 10px; text-align: left; border-bottom: 1px solid var(--border); vertical-align: middle; }
+      th { color: var(--muted); font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.03em; background: var(--panel-2); position: sticky; top: 0; }
+      tbody tr { cursor: pointer; }
+      tbody tr:hover { background: #1b2230; }
+      tbody tr:last-child td { border-bottom: 0; }
+      .thumb { width: 44px; height: 44px; object-fit: contain; background: #fff; border-radius: 4px; border: 1px solid var(--border); }
+      .badge { display: inline-block; padding: 1px 7px; border-radius: 999px; font-size: 12px; font-weight: 600; }
+      .badge.success { color: var(--good); background: rgba(63, 185, 80, 0.12); }
+      .badge.error { color: var(--bad); background: rgba(248, 81, 73, 0.12); }
+      .badge.ds { color: var(--warn); background: rgba(210, 153, 34, 0.12); }
+      .muted { color: var(--muted); }
+      .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 12px; }
+      .empty { padding: 28px; text-align: center; color: var(--muted); }
+      footer.pager { display: flex; align-items: center; gap: 10px; justify-content: flex-end; padding-top: 12px; }
+      .prompt-stats { margin: 0 0 14px; }
+      .prompt-stats table { min-width: 0; }
+      .prompt-stats th, .prompt-stats td { padding: 6px 8px; }
+      .overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(1, 4, 9, 0.72);
+        display: flex;
+        align-items: flex-start;
+        justify-content: center;
+        padding: 24px;
+        overflow: auto;
+        z-index: 10;
+      }
+      .overlay[hidden] { display: none; }
+      .panel {
+        width: min(1180px, 100%);
+        background: var(--panel);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+      }
+      .panel-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 14px 18px;
+        border-bottom: 1px solid var(--border);
+        position: sticky;
+        top: 0;
+        background: var(--panel);
+        border-radius: 10px 10px 0 0;
+        z-index: 1;
+      }
+      .panel-body { padding: 18px; }
+      .meta { display: flex; flex-wrap: wrap; gap: 8px 16px; color: var(--muted); font-size: 13px; margin-bottom: 14px; }
+      .previews { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+      @media (max-width: 800px) { .previews { grid-template-columns: 1fr; } }
+      .preview {
+        background: #fff;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        min-height: 280px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+      }
+      .preview img { max-width: 100%; max-height: 520px; display: block; }
+      .preview .placeholder { color: #57606a; padding: 20px; text-align: center; }
+      .preview-label { color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: 0.04em; margin: 0 0 6px; }
+      .metrics { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 8px; margin: 16px 0; }
+      .metric { background: var(--panel-2); border: 1px solid var(--border); border-radius: 6px; padding: 8px 10px; }
+      .metric .k { color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; }
+      .metric .v { font-weight: 600; margin-top: 1px; }
+      details { border: 1px solid var(--border); border-radius: 8px; padding: 10px 12px; margin-top: 12px; background: var(--panel-2); }
+      summary { cursor: pointer; font-weight: 600; }
+      pre { white-space: pre-wrap; word-break: break-word; margin: 10px 0 0; max-height: 420px; overflow: auto; }
+      .warnings { margin: 8px 0 0; padding-left: 20px; color: var(--warn); }
+      .calls { margin-top: 10px; }
+      .calls table { min-width: 0; }
+      .calls th, .calls td { padding: 6px 8px; }
+      .error-box { color: var(--bad); background: rgba(248, 81, 73, 0.08); border: 1px solid rgba(248, 81, 73, 0.3); border-radius: 6px; padding: 10px 12px; margin-top: 12px; }
+      .toolbar { display: flex; gap: 8px; flex-wrap: wrap; }
+      a { color: var(--accent); }
+    </style>
+  </head>
+  <body>
+    <header>
+      <div>
+        <h1>vector · review</h1>
+        <p class="sub">Inspect conversion inputs, SVG outputs, prompts, and LLM metrics.</p>
+      </div>
+      <button id="refresh" class="primary">Refresh</button>
+    </header>
+
+    <main>
+      <section class="stats" id="stats"></section>
+      <section class="prompt-stats" id="prompt-stats"></section>
+
+      <section class="filters">
+        <select id="status">
+          <option value="">All statuses</option>
+          <option value="success">Success</option>
+          <option value="error">Error</option>
+        </select>
+        <input id="model" placeholder="Model" />
+        <input id="promptVersion" placeholder="Prompt version" />
+        <input id="q" placeholder="Search request id / model / prompt" />
+        <button id="apply" class="primary">Apply</button>
+        <button id="reset">Reset</button>
+      </section>
+
+      <section class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>ID / time</th>
+              <th>Status</th>
+              <th>Input</th>
+              <th>Dimensions</th>
+              <th>Model</th>
+              <th>Prompt</th>
+              <th>Attempts</th>
+              <th>Latency</th>
+              <th>Tokens</th>
+              <th>SVG</th>
+              <th>Warnings</th>
+            </tr>
+          </thead>
+          <tbody id="rows"></tbody>
+        </table>
+        <div id="empty" class="empty" hidden>No conversions recorded yet.</div>
+      </section>
+
+      <footer class="pager">
+        <span id="page" class="muted"></span>
+        <button id="prev">Prev</button>
+        <button id="next">Next</button>
+      </footer>
+    </main>
+
+    <div id="overlay" class="overlay" hidden>
+      <div class="panel">
+        <div class="panel-head">
+          <h2 id="detail-title">Conversion</h2>
+          <button id="close">Close</button>
+        </div>
+        <div class="panel-body" id="detail-body"></div>
+      </div>
+    </div>
+
+    <script>
+      const state = { limit: 25, offset: 0, total: 0, filters: {} };
+
+      const $ = (id) => document.getElementById(id);
+
+      function escapeHtml(value) {
+        return String(value ?? "")
+          .replaceAll("&", "&amp;")
+          .replaceAll("<", "&lt;")
+          .replaceAll(">", "&gt;")
+          .replaceAll('"', "&quot;")
+          .replaceAll("'", "&#39;");
+      }
+
+      function fmtNum(value) {
+        return Number(value ?? 0).toLocaleString();
+      }
+
+      function fmtMs(value) {
+        const ms = Number(value ?? 0);
+        return ms >= 1000 ? (ms / 1000).toFixed(2) + " s" : Math.round(ms) + " ms";
+      }
+
+      function fmtBytes(value) {
+        const bytes = Number(value ?? 0);
+        if (!bytes) return "—";
+        if (bytes < 1024) return bytes + " B";
+        if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + " KiB";
+        return (bytes / (1024 * 1024)).toFixed(2) + " MiB";
+      }
+
+      function fmtDate(value) {
+        if (!value) return "—";
+        return new Date(Number(value)).toLocaleString();
+      }
+
+      function statusBadge(status) {
+        return '<span class="badge ' + escapeHtml(status) + '">' + escapeHtml(status) + "</span>";
+      }
+
+      async function api(path) {
+        const response = await fetch(path, { headers: { accept: "application/json" } });
+        if (!response.ok) {
+          let message = response.status + " " + response.statusText;
+          try {
+            const body = await response.json();
+            message = body?.error?.message || message;
+          } catch {}
+          throw new Error(message);
+        }
+        return response.json();
+      }
+
+      function renderStats(stats) {
+        const cards = [
+          ["Conversions", fmtNum(stats.total)],
+          ["Success rate", (Number(stats.successRate ?? 0) * 100).toFixed(1) + "%"],
+          ["Avg latency", fmtMs(stats.avgLatencyMs)],
+          ["Total tokens", fmtNum(stats.totalTokens)],
+          ["Avg tokens", fmtNum(Math.round(stats.avgTokens ?? 0))],
+          ["Downsampled", fmtNum(stats.downsampled)],
+        ];
+        $("stats").innerHTML = cards
+          .map(
+            ([label, value]) =>
+              '<div class="card"><div class="label">' + escapeHtml(label) +
+              '</div><div class="value">' + escapeHtml(value) + "</div></div>",
+          )
+          .join("");
+
+        const prompts = stats.prompts || [];
+        if (prompts.length === 0) {
+          $("prompt-stats").innerHTML = "";
+          return;
+        }
+        $("prompt-stats").innerHTML =
+          '<div class="table-wrap"><table><thead><tr>' +
+          "<th>Prompt version</th><th>Total</th><th>Success</th><th>Errors</th>" +
+          "<th>Avg latency</th><th>Avg tokens</th></tr></thead><tbody>" +
+          prompts
+            .map(
+              (prompt) =>
+                "<tr><td class=\"mono\">" + escapeHtml(prompt.version) +
+                "</td><td>" + fmtNum(prompt.total) +
+                "</td><td>" + fmtNum(prompt.successes) +
+                "</td><td>" + fmtNum(prompt.errors) +
+                "</td><td>" + escapeHtml(fmtMs(prompt.avgLatencyMs)) +
+                "</td><td>" + fmtNum(Math.round(prompt.avgTokens ?? 0)) +
+                "</td></tr>",
+            )
+            .join("") +
+          "</tbody></table></div>";
+      }
+
+      function renderRows(items) {
+        $("empty").hidden = items.length > 0;
+        $("rows").innerHTML = items
+          .map((item) => {
+            const thumb = item.hasInput
+              ? '<img class="thumb" loading="lazy" src="/review/api/conversions/' +
+                item.id + '/input" alt="input" />'
+              : '<span class="muted">—</span>';
+            const dims = item.inputWidth
+              ? item.inputWidth + "×" + item.inputHeight
+              : "—";
+            const original = item.originalWidth
+              ? item.originalWidth + "×" + item.originalHeight
+              : "—";
+            const ds = item.downsampled
+              ? ' <span class="badge ds">DS</span>'
+              : "";
+            const svg = item.outputBytes
+              ? fmtBytes(item.outputBytes) + " · " + fmtNum(item.svgPaths) + " paths"
+              : "—";
+            return (
+              '<tr data-id="' + item.id + '">' +
+              "<td><div class=\"mono\">#" + item.id + "</div><div class=\"muted\">" +
+              escapeHtml(fmtDate(item.createdAt)) + "</div></td>" +
+              "<td>" + statusBadge(item.status) + "</td>" +
+              "<td>" + thumb + "</td>" +
+              "<td><div>" + escapeHtml(dims) + ds + "</div><div class=\"muted\">from " +
+              escapeHtml(original) + "</div></td>" +
+              "<td class=\"mono\">" + escapeHtml(item.model || "—") + "</td>" +
+              "<td class=\"mono\">" + escapeHtml(item.promptVersion) + "</td>" +
+              "<td>" + fmtNum(item.attempts) + "</td>" +
+              "<td>" + escapeHtml(fmtMs(item.latencyMs)) + "</td>" +
+              "<td>" + fmtNum(item.totalTokens) + "</td>" +
+              "<td>" + escapeHtml(svg) + "</td>" +
+              "<td>" + fmtNum(item.warningCount) + "</td>" +
+              "</tr>"
+            );
+          })
+          .join("");
+
+        for (const row of $("rows").querySelectorAll("tr")) {
+          row.addEventListener("click", () => openDetail(Number(row.dataset.id)));
+        }
+      }
+
+      function metric(label, value) {
+        return (
+          '<div class="metric"><div class="k">' + escapeHtml(label) +
+          '</div><div class="v">' + escapeHtml(value) + "</div></div>"
+        );
+      }
+
+      function renderCalls(calls) {
+        if (!calls || calls.length === 0) {
+          return '<p class="muted">No per-call metrics recorded.</p>';
+        }
+        return (
+          '<div class="calls"><table><thead><tr>' +
+          "<th>Attempt</th><th>Model</th><th>Latency</th><th>Prompt</th>" +
+          "<th>Completion</th><th>Total</th><th>Finish</th><th>Chars</th>" +
+          "</tr></thead><tbody>" +
+          calls
+            .map(
+              (call) =>
+                "<tr><td>" + fmtNum(call.attempt) +
+                "</td><td class=\"mono\">" + escapeHtml(call.model) +
+                "</td><td>" + escapeHtml(fmtMs(call.latencyMs)) +
+                "</td><td>" + fmtNum(call.promptTokens) +
+                "</td><td>" + fmtNum(call.completionTokens) +
+                "</td><td>" + fmtNum(call.totalTokens) +
+                "</td><td>" + escapeHtml(call.finishReason || "—") +
+                "</td><td>" + fmtNum(call.contentLength) +
+                "</td></tr>",
+            )
+            .join("") +
+          "</tbody></table></div>"
+        );
+      }
+
+      async function openDetail(id) {
+        $("overlay").hidden = false;
+        $("detail-title").textContent = "Conversion #" + id;
+        $("detail-body").innerHTML = '<p class="muted">Loading…</p>';
+
+        let detail;
+        try {
+          detail = await api("/review/api/conversions/" + id);
+        } catch (error) {
+          $("detail-body").innerHTML =
+            '<div class="error-box">' + escapeHtml(error.message) + "</div>";
+          return;
+        }
+
+        const inputPane = detail.hasInput
+          ? '<img src="/review/api/conversions/' + id + '/input" alt="input image" />'
+          : '<div class="placeholder">Input image was not stored.</div>';
+        const outputPane =
+          detail.status === "success"
+            ? '<img src="/review/api/conversions/' + id + '/output.svg" alt="SVG output" />'
+            : '<div class="placeholder">No SVG output for this conversion.</div>';
+
+        const warnings = detail.warnings || [];
+        const warningHtml = warnings.length
+          ? '<ul class="warnings">' +
+            warnings.map((warning) => "<li>" + escapeHtml(warning) + "</li>").join("") +
+            "</ul>"
+          : '<p class="muted">No warnings.</p>';
+
+        const errorHtml = detail.errorCode
+          ? '<div class="error-box"><strong>' + escapeHtml(detail.errorCode) +
+            "</strong><br />" + escapeHtml(detail.errorMessage || "") + "</div>"
+          : "";
+
+        const prompt = detail.prompt || {};
+        const promptText = prompt.text || "";
+
+        $("detail-body").innerHTML =
+          '<div class="meta">' +
+          "<span>Request <span class=\"mono\">" + escapeHtml(detail.requestId) + "</span></span>" +
+          "<span>Status " + statusBadge(detail.status) + "</span>" +
+          "<span>Model <span class=\"mono\">" + escapeHtml(detail.model || "—") + "</span></span>" +
+          "<span>Prompt <span class=\"mono\">" + escapeHtml(detail.promptVersion) + "</span></span>" +
+          "<span>" + escapeHtml(fmtDate(detail.createdAt)) + "</span>" +
+          "</div>" +
+          '<div class="previews">' +
+          '<div><p class="preview-label">Input sent to model</p><div class="preview">' + inputPane + "</div></div>" +
+          '<div><p class="preview-label">SVG output</p><div class="preview">' + outputPane + "</div></div>" +
+          "</div>" +
+          '<div class="metrics">' +
+          metric("Total latency", fmtMs(detail.latencyMs)) +
+          metric("Upstream latency", fmtMs(detail.upstreamLatencyMs)) +
+          metric("Attempts", fmtNum(detail.attempts)) +
+          metric("Total tokens", fmtNum(detail.totalTokens)) +
+          metric("Prompt tokens", fmtNum(detail.promptTokens)) +
+          metric("Completion tokens", fmtNum(detail.completionTokens)) +
+          metric("Input", detail.inputWidth ? detail.inputWidth + "×" + detail.inputHeight : "—") +
+          metric("Original", detail.originalWidth ? detail.originalWidth + "×" + detail.originalHeight : "—") +
+          metric("Input bytes", fmtBytes(detail.inputBytes)) +
+          metric("Original bytes", fmtBytes(detail.originalBytes)) +
+          metric("Downsampled", detail.downsampled ? "yes" : "no") +
+          metric("SVG bytes", fmtBytes(detail.outputBytes)) +
+          metric("SVG elements", fmtNum(detail.svgElements)) +
+          metric("SVG paths", fmtNum(detail.svgPaths)) +
+          "</div>" +
+          errorHtml +
+          '<details open><summary>Prompt · ' + escapeHtml(prompt.version || detail.promptVersion) +
+          ' <span class="muted mono">' + escapeHtml(prompt.path || "") + "</span></summary>" +
+          '<pre class="mono" id="prompt-text"></pre></details>' +
+          '<details><summary>Warnings (' + warnings.length + ")</summary>" + warningHtml + "</details>" +
+          '<details><summary>LLM calls</summary>' + renderCalls(detail.calls) + "</details>" +
+          '<details><summary>Raw SVG</summary><pre class="mono" id="raw-svg">Loading…</pre></details>' +
+          '<div class="toolbar" style="margin-top:12px">' +
+          (detail.status === "success"
+            ? '<a href="/review/api/conversions/' + id + '/output.svg" download="vector-' + id + '.svg">Download SVG</a>'
+            : "") +
+          "</div>";
+
+        $("prompt-text").textContent = promptText;
+
+        if (detail.status === "success") {
+          fetch("/review/api/conversions/" + id + "/output.svg")
+            .then((response) => response.text())
+            .then((text) => {
+              const node = $("raw-svg");
+              if (node) node.textContent = text;
+            })
+            .catch((error) => {
+              const node = $("raw-svg");
+              if (node) node.textContent = "Failed to load SVG: " + error.message;
+            });
+        } else {
+          const node = $("raw-svg");
+          if (node) node.textContent = "No SVG output.";
+        }
+      }
+
+      async function loadStats() {
+        try {
+          renderStats(await api("/review/api/stats"));
+        } catch (error) {
+          $("stats").innerHTML =
+            '<div class="card"><div class="label">Stats error</div><div class="value">' +
+            escapeHtml(error.message) + "</div></div>";
+        }
+      }
+
+      async function loadList() {
+        const params = new URLSearchParams();
+        params.set("limit", String(state.limit));
+        params.set("offset", String(state.offset));
+        for (const [key, value] of Object.entries(state.filters)) {
+          if (value) params.set(key, value);
+        }
+
+        try {
+          const data = await api("/review/api/conversions?" + params.toString());
+          state.total = data.total;
+          renderRows(data.items);
+          const start = data.total === 0 ? 0 : state.offset + 1;
+          const end = Math.min(state.offset + state.limit, data.total);
+          $("page").textContent = start + "–" + end + " of " + data.total;
+          $("prev").disabled = state.offset <= 0;
+          $("next").disabled = state.offset + state.limit >= data.total;
+        } catch (error) {
+          $("rows").innerHTML = "";
+          $("empty").hidden = false;
+          $("empty").textContent = "Failed to load conversions: " + error.message;
+        }
+      }
+
+      function readFilters() {
+        state.filters = {
+          status: $("status").value,
+          model: $("model").value.trim(),
+          promptVersion: $("promptVersion").value.trim(),
+          q: $("q").value.trim(),
+        };
+      }
+
+      $("apply").addEventListener("click", () => {
+        readFilters();
+        state.offset = 0;
+        loadList();
+      });
+
+      $("reset").addEventListener("click", () => {
+        $("status").value = "";
+        $("model").value = "";
+        $("promptVersion").value = "";
+        $("q").value = "";
+        state.filters = {};
+        state.offset = 0;
+        loadList();
+      });
+
+      $("refresh").addEventListener("click", () => {
+        loadStats();
+        loadList();
+      });
+
+      $("prev").addEventListener("click", () => {
+        state.offset = Math.max(0, state.offset - state.limit);
+        loadList();
+      });
+
+      $("next").addEventListener("click", () => {
+        state.offset += state.limit;
+        loadList();
+      });
+
+      $("close").addEventListener("click", () => {
+        $("overlay").hidden = true;
+      });
+
+      $("overlay").addEventListener("click", (event) => {
+        if (event.target === $("overlay")) {
+          $("overlay").hidden = true;
+        }
+      });
+
+      document.addEventListener("keydown", (event) => {
+        if (event.key === "Escape") {
+          $("overlay").hidden = true;
+        }
+      });
+
+      loadStats();
+      loadList();
+    </script>
+  </body>
+</html>

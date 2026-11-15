@@ -6,15 +6,19 @@ import { loadConfig, type Config } from "./config.js";
 import { isAppError } from "./lib/errors.js";
 import { loggerOptions } from "./lib/logger.js";
 import { Semaphore } from "./lib/semaphore.js";
+import { registerReviewRoutes } from "./routes/review.js";
 import { registerVectorizeRoute } from "./routes/vectorize.js";
 import { OpenRouterClient, type ChatClient } from "./services/openrouter.js";
 import { loadPrompt, type PromptBundle } from "./services/prompt.js";
+import { ConversionStore } from "./services/store.js";
 
 export interface AppDeps {
   config: Config;
   prompt: PromptBundle;
+  promptId: number;
   client: ChatClient;
   semaphore: Semaphore;
+  store: ConversionStore;
 }
 
 export interface BuildAppOptions {
@@ -22,6 +26,8 @@ export interface BuildAppOptions {
   prompt?: PromptBundle;
   client?: ChatClient;
   semaphore?: Semaphore;
+  store?: ConversionStore;
+  promptId?: number;
 }
 
 export async function buildApp(
@@ -32,11 +38,27 @@ export async function buildApp(
   const client = options.client ?? new OpenRouterClient(config);
   const semaphore =
     options.semaphore ?? new Semaphore(config.maxConcurrency);
+  const store = options.store ?? new ConversionStore(config.databasePath);
+  const promptId =
+    options.promptId ??
+    store.upsertPrompt({
+      version: prompt.version,
+      text: prompt.text,
+      path: prompt.path,
+    });
 
   const app = Fastify({
     logger: loggerOptions(config.logLevel),
     bodyLimit: Math.ceil(config.maxUploadBytes * 1.4),
     requestTimeout: config.requestTimeoutMs,
+  });
+
+  app.addHook("onClose", async () => {
+    try {
+      store.close();
+    } catch {
+      // The store may already be closed by the caller.
+    }
   });
 
   await app.register(multipart, {
@@ -157,7 +179,18 @@ export async function buildApp(
     }),
   );
 
-  await registerVectorizeRoute(app, { config, prompt, client, semaphore });
+  await registerVectorizeRoute(app, {
+    config,
+    prompt,
+    promptId,
+    client,
+    semaphore,
+    store,
+  });
+
+  if (config.reviewUiEnabled) {
+    await registerReviewRoutes(app, { store });
+  }
 
   return app;
 }

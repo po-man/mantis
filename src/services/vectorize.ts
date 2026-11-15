@@ -18,6 +18,17 @@ export interface VectorizeDeps {
   client: ChatClient;
 }
 
+export interface LlmCallMetric {
+  attempt: number;
+  model: string;
+  latencyMs: number;
+  promptTokens: number;
+  completionTokens: number;
+  totalTokens: number;
+  finishReason: string | null;
+  contentLength: number;
+}
+
 export interface VectorizeResult {
   svg: string;
   warnings: string[];
@@ -25,6 +36,26 @@ export interface VectorizeResult {
   usage: TokenUsage | null;
   attempts: number;
   promptVersion: string;
+  calls: LlmCallMetric[];
+  stats: {
+    bytes: number;
+    elements: number;
+    paths: number;
+  };
+}
+
+export function aggregateUsage(calls: LlmCallMetric[]): TokenUsage | null {
+  if (calls.length === 0) {
+    return null;
+  }
+  return calls.reduce<TokenUsage>(
+    (total, call) => ({
+      promptTokens: total.promptTokens + call.promptTokens,
+      completionTokens: total.completionTokens + call.completionTokens,
+      totalTokens: total.totalTokens + call.totalTokens,
+    }),
+    { promptTokens: 0, completionTokens: 0, totalTokens: 0 },
+  );
 }
 
 export type VectorizeContext = Pick<CompleteOptions, "requestId" | "logger">;
@@ -55,6 +86,7 @@ export async function vectorizeImage(
   let maxTokens = deps.config.openrouterMaxTokens;
   let lastError: SvgParseError | undefined;
   let lastResult: OpenRouterResult | undefined;
+  const calls: LlmCallMetric[] = [];
 
   for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
     const result = await deps.client.complete(messages, {
@@ -63,15 +95,28 @@ export async function vectorizeImage(
     });
     lastResult = result;
 
+    calls.push({
+      attempt,
+      model: result.model,
+      latencyMs: result.latencyMs,
+      promptTokens: result.usage?.promptTokens ?? 0,
+      completionTokens: result.usage?.completionTokens ?? 0,
+      totalTokens: result.usage?.totalTokens ?? 0,
+      finishReason: result.finishReason,
+      contentLength: result.content.length,
+    });
+
     try {
       const parsed = parseSvg(result.content);
       return {
         svg: parsed.svg,
         warnings: parsed.warnings,
         model: result.model,
-        usage: result.usage,
+        usage: aggregateUsage(calls),
         attempts: attempt,
         promptVersion: deps.prompt.version,
+        calls,
+        stats: parsed.stats,
       };
     } catch (error) {
       if (!(error instanceof SvgParseError)) {
@@ -111,6 +156,8 @@ export async function vectorizeImage(
       code: lastError?.code ?? "unknown",
       attempts: maxAttempts,
       finishReason: lastResult?.finishReason ?? null,
+      calls,
+      usage: aggregateUsage(calls),
     },
   );
 }

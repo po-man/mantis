@@ -67,6 +67,8 @@ real environment variables take precedence.
 | `MAX_QUEUE` | `32` | Max queued requests before `429` |
 | `RETRY_ON_INVALID_SVG` | `1` | Repair retries after an invalid SVG |
 | `REQUEST_TIMEOUT_MS` | `150000` | Fastify request timeout |
+| `DATABASE_PATH` | `data/vector.db` | SQLite file for review data; use `:memory:` to disable persistence |
+| `REVIEW_UI_ENABLED` | `true` | Enable the developer review UI and read-only API |
 
 The service fails fast at boot if required configuration is missing.
 
@@ -144,6 +146,50 @@ All errors use one envelope:
 - `GET /healthz` — liveness
 - `GET /readyz` — readiness (model + prompt version)
 - `GET /docs` — Swagger UI
+- `GET /review` — developer review UI (when `REVIEW_UI_ENABLED=true`)
+
+## Conversion review data
+
+Every conversion is recorded in a local SQLite database (`DATABASE_PATH`). The service
+stores:
+
+- the normalized image actually sent to the model (the downsampled image when the
+  original exceeded `MAX_IMAGE_DIMENSION`);
+- the successful SVG output, its size, element/path counts, and parser warnings;
+- total request latency, upstream latency, attempts, token usage, and per-attempt LLM
+  metrics;
+- failed conversions with their error code/message.
+
+Prompt text is stored once in a separate `prompts` table keyed by the prompt content
+hash (`version`). Conversions reference that row, so changing the prompt creates a new
+prompt version without duplicating the old prompt for every request. Historical
+conversions keep pointing at the exact prompt they used.
+
+The review UI at `http://localhost:8080/review` provides:
+
+- summary cards and per-prompt-version statistics;
+- filtering by status, model, prompt version, and request ID;
+- a paginated conversion table with input thumbnails;
+- a detail view with the input image, rendered SVG, prompt text, warnings, raw SVG,
+  and per-attempt LLM metrics.
+
+Read-only review endpoints:
+
+| Route | Description |
+| --- | --- |
+| `GET /review/api/conversions` | Paginated list (`limit`, `offset`, `status`, `model`, `promptVersion`, `q`) |
+| `GET /review/api/conversions/:id` | Metadata, prompt text, warnings, and LLM calls |
+| `GET /review/api/conversions/:id/input` | Stored input image |
+| `GET /review/api/conversions/:id/output.svg` | Stored SVG output |
+| `GET /review/api/stats` | Aggregate and per-prompt statistics |
+
+> The review UI and API are unauthenticated. Use it on a trusted network, bind the
+> service to localhost, or protect `/review` behind a gateway. Set
+> `REVIEW_UI_ENABLED=false` in public deployments.
+
+SQLite storage is synchronous and runs in-process. A failed write is logged but does
+not fail the conversion request. The database grows with stored images and SVGs; add
+external retention/cleanup if you keep the service running for a long time.
 
 ## How the SVG parser works
 
@@ -174,17 +220,21 @@ The prompt asks the model to emit `<reasoning>…</reasoning>` followed by a fen
 .
 ├── prompts/
 │   └── vectorize.md          # system prompt (moved from ./prompt.md)
+├── public/
+│   └── review.html           # dependency-free review UI
 ├── src/
 │   ├── index.ts              # bootstrap + graceful shutdown
 │   ├── app.ts                # Fastify factory (injectable for tests)
 │   ├── config.ts             # env schema + typed config
 │   ├── routes/
-│   │   └── vectorize.ts      # HTTP contract
+│   │   ├── vectorize.ts      # HTTP contract + persistence
+│   │   └── review.ts         # review UI + read-only API
 │   ├── services/
 │   │   ├── openrouter.ts     # upstream client
 │   │   ├── prompt.ts         # prompt loading + version hash
 │   │   ├── image.ts          # magic-byte validation + normalization
 │   │   ├── svg-parser.ts     # extraction, validation, sanitization
+│   │   ├── store.ts          # SQLite persistence + queries
 │   │   └── vectorize.ts      # orchestration + repair retry
 │   └── lib/
 │       ├── errors.ts
@@ -194,6 +244,7 @@ The prompt asks the model to emit `<reasoning>…</reasoning>` followed by a fen
 └── test/
     ├── fixtures/
     │   └── responses/        # parser fixtures
+    ├── store.test.ts
     ├── svg-parser.test.ts
     └── vectorize.test.ts
 ```
@@ -217,13 +268,22 @@ docker build -t vector .
 docker run --rm -p 8080:8080 \
   -e OPENROUTER_API_KEY=... \
   -e OPENROUTER_MODEL=google/gemini-2.5-flash \
+  -v vector-data:/app/data \
   vector
 ```
 
+The image stores SQLite data in `/app/data` by default. Mount a volume there to keep
+review data across container restarts.
+
 ## Notes and limitations
 
-- Stateless: no persistence, caching, or job queue.
-- No authentication; deploy behind a trusted network boundary or add a gateway.
+- Stateful review data is stored in local SQLite; there is still no caching or job
+  queue for conversions.
+- No authentication; deploy behind a trusted network boundary or add a gateway, and
+  disable or protect the review UI in public deployments.
+- `node:sqlite` is still marked experimental in Node 22 and emits a warning at startup.
+  It avoids native dependencies; switch to `better-sqlite3` if you need a stable driver
+  API.
 - The service sanitizes SVG output, but you should still serve untrusted SVGs with a
   restrictive CSP (the service sets one on its own responses).
 - Image inputs are downscaled to `MAX_IMAGE_DIMENSION` (default **1568 px on the

@@ -15,6 +15,25 @@ const optionalString = z.preprocess(
   z.string().optional(),
 );
 
+const booleanString = z.preprocess((value) => {
+  if (typeof value === "boolean") {
+    return value;
+  }
+  if (typeof value === "string") {
+    const normalized = value.trim().toLowerCase();
+    if (normalized === "") {
+      return undefined;
+    }
+    if (["1", "true", "yes", "on"].includes(normalized)) {
+      return true;
+    }
+    if (["0", "false", "no", "off"].includes(normalized)) {
+      return false;
+    }
+  }
+  return value;
+}, z.boolean());
+
 const EnvSchema = z.object({
   NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
   PORT: z.coerce.number().int().positive().default(8080),
@@ -40,6 +59,9 @@ const EnvSchema = z.object({
   MAX_QUEUE: z.coerce.number().int().min(0).default(32),
   RETRY_ON_INVALID_SVG: z.coerce.number().int().min(0).max(3).default(1),
   REQUEST_TIMEOUT_MS: z.coerce.number().int().positive().default(150_000),
+
+  DATABASE_PATH: z.string().min(1).default("data/vector.db"),
+  REVIEW_UI_ENABLED: booleanString.default(true),
 });
 
 export interface Config {
@@ -65,6 +87,9 @@ export interface Config {
   maxQueue: number;
   retryOnInvalidSvg: number;
   requestTimeoutMs: number;
+
+  databasePath: string;
+  reviewUiEnabled: boolean;
 }
 
 export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
@@ -100,5 +125,8 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
     maxQueue: value.MAX_QUEUE,
     retryOnInvalidSvg: value.RETRY_ON_INVALID_SVG,
     requestTimeoutMs: value.REQUEST_TIMEOUT_MS,
+
+    databasePath: value.DATABASE_PATH,
+    reviewUiEnabled: value.REVIEW_UI_ENABLED,
   };
 }

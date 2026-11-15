@@ -20,6 +20,10 @@ COPY --from=build /app/node_modules ./node_modules
 COPY --from=build /app/dist ./dist
 COPY --from=build /app/package.json ./package.json
 COPY prompts ./prompts
+COPY public ./public
+
+RUN mkdir -p /app/data && chown -R app:app /app/data
+ENV DATABASE_PATH=/app/data/vector.db
 
 USER app
 EXPOSE 8080

@@ -7,6 +7,8 @@ const MAX_INPUT_PIXELS = 50_000_000;
 
 export interface NormalizedImage {
   dataUrl: string;
+  /** Encoded bytes of the image sent upstream. */
+  data: Buffer;
   mime: "image/png" | "image/jpeg";
   width: number;
   height: number;
@@ -124,6 +126,7 @@ export async function normalizeImage(
 
   return {
     dataUrl: `data:${mime};base64,${output.toString("base64")}`,
+    data: output,
     mime,
     width: outputMetadata.width ?? originalWidth,
     height: outputMetadata.height ?? originalHeight,

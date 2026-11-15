@@ -46,6 +46,8 @@ function makeConfig(overrides: Partial<Config> = {}): Config {
     maxQueue: 4,
     retryOnInvalidSvg: 1,
     requestTimeoutMs: 10_000,
+    databasePath: ":memory:",
+    reviewUiEnabled: true,
     ...overrides,
   };
 }
@@ -69,6 +71,7 @@ class FakeClient implements ChatClient {
       finishReason: "stop",
       usage: { promptTokens: 10, completionTokens: 20, totalTokens: 30 },
       model: "test/model",
+      latencyMs: 5,
     };
   }
 }
@@ -167,6 +170,78 @@ describe("POST /v1/vectorize", () => {
     expect(body.usage.totalTokens).toBe(30);
     expect(body.promptVersion).toBe("testversion");
     expect(body.requestId).toBeTruthy();
+  });
+
+  it("persists conversions and exposes them through the review API", async () => {
+    const client = new FakeClient([VALID_SVG]);
+    const app = await makeApp(client);
+    const png = await makePng();
+    const payload = { image: png.toString("base64") };
+
+    await app.inject({ method: "POST", url: "/v1/vectorize", payload });
+    await app.inject({ method: "POST", url: "/v1/vectorize", payload });
+
+    const page = await app.inject({ method: "GET", url: "/review" });
+    expect(page.statusCode).toBe(200);
+    expect(page.body).toContain("vector · review");
+
+    const list = await app.inject({
+      method: "GET",
+      url: "/review/api/conversions",
+    });
+    expect(list.statusCode).toBe(200);
+    const body = list.json();
+    expect(body.total).toBe(2);
+    expect(body.items[0].hasInput).toBe(true);
+    expect(body.items[0].totalTokens).toBe(30);
+
+    const detail = await app.inject({
+      method: "GET",
+      url: `/review/api/conversions/${body.items[0].id}`,
+    });
+    expect(detail.statusCode).toBe(200);
+    expect(detail.json().prompt.text).toBe(PROMPT.text);
+    expect(detail.json().calls).toHaveLength(1);
+    expect(detail.json().calls[0].latencyMs).toBe(5);
+
+    const stats = await app.inject({ method: "GET", url: "/review/api/stats" });
+    expect(stats.json().total).toBe(2);
+    expect(stats.json().prompts).toHaveLength(1);
+
+    const input = await app.inject({
+      method: "GET",
+      url: `/review/api/conversions/${body.items[0].id}/input`,
+    });
+    expect(input.statusCode).toBe(200);
+    expect(input.headers["content-type"]).toContain("image/");
+
+    const output = await app.inject({
+      method: "GET",
+      url: `/review/api/conversions/${body.items[0].id}/output.svg`,
+    });
+    expect(output.statusCode).toBe(200);
+    expect(output.body).toContain("<svg");
+  });
+
+  it("records failed conversions with their error", async () => {
+    const client = new FakeClient(["I cannot do that.", "Still no SVG."]);
+    const app = await makeApp(client);
+    const png = await makePng();
+
+    const response = await app.inject({
+      method: "POST",
+      url: "/v1/vectorize",
+      payload: { image: png.toString("base64") },
+    });
+    expect(response.statusCode).toBe(422);
+
+    const list = await app.inject({
+      method: "GET",
+      url: "/review/api/conversions?status=error",
+    });
+    expect(list.json().total).toBe(1);
+    expect(list.json().items[0].errorCode).toBe("invalid_svg");
+    expect(list.json().items[0].attempts).toBe(2);
   });
 
   it("returns JSON when the Accept header asks for it", async () => {
