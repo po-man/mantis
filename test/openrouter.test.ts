@@ -127,6 +127,90 @@ describe("OpenRouterClient", () => {
     expect(captured?.body?.temperature).toBe(0.2);
   });
 
+  it("logs request id, token usage, and latency after a call", async () => {
+    const baseUrl = await startServer((_request, respond) => {
+      respond(
+        200,
+        JSON.stringify({
+          model: "test/model",
+          choices: [
+            { message: { content: "hello" }, finish_reason: "stop" },
+          ],
+          usage: {
+            prompt_tokens: 1,
+            completion_tokens: 2,
+            total_tokens: 3,
+          },
+        }),
+      );
+    });
+
+    const logs: Array<{ obj: Record<string, unknown>; msg?: string }> = [];
+    const logger = {
+      info: (obj: Record<string, unknown>, msg?: string) => {
+        logs.push({ obj, msg });
+      },
+    };
+
+    const client = new OpenRouterClient(makeConfig(baseUrl));
+    await client.complete([{ role: "user", content: "hi" }], {
+      requestId: "req-123",
+      logger,
+    });
+
+    expect(logs).toHaveLength(1);
+    expect(logs[0]?.msg).toBe("openrouter call completed");
+    expect(logs[0]?.obj).toMatchObject({
+      requestId: "req-123",
+      model: "test/model",
+      promptTokens: 1,
+      completionTokens: 2,
+      totalTokens: 3,
+      finishReason: "stop",
+      contentLength: 5,
+    });
+    expect(typeof logs[0]?.obj.latencyMs).toBe("number");
+  });
+
+  it("logs usage even when the completion is empty", async () => {
+    const baseUrl = await startServer((_request, respond) => {
+      respond(
+        200,
+        JSON.stringify({
+          choices: [{ message: { content: null }, finish_reason: "length" }],
+          usage: {
+            prompt_tokens: 1,
+            completion_tokens: 2,
+            total_tokens: 3,
+          },
+        }),
+      );
+    });
+
+    const logs: Array<{ obj: Record<string, unknown>; msg?: string }> = [];
+    const logger = {
+      info: (obj: Record<string, unknown>, msg?: string) => {
+        logs.push({ obj, msg });
+      },
+    };
+
+    const client = new OpenRouterClient(makeConfig(baseUrl));
+    await expect(
+      client.complete([{ role: "user", content: "hi" }], {
+        requestId: "req-empty",
+        logger,
+      }),
+    ).rejects.toMatchObject({ code: "upstream_error", statusCode: 502 });
+
+    expect(logs).toHaveLength(1);
+    expect(logs[0]?.obj).toMatchObject({
+      requestId: "req-empty",
+      totalTokens: 3,
+      finishReason: "length",
+      contentLength: 0,
+    });
+  });
+
   it("joins array-shaped content parts", async () => {
     const baseUrl = await startServer((_request, respond) => {
       respond(

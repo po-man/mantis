@@ -7,6 +7,7 @@ import { Semaphore } from "../src/lib/semaphore.js";
 import type {
   ChatClient,
   ChatMessage,
+  CompleteOptions,
   OpenRouterResult,
 } from "../src/services/openrouter.js";
 import type { PromptBundle } from "../src/services/prompt.js";
@@ -52,14 +53,14 @@ function makeConfig(overrides: Partial<Config> = {}): Config {
 class FakeClient implements ChatClient {
   readonly calls: Array<{
     messages: ChatMessage[];
-    options?: { maxTokens?: number; signal?: AbortSignal };
+    options?: CompleteOptions;
   }> = [];
 
   constructor(private readonly responses: string[]) {}
 
   async complete(
     messages: ChatMessage[],
-    options: { maxTokens?: number; signal?: AbortSignal } = {},
+    options: CompleteOptions = {},
   ): Promise<OpenRouterResult> {
     this.calls.push({ messages, options });
     const index = Math.min(this.calls.length - 1, this.responses.length - 1);
@@ -144,6 +145,8 @@ describe("POST /v1/vectorize", () => {
     expect(response.headers["x-prompt-version"]).toBe("testversion");
     expect(response.headers["content-disposition"]).toContain("vector.svg");
     expect(client.calls).toHaveLength(1);
+    expect(client.calls[0]?.options?.requestId).toBeTruthy();
+    expect(client.calls[0]?.options?.logger).toBeDefined();
   });
 
   it("returns JSON when ?format=json is used", async () => {

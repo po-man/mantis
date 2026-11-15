@@ -140,7 +140,10 @@ export async function registerVectorizeRoute(
       const release = await deps.semaphore.acquire();
       let result;
       try {
-        result = await vectorizeImage(deps, image);
+        result = await vectorizeImage(deps, image, {
+          requestId: request.id,
+          logger: request.log,
+        });
       } finally {
         release();
       }

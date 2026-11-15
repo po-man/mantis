@@ -24,10 +24,21 @@ export interface OpenRouterResult {
   model: string;
 }
 
+export interface UpstreamLogger {
+  info(obj: Record<string, unknown>, msg?: string): void;
+}
+
+export interface CompleteOptions {
+  maxTokens?: number;
+  signal?: AbortSignal;
+  requestId?: string;
+  logger?: UpstreamLogger;
+}
+
 export interface ChatClient {
   complete(
     messages: ChatMessage[],
-    options?: { maxTokens?: number; signal?: AbortSignal },
+    options?: CompleteOptions,
   ): Promise<OpenRouterResult>;
 }
 
@@ -87,8 +98,9 @@ export class OpenRouterClient implements ChatClient {
 
   async complete(
     messages: ChatMessage[],
-    options: { maxTokens?: number; signal?: AbortSignal } = {},
+    options: CompleteOptions = {},
   ): Promise<OpenRouterResult> {
+    const startedAt = performance.now();
     const url = `${this.config.openrouterBaseUrl.replace(/\/+$/, "")}/chat/completions`;
 
     const body: Record<string, unknown> = {
@@ -184,6 +196,22 @@ export class OpenRouterClient implements ChatClient {
 
     const choice = payload.choices?.[0];
     const content = extractContent(choice?.message?.content);
+    const usage = mapUsage(payload.usage);
+    const model = payload.model ?? this.config.openrouterModel;
+
+    options.logger?.info(
+      {
+        requestId: options.requestId,
+        model,
+        promptTokens: usage?.promptTokens ?? 0,
+        completionTokens: usage?.completionTokens ?? 0,
+        totalTokens: usage?.totalTokens ?? 0,
+        latencyMs: Math.round(performance.now() - startedAt),
+        finishReason: choice?.finish_reason ?? null,
+        contentLength: content.length,
+      },
+      "openrouter call completed",
+    );
 
     if (content.trim().length === 0) {
       throw new AppError(
@@ -196,8 +224,8 @@ export class OpenRouterClient implements ChatClient {
     return {
       content,
       finishReason: choice?.finish_reason ?? null,
-      usage: mapUsage(payload.usage),
-      model: payload.model ?? this.config.openrouterModel,
+      usage,
+      model,
     };
   }
 }

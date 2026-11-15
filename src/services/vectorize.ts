@@ -5,6 +5,7 @@ import type { NormalizedImage } from "./image.js";
 import type {
   ChatClient,
   ChatMessage,
+  CompleteOptions,
   OpenRouterResult,
   TokenUsage,
 } from "./openrouter.js";
@@ -26,6 +27,8 @@ export interface VectorizeResult {
   promptVersion: string;
 }
 
+export type VectorizeContext = Pick<CompleteOptions, "requestId" | "logger">;
+
 const USER_INSTRUCTION =
   "Vectorize the primary object in this image. Follow the system instructions exactly.";
 
@@ -35,6 +38,7 @@ const MAX_REPAIR_CONTEXT_CHARS = 12_000;
 export async function vectorizeImage(
   deps: VectorizeDeps,
   image: NormalizedImage,
+  context: VectorizeContext = {},
 ): Promise<VectorizeResult> {
   const messages: ChatMessage[] = [
     { role: "system", content: deps.prompt.text },
@@ -53,7 +57,10 @@ export async function vectorizeImage(
   let lastResult: OpenRouterResult | undefined;
 
   for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
-    const result = await deps.client.complete(messages, { maxTokens });
+    const result = await deps.client.complete(messages, {
+      maxTokens,
+      ...context,
+    });
     lastResult = result;
 
     try {
