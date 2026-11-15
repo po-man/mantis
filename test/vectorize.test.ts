@@ -153,6 +153,36 @@ describe("POST /v1/vectorize", () => {
     expect(client.calls[0]?.options?.logger).toBeDefined();
   });
 
+  it("generates unique request ids across restarts", async () => {
+    const png = await makePng();
+    const payload = { image: png.toString("base64") };
+    const firstApp = await makeApp(new FakeClient([VALID_SVG]));
+    const secondApp = await makeApp(new FakeClient([VALID_SVG]));
+
+    const first = await firstApp.inject({
+      method: "POST",
+      url: "/v1/vectorize",
+      payload,
+    });
+    const second = await secondApp.inject({
+      method: "POST",
+      url: "/v1/vectorize",
+      payload,
+    });
+
+    expect(first.statusCode).toBe(200);
+    expect(second.statusCode).toBe(200);
+
+    const firstId = first.headers["x-request-id"];
+    const secondId = second.headers["x-request-id"];
+    const uuidPattern =
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+    expect(firstId).toMatch(uuidPattern);
+    expect(secondId).toMatch(uuidPattern);
+    expect(firstId).not.toBe(secondId);
+  });
+
   it("returns JSON when ?format=json is used", async () => {
     const client = new FakeClient([VALID_SVG]);
     const app = await makeApp(client);

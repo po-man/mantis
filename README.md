@@ -100,7 +100,7 @@ Query parameters:
 ```
 Content-Type: image/svg+xml; charset=utf-8
 Content-Disposition: inline; filename="vector.svg"
-X-Request-Id: req-1
+X-Request-Id: f47ac10b-58cc-4372-a567-0e02b2c3d479
 X-Model: google/gemini-2.5-flash
 X-Prompt-Version: 62966b3d919e
 X-Svg-Warnings: removed raster <image> element
@@ -114,7 +114,7 @@ X-Svg-Warnings: removed raster <image> element
   "model": "google/gemini-2.5-flash",
   "usage": { "promptTokens": 1234, "completionTokens": 5678, "totalTokens": 6912 },
   "warnings": [],
-  "requestId": "req-1",
+  "requestId": "f47ac10b-58cc-4372-a567-0e02b2c3d479",
   "attempts": 1,
   "promptVersion": "62966b3d919e"
 }
@@ -129,7 +129,7 @@ All errors use one envelope:
   "error": {
     "code": "invalid_svg",
     "message": "The model did not return a valid SVG after 2 attempt(s): no_svg_found",
-    "requestId": "req-1",
+    "requestId": "f47ac10b-58cc-4372-a567-0e02b2c3d479",
     "details": { "code": "no_svg_found", "attempts": 2, "finishReason": "stop" }
   }
 }

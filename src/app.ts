@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto";
 import multipart from "@fastify/multipart";
 import swagger from "@fastify/swagger";
 import swaggerUi from "@fastify/swagger-ui";
@@ -50,6 +51,7 @@ export async function buildApp(
     });
 
   const app = Fastify({
+    genReqId: () => randomUUID(),
     logger: loggerOptions(config.logLevel),
     bodyLimit: Math.ceil(config.maxUploadBytes * 1.4),
     requestTimeout: config.requestTimeoutMs,
