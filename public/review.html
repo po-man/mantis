@@ -131,6 +131,7 @@
       .previews { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
       @media (max-width: 800px) { .previews { grid-template-columns: 1fr; } }
       .preview {
+        position: relative;
         background: #fff;
         border: 1px solid var(--border);
         border-radius: 8px;
@@ -148,6 +149,52 @@
       }
       .preview .placeholder { color: #57606a; padding: 20px; text-align: center; }
       .preview-label { color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: 0.04em; margin: 0 0 6px; }
+      .preview-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 6px; }
+      .preview-head .preview-label { margin: 0; }
+      .preview-actions { display: flex; gap: 6px; }
+      .preview-actions button { padding: 3px 9px; font-size: 12px; }
+      .preview-interactive { padding: 0; }
+      .parallax-stage {
+        width: min(100%, 520px);
+        aspect-ratio: 1;
+        background: conic-gradient(#e0e0e0 25%, #fff 0 50%, #e0e0e0 0 75%, #fff 0) 0 0 / 16px 16px;
+        cursor: crosshair;
+        touch-action: none;
+      }
+      .parallax-stage.checkerboard-dark {
+        background: conic-gradient(#3a4048 25%, #22272e 0 50%, #3a4048 0 75%, #22272e 0) 0 0 / 16px 16px;
+      }
+      .parallax-stage svg { display: block; width: 100%; height: 100%; }
+      .parallax-hint {
+        position: absolute;
+        left: 50%;
+        bottom: 14px;
+        transform: translateX(-50%);
+        padding: 4px 10px;
+        border-radius: 999px;
+        background: rgba(13, 17, 23, 0.72);
+        color: #fff;
+        font-size: 12px;
+        pointer-events: none;
+        transition: opacity 180ms ease;
+        white-space: nowrap;
+      }
+      .parallax-hint.hidden { opacity: 0; }
+      .parallax-placeholder {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        max-width: 520px;
+        aspect-ratio: 1;
+        color: #57606a;
+        background: #fff;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 20px;
+        text-align: center;
+        margin: 0 auto;
+      }
       .metrics { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 8px; margin: 16px 0; }
       .metric { background: var(--panel-2); border: 1px solid var(--border); border-radius: 6px; padding: 8px 10px; }
       .metric .k { color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; }
@@ -403,9 +450,329 @@
         );
       }
 
+      // ---------------------------------------------------------------------
+      // Interactive parallax player
+      // Keep the evaluator in sync with src/services/parallax.ts.
+      // ---------------------------------------------------------------------
+
+      let parallaxPlayer = null;
+      let darkCheckerboard = false;
+
+      function destroyParallax() {
+        if (parallaxPlayer) {
+          parallaxPlayer.destroy();
+          parallaxPlayer = null;
+        }
+      }
+
+      function clamp(value, min, max) {
+        return Math.min(max, Math.max(min, value));
+      }
+
+      function formatMotion(value) {
+        const rounded = Math.round(value * 10000) / 10000;
+        return Object.is(rounded, -0) ? "0" : String(rounded);
+      }
+
+      function evaluateParallaxNode(node, cursor, viewBox, multipliers) {
+        const cx = (cursor.x - 0.5) * 2;
+        const cy = (cursor.y - 0.5) * 2;
+        const shift = multipliers.shift;
+        const scaleMultiplier = multipliers.scale;
+        const rotateMultiplier = multipliers.rotate;
+
+        const tx =
+          node.translate.x.const +
+          (node.translate.x.cx * cx + node.translate.x.cy * cy) * shift;
+        const ty =
+          node.translate.y.const +
+          (node.translate.y.cx * cx + node.translate.y.cy * cy) * shift;
+
+        const viewX = viewBox[0];
+        const viewY = viewBox[1];
+        const viewWidth = viewBox[2];
+        const viewHeight = viewBox[3];
+        const pivotX = (node.pivot[0] - viewX) / viewWidth;
+        const pivotY = (node.pivot[1] - viewY) / viewHeight;
+        const distance =
+          Math.hypot(cursor.x - pivotX, cursor.y - pivotY) / Math.SQRT2;
+        const radius = node.scale.radius || 0;
+        const proximity =
+          radius > 0
+            ? Math.exp(-((distance / radius) ** 2)) - (node.scale.neutral || 0)
+            : 0;
+        const scaleDelta =
+          node.scale.cx * cx +
+          node.scale.cy * cy +
+          node.scale.proximity * proximity;
+        const scale = node.scale.const + scaleDelta * scaleMultiplier;
+        const rotate =
+          node.rotate.const +
+          (node.rotate.cx * cx + node.rotate.cy * cy) * rotateMultiplier;
+
+        return (
+          "translate(" + formatMotion(tx) + " " + formatMotion(ty) + ") " +
+          "translate(" + formatMotion(node.pivot[0]) + " " + formatMotion(node.pivot[1]) + ") " +
+          "rotate(" + formatMotion(rotate) + ") " +
+          "scale(" + formatMotion(scale) + ") " +
+          "translate(" + formatMotion(-node.pivot[0]) + " " + formatMotion(-node.pivot[1]) + ")"
+        );
+      }
+
+      function sanitizeSvg(root) {
+        const forbidden = new Set([
+          "script", "foreignobject", "iframe", "object", "embed", "audio",
+          "video", "canvas", "link", "base", "animate", "animatetransform",
+          "animatemotion", "set", "handler", "listener",
+        ]);
+        const elements = [root].concat(Array.from(root.querySelectorAll("*")));
+        for (const element of elements) {
+          if (forbidden.has(element.tagName.toLowerCase())) {
+            element.remove();
+            continue;
+          }
+          for (const attribute of Array.from(element.attributes)) {
+            const name = attribute.name.toLowerCase();
+            const value = attribute.value;
+            if (name.startsWith("on") || name === "src") {
+              element.removeAttribute(attribute.name);
+            } else if (
+              (name === "href" || name === "xlink:href") &&
+              value &&
+              !value.trim().startsWith("#")
+            ) {
+              element.removeAttribute(attribute.name);
+            } else if (
+              /javascript:|data:text\/html|expression\s*\(|behavior\s*:|-moz-binding/i.test(value)
+            ) {
+              element.removeAttribute(attribute.name);
+            }
+          }
+        }
+        for (const style of Array.from(root.querySelectorAll("style"))) {
+          if (
+            /@import|expression\s*\(|javascript:|url\s*\(\s*['"]?(?!#)/i.test(
+              style.textContent || "",
+            )
+          ) {
+            style.remove();
+          }
+        }
+      }
+
+      function setupParallax(rig, svgText) {
+        const stage = $("parallax-stage");
+        if (!stage) return;
+
+        destroyParallax();
+
+        if (darkCheckerboard) {
+          stage.classList.add("checkerboard-dark");
+        }
+
+        let svgRoot;
+        try {
+          const documentNode = new DOMParser().parseFromString(svgText, "image/svg+xml");
+          if (documentNode.querySelector("parsererror")) {
+            throw new Error("The SVG markup could not be parsed");
+          }
+          svgRoot = documentNode.documentElement;
+          if (!svgRoot || svgRoot.tagName.toLowerCase() !== "svg") {
+            svgRoot = documentNode.querySelector("svg");
+          }
+          if (!svgRoot) {
+            throw new Error("No <svg> root element");
+          }
+          sanitizeSvg(svgRoot);
+        } catch (error) {
+          const placeholder = document.createElement("div");
+          placeholder.className = "parallax-placeholder";
+          placeholder.textContent = "Could not load SVG: " + error.message;
+          stage.replaceChildren(placeholder);
+          return;
+        }
+
+        // Shadow DOM keeps the generated SVG's styles from leaking into the
+        // review page and keeps the page's styles out of the illustration.
+        let shadow = stage.shadowRoot;
+        if (!shadow) {
+          shadow = stage.attachShadow({ mode: "open" });
+        }
+        shadow.replaceChildren();
+
+        const svg = document.importNode(svgRoot, true);
+        svg.setAttribute("width", "100%");
+        svg.setAttribute("height", "100%");
+        svg.setAttribute("preserveAspectRatio", "xMidYMid meet");
+        shadow.appendChild(svg);
+
+        const byId = new Map();
+        for (const element of shadow.querySelectorAll("[id]")) {
+          byId.set(element.id, element);
+        }
+
+        const baseTransforms = new Map();
+        for (const node of rig.nodes) {
+          const element = byId.get(node.id);
+          if (element) {
+            baseTransforms.set(
+              node.id,
+              element.getAttribute("transform") || node.baseTransform || null,
+            );
+          }
+        }
+
+        const defaults = rig.defaults || {
+          shift: 40,
+          scale: 0.06,
+          rotate: 1.5,
+        };
+
+        const state = {
+          playing: false,
+          playStart: 0,
+          target: { x: 0.5, y: 0.5 },
+          current: { x: 0.5, y: 0.5 },
+          multipliers: {
+            shift: defaults.shift ? 80 / defaults.shift : 1,
+            scale: defaults.scale ? 0.2 / defaults.scale : 1,
+            rotate: defaults.rotate ? 5 / defaults.rotate : 1,
+          },
+          raf: 0,
+          lastTime: 0,
+          destroyed: false,
+        };
+
+        function apply(cursor) {
+          for (const node of rig.nodes) {
+            const element = byId.get(node.id);
+            if (!element) continue;
+            const transform = evaluateParallaxNode(
+              node,
+              cursor,
+              rig.viewBox,
+              state.multipliers,
+            );
+            const base = baseTransforms.get(node.id);
+            element.setAttribute(
+              "transform",
+              base ? transform + " " + base : transform,
+            );
+          }
+        }
+
+        function frame(now) {
+          if (state.destroyed) return;
+          const dt = state.lastTime ? Math.min(now - state.lastTime, 64) : 16;
+          state.lastTime = now;
+          if (state.playing) {
+            const time = (now - state.playStart) / 1000;
+            state.target.x = 0.5 + 0.32 * Math.sin(time * 0.9);
+            state.target.y = 0.5 + 0.32 * Math.sin(time * 1.3 + 1.7);
+          }
+          const easing = 1 - Math.exp(-dt / 90);
+          state.current.x += (state.target.x - state.current.x) * easing;
+          state.current.y += (state.target.y - state.current.y) * easing;
+          apply(state.current);
+          state.raf = requestAnimationFrame(frame);
+        }
+
+        const hint = $("parallax-hint");
+        const onMove = (event) => {
+          if (state.playing) return;
+          const rect = stage.getBoundingClientRect();
+          if (rect.width <= 0 || rect.height <= 0) return;
+          state.target.x = clamp(
+            (event.clientX - rect.left) / rect.width,
+            0,
+            1,
+          );
+          state.target.y = clamp(
+            (event.clientY - rect.top) / rect.height,
+            0,
+            1,
+          );
+          if (hint) hint.classList.add("hidden");
+        };
+        const onLeave = () => {
+          if (!state.playing) {
+            state.target.x = 0.5;
+            state.target.y = 0.5;
+          }
+        };
+        stage.addEventListener("pointermove", onMove);
+        stage.addEventListener("pointerleave", onLeave);
+
+        const checkerboardButton = $("p-checkerboard");
+        const play = $("p-play");
+        const reset = $("p-reset");
+
+        const listeners = [];
+        function listen(element, type, handler) {
+          if (!element) return;
+          element.addEventListener(type, handler);
+          listeners.push([element, type, handler]);
+        }
+
+        function syncCheckerboardButton() {
+          if (!checkerboardButton) return;
+          checkerboardButton.textContent = darkCheckerboard ? "Light bg" : "Dark bg";
+          checkerboardButton.setAttribute(
+            "aria-pressed",
+            darkCheckerboard ? "true" : "false",
+          );
+        }
+        syncCheckerboardButton();
+        listen(checkerboardButton, "click", () => {
+          darkCheckerboard = !darkCheckerboard;
+          stage.classList.toggle("checkerboard-dark", darkCheckerboard);
+          syncCheckerboardButton();
+        });
+
+        listen(play, "click", () => {
+          state.playing = !state.playing;
+          if (state.playing) {
+            state.playStart = performance.now();
+            if (play) play.textContent = "Pause";
+          } else if (play) {
+            play.textContent = "Play";
+          }
+        });
+        listen(reset, "click", () => {
+          state.playing = false;
+          state.target.x = 0.5;
+          state.target.y = 0.5;
+          state.current.x = 0.5;
+          state.current.y = 0.5;
+          if (play) play.textContent = "Play";
+          if (hint) hint.classList.remove("hidden");
+          apply(state.current);
+        });
+
+        apply(state.current);
+        state.raf = requestAnimationFrame(frame);
+
+        parallaxPlayer = {
+          destroy() {
+            state.destroyed = true;
+            cancelAnimationFrame(state.raf);
+            stage.removeEventListener("pointermove", onMove);
+            stage.removeEventListener("pointerleave", onLeave);
+            for (const [element, type, handler] of listeners) {
+              element.removeEventListener(type, handler);
+            }
+            listeners.length = 0;
+            if (stage.shadowRoot) {
+              stage.shadowRoot.replaceChildren();
+            }
+          },
+        };
+      }
+
       async function openDetail(id) {
         const request = ++detailRequest;
         state.currentId = id;
+        destroyParallax();
         $("overlay").hidden = false;
         $("detail-title").textContent = "Conversion #" + id;
         $("detail-body").innerHTML = '<p class="muted">Loading…</p>';
@@ -425,10 +792,22 @@
         const inputPane = detail.hasInput
           ? '<img src="/review/api/conversions/' + id + '/input" alt="input image" />'
           : '<div class="placeholder">Input image was not stored.</div>';
+        const interactive = detail.status === "success" && Boolean(detail.rig);
         const outputPane =
           detail.status === "success"
-            ? '<img src="/review/api/conversions/' + id + '/output.svg" alt="SVG output" />'
+            ? interactive
+              ? '<div class="parallax-stage" id="parallax-stage"></div>' +
+                '<div class="parallax-hint" id="parallax-hint">Move the cursor over the illustration</div>'
+              : '<img src="/review/api/conversions/' + id + '/output.svg" alt="SVG output" />'
             : '<div class="placeholder">No SVG output for this conversion.</div>';
+        const outputPreviewClass = interactive
+          ? "preview preview-interactive"
+          : "preview";
+        const outputActions = interactive
+          ? '<div class="preview-actions">' +
+            '<button id="p-checkerboard" type="button" aria-pressed="false">Dark bg</button>' +
+            '<button id="p-play">Play</button><button id="p-reset">Reset</button></div>'
+          : "";
 
         const warnings = detail.warnings || [];
         const warningHtml = warnings.length
@@ -440,6 +819,26 @@
         const errorHtml = detail.errorCode
           ? '<div class="error-box"><strong>' + escapeHtml(detail.errorCode) +
             "</strong><br />" + escapeHtml(detail.errorMessage || "") + "</div>"
+          : "";
+
+        const rigWarnings =
+          detail.rig && Array.isArray(detail.rig.warnings)
+            ? detail.rig.warnings
+            : [];
+        const rigDetails = detail.rig
+          ? "<details><summary>Parallax rig" +
+            (rigWarnings.length
+              ? " · " + rigWarnings.length + " warning(s)"
+              : "") +
+            "</summary>" +
+            (rigWarnings.length
+              ? '<ul class="warnings">' +
+                rigWarnings
+                  .map((warning) => "<li>" + escapeHtml(warning) + "</li>")
+                  .join("") +
+                "</ul>"
+              : "") +
+            '<pre class="mono" id="raw-rig"></pre></details>'
           : "";
 
         const prompt = detail.prompt || {};
@@ -454,8 +853,11 @@
           "<span>" + escapeHtml(fmtDate(detail.createdAt)) + "</span>" +
           "</div>" +
           '<div class="previews">' +
-          '<div><p class="preview-label">Input sent to model</p><div class="preview">' + inputPane + "</div></div>" +
-          '<div><p class="preview-label">SVG output</p><div class="preview">' + outputPane + "</div></div>" +
+          '<div><div class="preview-head"><p class="preview-label">Input sent to model</p></div>' +
+          '<div class="preview">' + inputPane + "</div></div>" +
+          '<div><div class="preview-head"><p class="preview-label">SVG output</p>' +
+          outputActions + "</div>" +
+          '<div class="' + outputPreviewClass + '">' + outputPane + "</div></div>" +
           "</div>" +
           '<div class="metrics">' +
           metric("Total latency", fmtMs(detail.latencyMs)) +
@@ -479,6 +881,7 @@
           '<pre class="mono" id="prompt-text"></pre></details>' +
           '<details><summary>Warnings (' + warnings.length + ")</summary>" + warningHtml + "</details>" +
           '<details><summary>LLM calls</summary>' + renderCalls(detail.calls) + "</details>" +
+          rigDetails +
           '<details><summary>Raw SVG</summary><pre class="mono" id="raw-svg">Loading…</pre></details>' +
           '<div class="toolbar" style="margin-top:12px">' +
           (detail.status === "success"
@@ -488,19 +891,50 @@
 
         $("prompt-text").textContent = promptText;
 
+        const rawRig = $("raw-rig");
+        if (rawRig) {
+          rawRig.textContent = detail.rig
+            ? JSON.stringify(detail.rig, null, 2)
+            : "No parallax rig.";
+        }
+
         if (detail.status === "success") {
           fetch("/review/api/conversions/" + id + "/output.svg")
             .then((response) => response.text())
             .then((text) => {
-              if (request !== detailRequest) return;
+              if (request !== detailRequest || $("overlay").hidden) return;
               const node = $("raw-svg");
               if (node) node.textContent = text;
             })
             .catch((error) => {
-              if (request !== detailRequest) return;
+              if (request !== detailRequest || $("overlay").hidden) return;
               const node = $("raw-svg");
               if (node) node.textContent = "Failed to load SVG: " + error.message;
             });
+
+          if (detail.rig) {
+            fetch("/review/api/conversions/" + id + "/parallax.svg")
+              .then((response) => {
+                if (!response.ok) {
+                  throw new Error(response.status + " " + response.statusText);
+                }
+                return response.text();
+              })
+              .then((text) => {
+                if (request !== detailRequest || $("overlay").hidden) return;
+                setupParallax(detail.rig, text);
+              })
+              .catch((error) => {
+                if (request !== detailRequest || $("overlay").hidden) return;
+                const stage = $("parallax-stage");
+                if (!stage) return;
+                const placeholder = document.createElement("div");
+                placeholder.className = "parallax-placeholder";
+                placeholder.textContent =
+                  "Could not load the parallax preview: " + error.message;
+                stage.replaceChildren(placeholder);
+              });
+          }
         } else {
           const node = $("raw-svg");
           if (node) node.textContent = "No SVG output.";
@@ -613,17 +1047,20 @@
 
       $("close").addEventListener("click", () => {
         $("overlay").hidden = true;
+        destroyParallax();
       });
 
       $("overlay").addEventListener("click", (event) => {
         if (event.target === $("overlay")) {
           $("overlay").hidden = true;
+          destroyParallax();
         }
       });
 
       document.addEventListener("keydown", (event) => {
         if (event.key === "Escape") {
           $("overlay").hidden = true;
+          destroyParallax();
           return;
         }
         if ($("overlay").hidden) return;

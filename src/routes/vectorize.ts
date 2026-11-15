@@ -268,6 +268,7 @@ export async function registerVectorizeRoute(
           bytes: result.stats.bytes,
           elements: result.stats.elements,
           paths: result.stats.paths,
+          rig: result.rig,
           warnings: result.warnings,
         },
         metrics: buildMetrics(
@@ -280,6 +281,7 @@ export async function registerVectorizeRoute(
       reply.header("x-request-id", request.id);
       reply.header("x-model", result.model);
       reply.header("x-prompt-version", result.promptVersion);
+      reply.header("x-rig-nodes", String(result.stats.rigNodes));
       reply.header("x-content-type-options", "nosniff");
       reply.header("cache-control", "no-store");
       reply.header("vary", "Accept");
@@ -298,6 +300,7 @@ export async function registerVectorizeRoute(
       if (format === "json") {
         return reply.send({
           svg: result.svg,
+          rig: result.rig,
           model: result.model,
           usage: result.usage,
           warnings: result.warnings,
