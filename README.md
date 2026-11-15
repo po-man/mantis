@@ -228,6 +228,11 @@ The prompt asks the model to emit `<reasoning>…</reasoning>` followed by a fen
 │   └── v002-rig-ready-flat-vectoriser.md
 ├── public/
 │   └── review.html           # dependency-free review UI
+├── samples/
+│   ├── inputs/               # committed sample images, grouped by subject
+│   └── outputs/              # generated runs (gitignored)
+├── scripts/
+│   └── batch-vectorize.ts    # concurrent batch driver for POST /v1/vectorize
 ├── src/
 │   ├── index.ts              # bootstrap + graceful shutdown
 │   ├── app.ts                # Fastify factory (injectable for tests)
@@ -266,6 +271,41 @@ npm start          # run the compiled service
 ```
 
 Tests mock the upstream client; no live OpenRouter calls are made.
+
+## Batch runs
+
+`samples/inputs/` holds a small, committed dataset. `scripts/batch-vectorize.ts`
+submits it to a running service through `POST /v1/vectorize?format=json` with a
+pool of independent workers: each worker claims the next sample as soon as its own
+job finishes, so no worker waits for the others.
+
+```bash
+npm run dev   # in another terminal
+
+npm run batch -- --label v005-smoke
+npm run batch -- --workers 8 --filter "animals/*.png" --label animals
+npm run batch -- --dry-run          # list samples without calling the API
+```
+
+| Option | Default | Description |
+| --- | --- | --- |
+| `--workers` | `4` | Concurrent workers (match the server `MAX_CONCURRENCY`) |
+| `--base-url` | `http://localhost:8080` | Service origin, or `VECTOR_BASE_URL` |
+| `--inputs` | `samples/inputs` | Sample root |
+| `--out` | `samples/outputs` | Output root |
+| `--label` | — | Suffix for the run directory |
+| `--filter` | — | Glob on basename or relative path |
+| `--retries` | `2` | Retries for `429`/`502`/`503`/`504`/network only |
+| `--timeout` | `300000` | Per-request timeout in ms |
+| `--strict` | off | Reject names not matching `{index}-{slug}.{ext}` |
+| `--dry-run` | off | Print the queue without calling the API |
+| `--quiet` | off | Suppress per-sample success lines (failures still print) |
+| `--fail-fast` | off | Stop claiming new samples after the first failure |
+
+Each run writes `samples/outputs/<run-id>/` with one `.svg` plus a `.json`
+sidecar per input, and a `run.json` manifest containing the server model, prompt
+version, timings, per-sample results, and aggregate token usage. See
+[`samples/README.md`](samples/README.md) for the naming convention.
 
 ## Docker
 
