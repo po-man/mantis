@@ -145,3 +145,62 @@ describe("parseSvg", () => {
     expect(result.warnings.join(" ")).toContain("unexpected viewBox");
   });
 });
+
+describe("lash style lint", () => {
+  const root = (body: string) =>
+    [
+      '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="100%" height="100%">',
+      body,
+      "</svg>",
+    ].join("\n");
+
+  it("accepts a filled tapered lash under the eye group", () => {
+    const result = parseSvg(
+      root(
+        '<g id="left-eye" data-z="0.6" data-pivot="500,500">' +
+          '<path id="left-lash" fill="#161421" stroke="none" d="M 460 480 C 480 460 510 458 530 470 C 510 472 490 480 475 492 Z"/>' +
+          "</g>",
+      ),
+    );
+
+    expect(result.warnings).toEqual([]);
+  });
+
+  it("warns about a uniform stroked arc", () => {
+    const result = parseSvg(
+      root(
+        '<path id="left-lash" fill="none" stroke="#161421" stroke-width="8" d="M 460 480 C 490 450 520 450 540 480"/>',
+      ),
+    );
+    const warnings = result.warnings.join(" ");
+
+    expect(warnings).toContain('lash "left-lash" has fill="none"');
+    expect(warnings).toContain('lash "left-lash" uses a stroke');
+  });
+
+  it("warns about clipped or glint-parented lashes", () => {
+    const result = parseSvg(
+      root(
+        '<g id="left-eye" data-z="0.6" data-pivot="500,500">' +
+          '<g id="left-eye-glint" data-z="0.64" data-pivot="500,500">' +
+          '<path id="left-lash" fill="#161421" stroke="none" d="M 460 480 L 530 470 Z"/>' +
+          "</g>" +
+          "</g>",
+      ),
+    );
+    expect(result.warnings.join(" ")).toContain(
+      'lash "left-lash" is nested in "left-eye-glint"',
+    );
+
+    const clipped = parseSvg(
+      root(
+        '<g clip-path="url(#clip-eye)">' +
+          '<path id="right-lash" fill="#161421" stroke="none" d="M 460 480 L 530 470 Z"/>' +
+          "</g>",
+      ),
+    );
+    expect(clipped.warnings.join(" ")).toContain(
+      'lash "right-lash" is inside a clipped group',
+    );
+  });
+});

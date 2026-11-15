@@ -245,6 +245,71 @@ function normalizeTagCase($: CheerioAPI): void {
   });
 }
 
+const LASH_ID_PATTERN = /lash/i;
+const LASH_FOREGROUND_PARENT =
+  /glint|gloss|glaze|highlight|shine|sheen|catchlight|specular/i;
+
+/**
+ * Style lint for the filled-lash rule: v011 replaces uniform stroked arcs with
+ * tapered filled silhouettes. Warnings surface regressions in the review UI.
+ */
+function lintLashStyles($: CheerioAPI, warnings: string[]): void {
+  $("*").each((_, element) => {
+    const $el = $(element);
+    const id = $el.attr("id");
+    if (!id || !LASH_ID_PATTERN.test(id)) {
+      return;
+    }
+    const tag = tagNameOf(element);
+    if (!DRAWABLE_TAGS.has(tag)) {
+      return;
+    }
+
+    if (tag === "line" || tag === "polyline") {
+      warnings.push(
+        `lash "${id}" is a <${tag}>; expected a closed filled path`,
+      );
+    }
+
+    const fill = ($el.attr("fill") ?? "").trim().toLowerCase();
+    const stroke = ($el.attr("stroke") ?? "").trim().toLowerCase();
+    if (fill === "none") {
+      warnings.push(
+        `lash "${id}" has fill="none"; expected a filled tapered silhouette`,
+      );
+    }
+    if (stroke && stroke !== "none") {
+      warnings.push(
+        `lash "${id}" uses a stroke; expected fill with stroke="none"`,
+      );
+    }
+
+    let cursor = $el.parent();
+    let depth = 0;
+    while (cursor.length > 0 && depth < 64) {
+      const current = cursor.get(0);
+      if (!current || tagNameOf(current) === "svg") {
+        break;
+      }
+      if (cursor.attr("clip-path")) {
+        warnings.push(
+          `lash "${id}" is inside a clipped group; lashes must stay outside the eye clip`,
+        );
+        break;
+      }
+      cursor = cursor.parent();
+      depth += 1;
+    }
+
+    const parentId = $el.parent().attr("id") ?? "";
+    if (LASH_FOREGROUND_PARENT.test(parentId)) {
+      warnings.push(
+        `lash "${id}" is nested in "${parentId}"; expected a direct child of the eye group`,
+      );
+    }
+  });
+}
+
 function normalizeRoot($: CheerioAPI, warnings: string[]): void {
   const root = findSvgRoot($);
   if (root.length === 0) {
@@ -312,6 +377,7 @@ export function parseSvg(raw: string): ParsedSvg {
   sanitize($, warnings);
   normalizeTagCase($);
   normalizeRoot($, warnings);
+  lintLashStyles($, warnings);
 
   const root = findSvgRoot($);
   if (root.length === 0) {

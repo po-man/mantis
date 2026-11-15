@@ -80,8 +80,8 @@ The service fails fast at boot if required configuration is missing. It also fai
 
 Prompt files are versioned by filename: `v001-vectorize.md` is selected with
 `PROMPT_VERSION=v001`, `v002-rig-ready-flat-vectoriser.md` with `PROMPT_VERSION=v002`,
-and `v010-rig-joints.md` with `PROMPT_VERSION=v010`. v010 is the depth-annotated
-variant with Level-1 joint sockets/anchors used by the parallax rig.
+and `v011-lash-silhouette.md` with `PROMPT_VERSION=v011`. v011 is the depth-annotated
+variant with Level-1 joint sockets/anchors and filled, tapered lash silhouettes.
 
 ## API
 
@@ -270,6 +270,27 @@ The derivation also:
   existing v005 conversions remain interactive. The fallback is marked with
   `"synthetic": true` and intentionally does not warn.
 
+### Lash silhouettes
+
+A constant `stroke-width` cannot taper, so v011 requires lashes to be **closed,
+tapered filled paths** (`stroke="none"`) instead of stroked arcs. The prompt offers
+six archetypes — Solid Wing, Tapered Spikes, Serrated Fringe, Mask Notch, Feather
+Lobe, and Soft Comb — and asks the model to start the lash on the outer half of the
+lid, protrude a sharp tip 6–14 units past the outer silhouette, taper monotonically
+to a 0–2 unit point, stay under 55 % of the eye width, mirror with 10–20 %
+asymmetry, and pick a fill tone that contrasts with the immediate background. Lashes
+stay outside the eye clip, sit directly under the eye group (or a `left-lashes`
+wrapper), carry stable `left-lash`/`right-lash` ids, and inherit the eye's `data-z`
+(or `+0.00–0.03`) so they travel with the eyelid.
+
+`parseSvg()` lints the result and emits warnings when an element whose id contains
+`lash`:
+
+- has `fill="none"` or a non-`none` `stroke` (uniform-arc regression);
+- is a `<line>` or `<polyline>` rather than a fillable path;
+- sits inside a clipped ancestor;
+- is nested in a glint/gloss/glaze/highlight subgroup instead of the eye group.
+
 ### Errors
 
 All errors use one envelope:
@@ -394,7 +415,8 @@ wrapper groups; the rig references those ids.
 │   ├── v001-vectorize.md     # default geometric-fidelity prompt
 │   ├── v002-rig-ready-flat-vectoriser.md
 │   ├── v006-parallax-depth-vectorizer.md
-│   └── v010-rig-joints.md    # parallax depth + Level-1 joint welds
+│   ├── v010-rig-joints.md    # parallax depth + Level-1 joint welds
+│   └── v011-lash-silhouette.md # v010 + filled tapered lashes
 ├── public/
 │   └── review.html           # dependency-free review UI
 ├── samples/
