@@ -60,7 +60,8 @@ real environment variables take precedence.
 | `OPENROUTER_HTTP_REFERER` | — | Optional OpenRouter attribution header |
 | `OPENROUTER_APP_TITLE` | `vector` | OpenRouter `X-Title` header |
 | `OPENROUTER_PROVIDER` | — | Optional JSON provider-routing object |
-| `PROMPT_PATH` | `prompts/vectorize.md` | System prompt file |
+| `PROMPT_VERSION` | — | **Required**, prompt selector, e.g. `v001` (matches `PROMPT_DIR/<version>.md` or `PROMPT_DIR/<version>-*.md`) |
+| `PROMPT_DIR` | `prompts` | Directory containing versioned prompt files |
 | `MAX_UPLOAD_BYTES` | `10485760` | Max upload size (10 MiB), a safety cap |
 | `MAX_IMAGE_DIMENSION` | `1568` | Longest side sent upstream; larger images are downscaled |
 | `MAX_CONCURRENCY` | `4` | Concurrent upstream calls |
@@ -70,7 +71,11 @@ real environment variables take precedence.
 | `DATABASE_PATH` | `data/vector.db` | SQLite file for review data; use `:memory:` to disable persistence |
 | `REVIEW_UI_ENABLED` | `true` | Enable the developer review UI and read-only API |
 
-The service fails fast at boot if required configuration is missing.
+The service fails fast at boot if required configuration is missing. It also fails if
+`PROMPT_VERSION` matches no prompt file or more than one prompt file in `PROMPT_DIR`.
+
+Prompt files are versioned by filename: `v001-vectorize.md` is selected with
+`PROMPT_VERSION=v001`, and `v002-rig-ready-flat-vectoriser.md` with `PROMPT_VERSION=v002`.
 
 ## API
 
@@ -219,7 +224,8 @@ The prompt asks the model to emit `<reasoning>…</reasoning>` followed by a fen
 ```
 .
 ├── prompts/
-│   └── vectorize.md          # system prompt (moved from ./prompt.md)
+│   ├── v001-vectorize.md     # default geometric-fidelity prompt
+│   └── v002-rig-ready-flat-vectoriser.md
 ├── public/
 │   └── review.html           # dependency-free review UI
 ├── src/
@@ -268,6 +274,7 @@ docker build -t vector .
 docker run --rm -p 8080:8080 \
   -e OPENROUTER_API_KEY=... \
   -e OPENROUTER_MODEL=google/gemini-2.5-flash \
+  -e PROMPT_VERSION=v001 \
   -v vector-data:/app/data \
   vector
 ```

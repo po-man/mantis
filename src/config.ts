@@ -52,7 +52,8 @@ const EnvSchema = z.object({
   OPENROUTER_APP_TITLE: z.string().min(1).default("vector"),
   OPENROUTER_PROVIDER: optionalString,
 
-  PROMPT_PATH: z.string().min(1).default("prompts/vectorize.md"),
+  PROMPT_VERSION: z.string().trim().min(1, "PROMPT_VERSION is required"),
+  PROMPT_DIR: z.string().min(1).default("prompts"),
   MAX_UPLOAD_BYTES: z.coerce.number().int().positive().default(10 * 1024 * 1024),
   MAX_IMAGE_DIMENSION: z.coerce.number().int().positive().default(1568),
   MAX_CONCURRENCY: z.coerce.number().int().positive().default(4),
@@ -80,7 +81,8 @@ export interface Config {
   openrouterAppTitle: string;
   openrouterProvider?: string;
 
-  promptPath: string;
+  promptVersion: string;
+  promptDir: string;
   maxUploadBytes: number;
   maxImageDimension: number;
   maxConcurrency: number;
@@ -118,7 +120,8 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
     openrouterAppTitle: value.OPENROUTER_APP_TITLE,
     openrouterProvider: value.OPENROUTER_PROVIDER,
 
-    promptPath: value.PROMPT_PATH,
+    promptVersion: value.PROMPT_VERSION,
+    promptDir: value.PROMPT_DIR,
     maxUploadBytes: value.MAX_UPLOAD_BYTES,
     maxImageDimension: value.MAX_IMAGE_DIMENSION,
     maxConcurrency: value.MAX_CONCURRENCY,

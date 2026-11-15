@@ -34,7 +34,9 @@ export async function buildApp(
   options: BuildAppOptions = {},
 ): Promise<FastifyInstance> {
   const config = options.config ?? loadConfig();
-  const prompt = options.prompt ?? (await loadPrompt(config.promptPath));
+  const prompt =
+    options.prompt ??
+    (await loadPrompt(config.promptDir, config.promptVersion));
   const client = options.client ?? new OpenRouterClient(config);
   const semaphore =
     options.semaphore ?? new Semaphore(config.maxConcurrency);
