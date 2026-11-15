@@ -80,8 +80,8 @@ The service fails fast at boot if required configuration is missing. It also fai
 
 Prompt files are versioned by filename: `v001-vectorize.md` is selected with
 `PROMPT_VERSION=v001`, `v002-rig-ready-flat-vectoriser.md` with `PROMPT_VERSION=v002`,
-and `v006-parallax-depth-vectorizer.md` with `PROMPT_VERSION=v006`. v006 is the
-depth-annotated variant used by the parallax rig.
+and `v010-rig-joints.md` with `PROMPT_VERSION=v010`. v010 is the depth-annotated
+variant with Level-1 joint sockets/anchors used by the parallax rig.
 
 ## API
 
@@ -393,7 +393,8 @@ wrapper groups; the rig references those ids.
 ├── prompts/
 │   ├── v001-vectorize.md     # default geometric-fidelity prompt
 │   ├── v002-rig-ready-flat-vectoriser.md
-│   └── v006-parallax-depth-vectorizer.md
+│   ├── v006-parallax-depth-vectorizer.md
+│   └── v010-rig-joints.md    # parallax depth + Level-1 joint welds
 ├── public/
 │   └── review.html           # dependency-free review UI
 ├── samples/
