@@ -1,0 +1,17 @@
+<reasoning>
+Subject Identification: a red mug on a table; the table and background are excluded.
+Color Palette: #cc0000, #ffffff, #1a1a1a
+Edge Classification: the mug body is curvilinear; the handle is curvilinear.
+Z-Order Layer Stack: body, handle, rim, highlight.
+</reasoning>
+
+```xml
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="100%" height="100%">
+  <g id="body">
+    <path d="M200 200 L824 200 L824 824 L200 824 Z" fill="#cc0000"/>
+  </g>
+  <g id="rim">
+    <path d="M200 200 L824 200 L824 260 L200 260 Z" fill="#ffffff"/>
+  </g>
+</svg>
+```

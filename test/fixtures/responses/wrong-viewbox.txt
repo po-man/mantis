@@ -1,0 +1,5 @@
+```xml
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="100%" height="100%">
+  <path d="M100 100 L400 100 L400 400 L100 400 Z" fill="#998877"/>
+</svg>
+```
