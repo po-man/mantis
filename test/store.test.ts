@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import type { ParallaxRig } from "../src/services/parallax.js";
 import {
   ConversionStore,
   type ConversionRecordInput,
@@ -9,6 +10,24 @@ const PROMPT = {
   text: "You are a vector illustrator.",
   path: "/tmp/prompt.md",
 };
+
+const RIG = {
+  format: "vector.parallax",
+  version: 1,
+  viewBox: [0, 0, 1024, 1024],
+  cursor: { space: "normalized", neutral: [0.5, 0.5] },
+  defaults: {
+    shift: 40,
+    scale: 0.06,
+    rotate: 1.5,
+    proximity: 0.55,
+    direction: "inverse",
+    neutralZ: 0.5,
+  },
+  nodes: [],
+  synthetic: false,
+  warnings: [],
+} satisfies ParallaxRig;
 
 function makeStore(): ConversionStore {
   return new ConversionStore(":memory:");
@@ -40,6 +59,7 @@ function makeEntry(
       bytes: 60,
       elements: 2,
       paths: 1,
+      rig: RIG,
       warnings: ["added default viewBox"],
     },
     metrics: {
@@ -123,12 +143,16 @@ describe("ConversionStore", () => {
     expect(detail?.calls).toHaveLength(1);
     expect(detail?.downsampled).toBe(true);
     expect(detail?.hasInput).toBe(true);
+    expect(detail?.hasRig).toBe(true);
+    expect(detail?.rigNodes).toBe(0);
+    expect(detail?.rig?.format).toBe("vector.parallax");
 
     const input = store.getInput(successId);
     expect(input?.mime).toBe("image/png");
     expect(input?.data).toEqual(Buffer.from([1, 2, 3, 4]));
 
     expect(store.getOutput(successId)).toContain("<svg");
+    expect(store.getRig(successId)?.format).toBe("vector.parallax");
     expect(store.get(9999)).toBeNull();
     store.close();
   });

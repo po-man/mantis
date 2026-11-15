@@ -2,6 +2,7 @@ import { readFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import type { FastifyInstance, FastifyRequest } from "fastify";
 import { AppError } from "../lib/errors.js";
+import { deriveParallaxRig } from "../services/parallax.js";
 import type { ConversionStore } from "../services/store.js";
 
 export interface ReviewRouteDeps {
@@ -105,10 +106,31 @@ export async function registerReviewRoutes(
     "/review/api/conversions/:id",
     { schema: { tags: ["review"], summary: "Conversion detail" } },
     async (request, reply) => {
-      const detail = deps.store.get(parseId(request));
+      const id = parseId(request);
+      let detail = deps.store.get(id);
       if (!detail) {
         throw new AppError("not_found", "Conversion not found", 404);
       }
+
+      // Old records predate stored rigs; derive one from the stored SVG so the
+      // review UI can demonstrate the interaction on historical conversions.
+      if (!detail.rig && detail.status === "success") {
+        const svg = deps.store.getOutput(id);
+        if (svg) {
+          try {
+            const rig = deriveParallaxRig(svg).rig;
+            detail = {
+              ...detail,
+              rig,
+              hasRig: true,
+              rigNodes: rig.nodes.length,
+            };
+          } catch {
+            // A malformed historical SVG simply has no interactive preview.
+          }
+        }
+      }
+
       reply.header("cache-control", "no-store");
       return reply.send(detail);
     },
@@ -145,6 +167,59 @@ export async function registerReviewRoutes(
       );
       reply.type("image/svg+xml; charset=utf-8");
       return reply.send(svg);
+    },
+  );
+
+  app.get(
+    "/review/api/conversions/:id/parallax.svg",
+    {
+      schema: {
+        tags: ["review"],
+        summary: "SVG output normalized for the parallax rig",
+      },
+    },
+    async (request, reply) => {
+      const id = parseId(request);
+      const svg = deps.store.getOutput(id);
+      if (!svg) {
+        throw new AppError("not_found", "SVG output not found", 404);
+      }
+
+      // Newer records store the already-normalized SVG. Historical records are
+      // normalized on demand so the rig's injected ids and clip wrappers exist.
+      const normalized = deps.store.getRig(id)
+        ? svg
+        : deriveParallaxRig(svg).svg;
+
+      reply.header("cache-control", "no-store");
+      reply.header("x-content-type-options", "nosniff");
+      reply.header(
+        "content-security-policy",
+        "default-src 'none'; style-src 'unsafe-inline'",
+      );
+      reply.type("image/svg+xml; charset=utf-8");
+      return reply.send(normalized);
+    },
+  );
+
+  app.get(
+    "/review/api/conversions/:id/rig.json",
+    { schema: { tags: ["review"], summary: "Parallax rig for a conversion" } },
+    async (request, reply) => {
+      const id = parseId(request);
+      const stored = deps.store.getRig(id);
+      if (stored) {
+        reply.header("cache-control", "no-store");
+        return reply.send(stored);
+      }
+
+      const svg = deps.store.getOutput(id);
+      if (!svg) {
+        throw new AppError("not_found", "SVG output not found", 404);
+      }
+
+      reply.header("cache-control", "no-store");
+      return reply.send(deriveParallaxRig(svg).rig);
     },
   );
 }

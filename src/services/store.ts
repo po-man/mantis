@@ -1,6 +1,7 @@
 import { mkdirSync } from "node:fs";
 import path from "node:path";
 import { DatabaseSync } from "node:sqlite";
+import type { ParallaxRig } from "./parallax.js";
 import type { LlmCallMetric } from "./vectorize.js";
 
 export interface PromptRecord {
@@ -28,6 +29,7 @@ export interface ConversionOutput {
   bytes: number;
   elements: number;
   paths: number;
+  rig: ParallaxRig | null;
   warnings: string[];
 }
 
@@ -76,6 +78,8 @@ export interface ConversionListItem {
   outputBytes: number | null;
   svgElements: number | null;
   svgPaths: number | null;
+  hasRig: boolean;
+  rigNodes: number | null;
   warningCount: number;
   errorCode: string | null;
   hasInput: boolean;
@@ -86,6 +90,7 @@ export interface ConversionDetail extends ConversionListItem {
   warnings: string[];
   calls: LlmCallMetric[];
   errorMessage: string | null;
+  rig: ParallaxRig | null;
   prompt: PromptRecord;
 }
 
@@ -146,6 +151,9 @@ interface ConversionRow {
   output_bytes: number | null;
   svg_elements: number | null;
   svg_paths: number | null;
+  output_rig: string | null;
+  rig_nodes: number | null;
+  has_rig: number;
   warnings: string | null;
   latency_ms: number;
   upstream_latency_ms: number;
@@ -183,6 +191,18 @@ function parseJsonArray<T>(value: string | null): T[] {
   }
 }
 
+function parseJsonObject<T>(value: string | null): T | null {
+  if (!value) {
+    return null;
+  }
+  try {
+    const parsed = JSON.parse(value) as unknown;
+    return typeof parsed === "object" && parsed !== null ? (parsed as T) : null;
+  } catch {
+    return null;
+  }
+}
+
 function toListItem(row: ConversionRow): ConversionListItem {
   return {
     id: row.id,
@@ -207,6 +227,8 @@ function toListItem(row: ConversionRow): ConversionListItem {
     outputBytes: row.output_bytes,
     svgElements: row.svg_elements,
     svgPaths: row.svg_paths,
+    hasRig: row.has_rig === 1,
+    rigNodes: row.rig_nodes,
     warningCount: parseJsonArray<string>(row.warnings).length,
     errorCode: row.error_code,
     hasInput: row.has_input === 1,
@@ -231,6 +253,8 @@ const LIST_COLUMNS = `
   c.output_bytes,
   c.svg_elements,
   c.svg_paths,
+  c.rig_nodes,
+  CASE WHEN c.output_rig IS NULL THEN 0 ELSE 1 END AS has_rig,
   c.warnings,
   c.latency_ms,
   c.upstream_latency_ms,
@@ -281,6 +305,8 @@ export class ConversionStore {
         output_bytes INTEGER,
         svg_elements INTEGER,
         svg_paths INTEGER,
+        output_rig TEXT,
+        rig_nodes INTEGER,
         warnings TEXT,
         latency_ms INTEGER NOT NULL,
         upstream_latency_ms INTEGER NOT NULL,
@@ -301,6 +327,23 @@ export class ConversionStore {
       CREATE INDEX IF NOT EXISTS idx_conversions_prompt
         ON conversions(prompt_id);
     `);
+
+    // Existing databases predate the parallax columns.
+    this.ensureColumn("conversions", "output_rig", "TEXT");
+    this.ensureColumn("conversions", "rig_nodes", "INTEGER");
+  }
+
+  private ensureColumn(
+    table: string,
+    column: string,
+    definition: string,
+  ): void {
+    const columns = this.db
+      .prepare(`PRAGMA table_info(${table})`)
+      .all() as unknown as Array<{ name: string }>;
+    if (!columns.some((entry) => entry.name === column)) {
+      this.db.exec(`ALTER TABLE ${table} ADD COLUMN ${column} ${definition}`);
+    }
   }
 
   upsertPrompt(prompt: {
@@ -338,6 +381,7 @@ export class ConversionStore {
            input_mime, input_width, input_height, input_bytes,
            original_width, original_height, original_bytes, downsampled,
            input_image, output_svg, output_bytes, svg_elements, svg_paths,
+           output_rig, rig_nodes,
            warnings, latency_ms, upstream_latency_ms,
            prompt_tokens, completion_tokens, total_tokens, llm_calls,
            error_code, error_message
@@ -346,6 +390,7 @@ export class ConversionStore {
            ?, ?, ?, ?,
            ?, ?, ?, ?,
            ?, ?, ?, ?, ?,
+           ?, ?,
            ?, ?, ?,
            ?, ?, ?, ?,
            ?, ?
@@ -371,6 +416,8 @@ export class ConversionStore {
         output?.bytes ?? null,
         output?.elements ?? null,
         output?.paths ?? null,
+        output?.rig ? JSON.stringify(output.rig) : null,
+        output?.rig?.nodes.length ?? null,
         output ? JSON.stringify(output.warnings) : null,
         entry.metrics.latencyMs,
         entry.metrics.upstreamLatencyMs,
@@ -443,6 +490,7 @@ export class ConversionStore {
         `SELECT
            ${LIST_COLUMNS},
            c.input_mime,
+           c.output_rig,
            c.llm_calls,
            c.error_message,
            c.prompt_id,
@@ -465,6 +513,7 @@ export class ConversionStore {
       warnings: parseJsonArray<string>(row.warnings),
       calls: parseJsonArray<LlmCallMetric>(row.llm_calls),
       errorMessage: row.error_message,
+      rig: parseJsonObject<ParallaxRig>(row.output_rig),
       prompt: {
         id: row.prompt_id,
         version: row.prompt_version,
@@ -501,6 +550,13 @@ export class ConversionStore {
       .prepare("SELECT output_svg FROM conversions WHERE id = ?")
       .get(id) as { output_svg: string | null } | undefined;
     return row?.output_svg ?? null;
+  }
+
+  getRig(id: number): ParallaxRig | null {
+    const row = this.db
+      .prepare("SELECT output_rig FROM conversions WHERE id = ?")
+      .get(id) as { output_rig: string | null } | undefined;
+    return parseJsonObject<ParallaxRig>(row?.output_rig ?? null);
   }
 
   stats(): ConversionStats {

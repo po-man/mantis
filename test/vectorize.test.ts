@@ -15,7 +15,14 @@ import type { PromptBundle } from "../src/services/prompt.js";
 const VALID_SVG = [
   "```xml",
   '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="100%" height="100%">',
-  '  <path d="M100 100 L900 100 L900 900 L100 900 Z" fill="#ff0000"/>',
+  '  <g id="subject" data-z="0.5" data-pivot="512,512">',
+  '    <g id="back" data-z="0.2" data-pivot="300,400">',
+  '      <rect x="100" y="200" width="200" height="300" fill="#cccccc" stroke="none"/>',
+  "    </g>",
+  '    <g id="front" data-z="0.8" data-pivot="600,500">',
+  '      <circle cx="600" cy="500" r="120" fill="#ff0000" stroke="none"/>',
+  "    </g>",
+  "  </g>",
   "</svg>",
   "```",
 ].join("\n");
@@ -147,6 +154,7 @@ describe("POST /v1/vectorize", () => {
     expect(response.body).toContain("<svg");
     expect(response.headers["x-model"]).toBe("test/model");
     expect(response.headers["x-prompt-version"]).toBe("testversion");
+    expect(response.headers["x-rig-nodes"]).toBe("3");
     expect(response.headers["content-disposition"]).toContain("vector.svg");
     expect(client.calls).toHaveLength(1);
     expect(client.calls[0]?.options?.requestId).toBeTruthy();
@@ -201,6 +209,13 @@ describe("POST /v1/vectorize", () => {
     expect(body.usage.totalTokens).toBe(30);
     expect(body.promptVersion).toBe("testversion");
     expect(body.requestId).toBeTruthy();
+    expect(body.rig.format).toBe("vector.parallax");
+    expect(body.rig.nodes).toHaveLength(3);
+    expect(body.rig.nodes.map((node: { id: string }) => node.id)).toEqual([
+      "subject",
+      "back",
+      "front",
+    ]);
   });
 
   it("persists conversions and exposes them through the review API", async () => {
@@ -234,6 +249,9 @@ describe("POST /v1/vectorize", () => {
     expect(detail.json().prompt.text).toBe(PROMPT.text);
     expect(detail.json().calls).toHaveLength(1);
     expect(detail.json().calls[0].latencyMs).toBe(5);
+    expect(detail.json().hasRig).toBe(true);
+    expect(detail.json().rig.format).toBe("vector.parallax");
+    expect(detail.json().rig.nodes).toHaveLength(3);
 
     const stats = await app.inject({ method: "GET", url: "/review/api/stats" });
     expect(stats.json().total).toBe(2);
@@ -252,6 +270,21 @@ describe("POST /v1/vectorize", () => {
     });
     expect(output.statusCode).toBe(200);
     expect(output.body).toContain("<svg");
+
+    const rig = await app.inject({
+      method: "GET",
+      url: `/review/api/conversions/${body.items[0].id}/rig.json`,
+    });
+    expect(rig.statusCode).toBe(200);
+    expect(rig.json().format).toBe("vector.parallax");
+    expect(rig.json().nodes).toHaveLength(3);
+
+    const parallaxSvg = await app.inject({
+      method: "GET",
+      url: `/review/api/conversions/${body.items[0].id}/parallax.svg`,
+    });
+    expect(parallaxSvg.statusCode).toBe(200);
+    expect(parallaxSvg.body).toContain('id="subject"');
   });
 
   it("records failed conversions with their error", async () => {
