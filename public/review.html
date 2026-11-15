@@ -161,6 +161,9 @@
         cursor: crosshair;
         touch-action: none;
       }
+      .parallax-stage.checkerboard-dark {
+        background: conic-gradient(#3a4048 25%, #22272e 0 50%, #3a4048 0 75%, #22272e 0) 0 0 / 16px 16px;
+      }
       .parallax-stage svg { display: block; width: 100%; height: 100%; }
       .parallax-hint {
         position: absolute;
@@ -453,6 +456,7 @@
       // ---------------------------------------------------------------------
 
       let parallaxPlayer = null;
+      let darkCheckerboard = false;
 
       function destroyParallax() {
         if (parallaxPlayer) {
@@ -561,6 +565,10 @@
         if (!stage) return;
 
         destroyParallax();
+
+        if (darkCheckerboard) {
+          stage.classList.add("checkerboard-dark");
+        }
 
         let svgRoot;
         try {
@@ -695,6 +703,7 @@
         stage.addEventListener("pointermove", onMove);
         stage.addEventListener("pointerleave", onLeave);
 
+        const checkerboardButton = $("p-checkerboard");
         const play = $("p-play");
         const reset = $("p-reset");
 
@@ -704,6 +713,21 @@
           element.addEventListener(type, handler);
           listeners.push([element, type, handler]);
         }
+
+        function syncCheckerboardButton() {
+          if (!checkerboardButton) return;
+          checkerboardButton.textContent = darkCheckerboard ? "Light bg" : "Dark bg";
+          checkerboardButton.setAttribute(
+            "aria-pressed",
+            darkCheckerboard ? "true" : "false",
+          );
+        }
+        syncCheckerboardButton();
+        listen(checkerboardButton, "click", () => {
+          darkCheckerboard = !darkCheckerboard;
+          stage.classList.toggle("checkerboard-dark", darkCheckerboard);
+          syncCheckerboardButton();
+        });
 
         listen(play, "click", () => {
           state.playing = !state.playing;
@@ -780,7 +804,9 @@
           ? "preview preview-interactive"
           : "preview";
         const outputActions = interactive
-          ? '<div class="preview-actions"><button id="p-play">Play</button><button id="p-reset">Reset</button></div>'
+          ? '<div class="preview-actions">' +
+            '<button id="p-checkerboard" type="button" aria-pressed="false">Dark bg</button>' +
+            '<button id="p-play">Play</button><button id="p-reset">Reset</button></div>'
           : "";
 
         const warnings = detail.warnings || [];

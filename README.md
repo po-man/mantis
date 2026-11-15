@@ -281,11 +281,12 @@ The review UI at `http://localhost:8080/review` provides:
   the derived rig JSON, prompt text, warnings, raw SVG, and per-attempt LLM metrics.
 
 The parallax preview replaces the static SVG output in the detail view and uses a
-checkerboard background. It injects the SVG into a shadow root, tracks the pointer in
-normalized cursor space, and applies each rig node's transform on an animation frame.
-Motion is fixed at the strongest setting; **Play** runs a demo path and **Reset**
-returns the cursor to neutral. Older conversions without a stored rig are normalized
-and given synthetic paint-order depth on demand.
+checkerboard background; a **Dark bg/Light bg** button toggles the checkerboard shade.
+It injects the SVG into a shadow root, tracks the pointer in normalized cursor space,
+and applies each rig node's transform on an animation frame. Motion is fixed at the
+strongest setting; **Play** runs a demo path and **Reset** returns the cursor to
+neutral. Older conversions without a stored rig are normalized and given synthetic
+paint-order depth on demand.
 
 Read-only review endpoints:
 
