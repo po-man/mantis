@@ -80,8 +80,10 @@ The service fails fast at boot if required configuration is missing. It also fai
 
 Prompt files are versioned by filename: `v001-vectorize.md` is selected with
 `PROMPT_VERSION=v001`, `v002-rig-ready-flat-vectoriser.md` with `PROMPT_VERSION=v002`,
-and `v011-lash-silhouette.md` with `PROMPT_VERSION=v011`. v011 is the depth-annotated
-variant with Level-1 joint sockets/anchors and filled, tapered lash silhouettes.
+and `v012-pose-faithful-eyes.md` with `PROMPT_VERSION=v012`. v012 builds on v011's
+depth-annotated Level-1 joint sockets/anchors and filled, tapered lash silhouettes,
+and adds pose-faithful eye construction: yaw/gaze reasoning, per-eye aperture
+contours, far-eye foreshortening, and perspective-aware iris placement.
 
 ## API
 
