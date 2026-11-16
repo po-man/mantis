@@ -8,6 +8,8 @@ coverage/
 .DS_Store
 data/
 samples/outputs/
+.publish/
+site/
 *.db
 *.db-wal
 *.db-shm

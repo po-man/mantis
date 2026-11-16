@@ -120,8 +120,8 @@ describe("deriveParallaxRig", () => {
     expect(head.translate.x.cx).toBeCloseTo(-4.8, 10);
     expect(head.translate.x.cy).toBe(0);
     expect(head.scale.proximity).toBeCloseTo(0.0144, 10);
-    expect(head.rotate.cx).toBeCloseTo(0.36, 10);
-    expect(head.rotate.cy).toBeCloseTo(-0.36, 10);
+    expect(head.rotate.cx).toBe(0);
+    expect(head.rotate.cy).toBe(0);
 
     const eyes = nodeById(rig.nodes, "eyes");
     expect(eyes.z).toBe(0.72);
@@ -245,6 +245,45 @@ describe("parallax evaluation", () => {
     expect(headMotion.tx).toBeLessThan(0);
   });
 
+  it("keeps cursor transforms mirror-symmetric at the four corners", () => {
+    const { rig } = deriveParallaxRig(DEPTH_SVG);
+    const head = nodeById(rig.nodes, "head");
+    const tl = evaluateParallaxNode(head, { x: 0, y: 0 }, rig.viewBox);
+    const tr = evaluateParallaxNode(head, { x: 1, y: 0 }, rig.viewBox);
+    const bl = evaluateParallaxNode(head, { x: 0, y: 1 }, rig.viewBox);
+    const br = evaluateParallaxNode(head, { x: 1, y: 1 }, rig.viewBox);
+
+    // No cursor-driven rotation: the old x-y dipole was zero on one diagonal
+    // and maximal on the other, which made corners look unequal.
+    for (const motion of [tl, tr, bl, br]) {
+      expect(motion.rotate).toBeCloseTo(0, 10);
+    }
+
+    expect(tl.tx).toBeCloseTo(-tr.tx, 10);
+    expect(tl.tx).toBeCloseTo(bl.tx, 10);
+    expect(tl.tx).toBeCloseTo(-br.tx, 10);
+    expect(tl.ty).toBeCloseTo(tr.ty, 10);
+    expect(tl.ty).toBeCloseTo(-bl.ty, 10);
+    expect(tl.ty).toBeCloseTo(-br.ty, 10);
+  });
+
+  it("ignores legacy cursor rotation coefficients", () => {
+    const { rig } = deriveParallaxRig(DEPTH_SVG);
+    const head = nodeById(rig.nodes, "head");
+    const legacy = {
+      ...head,
+      rotate: { const: 0, cx: 0.36, cy: -0.36 },
+    };
+    const tl = evaluateParallaxNode(legacy, { x: 0, y: 0 }, rig.viewBox);
+    const tr = evaluateParallaxNode(legacy, { x: 1, y: 0 }, rig.viewBox);
+    const bl = evaluateParallaxNode(legacy, { x: 0, y: 1 }, rig.viewBox);
+    const br = evaluateParallaxNode(legacy, { x: 1, y: 1 }, rig.viewBox);
+
+    for (const motion of [tl, tr, bl, br]) {
+      expect(motion.rotate).toBeCloseTo(0, 10);
+    }
+  });
+
   it("scales motion deltas without scaling the identity baseline", () => {
     const { rig } = deriveParallaxRig(DEPTH_SVG);
     const head = nodeById(rig.nodes, "head");
@@ -256,7 +295,6 @@ describe("parallax evaluation", () => {
 
     const neutral = evaluateParallaxNode(head, { x: 0.5, y: 0.5 }, rig.viewBox, {
       scale: 0,
-      rotate: 0,
     });
     expect(neutral.scale).toBeCloseTo(1, 10);
     expect(neutral.rotate).toBeCloseTo(0, 10);
@@ -264,7 +302,7 @@ describe("parallax evaluation", () => {
 });
 
 describe("parallax joint welds", () => {
-  const multipliers = { shift: 2, scale: 3.33, rotate: 3.33 };
+  const multipliers = { shift: 2, scale: 3.33 };
 
   function jointFor(rig: ReturnType<typeof deriveParallaxRig>["rig"], id: string, point: [number, number], cursor: { x: number; y: number }) {
     const node = nodeById(rig.nodes, id);

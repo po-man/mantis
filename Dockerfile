@@ -22,8 +22,9 @@ COPY --from=build /app/package.json ./package.json
 COPY prompts ./prompts
 COPY public ./public
 
-RUN mkdir -p /app/data && chown -R app:app /app/data
+RUN mkdir -p /app/data /app/.publish && chown -R app:app /app/data /app/.publish
 ENV DATABASE_PATH=/app/data/vector.db
+ENV PUBLISH_DIR=/app/.publish
 
 USER app
 EXPOSE 8080

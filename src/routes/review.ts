@@ -1,25 +1,70 @@
 import { readFile } from "node:fs/promises";
+import path from "node:path";
 import { fileURLToPath } from "node:url";
 import type { FastifyInstance, FastifyRequest } from "fastify";
 import { AppError } from "../lib/errors.js";
 import { deriveParallaxRig } from "../services/parallax.js";
+import { createPublicationBundle } from "../services/publication.js";
+import {
+  DEFAULT_PUBLICATION_INTRO,
+  MAX_INTRO_WORDS,
+  PUBLICATION_TITLE,
+  PUBLISH_RATINGS,
+  parsePublicationManifest,
+  type PublishRating,
+} from "../services/publication-manifest.js";
 import type { ConversionStore } from "../services/store.js";
 
 export interface ReviewRouteDeps {
   store: ConversionStore;
+  publishDir: string;
+  publishEnabled: boolean;
 }
 
 const REVIEW_HTML_PATH = fileURLToPath(
   new URL("../../public/review.html", import.meta.url),
 );
+const PARALLAX_PLAYER_PATH = fileURLToPath(
+  new URL("../../public/parallax-player.js", import.meta.url),
+);
 
 let cachedHtml: string | undefined;
+let cachedPlayer: string | undefined;
 
 async function reviewHtml(): Promise<string> {
   if (cachedHtml === undefined) {
     cachedHtml = await readFile(REVIEW_HTML_PATH, "utf8");
   }
   return cachedHtml;
+}
+
+async function parallaxPlayerJs(): Promise<string> {
+  if (cachedPlayer === undefined) {
+    cachedPlayer = await readFile(PARALLAX_PLAYER_PATH, "utf8");
+  }
+  return cachedPlayer;
+}
+
+function isPublishRating(value: unknown): value is PublishRating {
+  return (
+    typeof value === "string" &&
+    (PUBLISH_RATINGS as readonly string[]).includes(value)
+  );
+}
+
+function assertSameOrigin(request: FastifyRequest): void {
+  const origin = request.headers.origin;
+  if (!origin) {
+    return;
+  }
+  const host = request.headers.host;
+  try {
+    if (!host || new URL(origin).host !== host) {
+      throw new Error("origin mismatch");
+    }
+  } catch {
+    throw new AppError("forbidden", "Cross-origin publication writes are not allowed", 403);
+  }
 }
 
 function parseId(request: FastifyRequest): number {
@@ -56,11 +101,22 @@ export async function registerReviewRoutes(
       reply.header(
         "content-security-policy",
         "default-src 'self'; img-src 'self' data:; style-src 'unsafe-inline'; " +
-          "script-src 'unsafe-inline'; connect-src 'self'; object-src 'none'; " +
-          "base-uri 'none'; frame-ancestors 'none'",
+          "script-src 'self' 'unsafe-inline'; connect-src 'self'; " +
+          "object-src 'none'; base-uri 'none'; frame-ancestors 'none'",
       );
       reply.type("text/html; charset=utf-8");
       return reply.send(await reviewHtml());
+    },
+  );
+
+  app.get(
+    "/review/parallax-player.js",
+    { schema: { tags: ["review"], summary: "Shared parallax player" } },
+    async (_request, reply) => {
+      reply.header("cache-control", "no-store");
+      reply.header("x-content-type-options", "nosniff");
+      reply.type("text/javascript; charset=utf-8");
+      return reply.send(await parallaxPlayerJs());
     },
   );
 
@@ -78,6 +134,13 @@ export async function registerReviewRoutes(
         query.status === "success" || query.status === "error"
           ? query.status
           : undefined;
+      const rating =
+        query.rating === "nice" ||
+        query.rating === "fair" ||
+        query.rating === "bad" ||
+        query.rating === "unrated"
+          ? query.rating
+          : undefined;
 
       reply.header("cache-control", "no-store");
       return reply.send(
@@ -88,6 +151,7 @@ export async function registerReviewRoutes(
           model: optionalString(query.model),
           promptVersion: optionalString(query.promptVersion),
           q: optionalString(query.q),
+          rating,
         }),
       );
     },
@@ -101,6 +165,171 @@ export async function registerReviewRoutes(
       return reply.send(deps.store.stats());
     },
   );
+
+  if (deps.publishEnabled) {
+    app.get(
+      "/review/api/publication",
+      {
+        schema: {
+          tags: ["review"],
+          summary: "Local publication staging metadata",
+        },
+      },
+      async (_request, reply) => {
+        const publishDir = path.resolve(deps.publishDir);
+        const manifestPath = path.join(publishDir, "selections.json");
+        const counts = deps.store.selectionCounts();
+        const featuredId = deps.store.getFeaturedId();
+        const featuredDetail =
+          featuredId === null ? null : deps.store.get(featuredId);
+        const featured = featuredDetail
+          ? {
+              id: featuredDetail.id,
+              title: `Conversion #${featuredDetail.id}`,
+              rating: featuredDetail.rating,
+            }
+          : null;
+        let exists = false;
+        let intro = DEFAULT_PUBLICATION_INTRO;
+        let title = PUBLICATION_TITLE;
+        let generatedAt: string | null = null;
+        let manifestError: string | null = null;
+
+        try {
+          const parsed = parsePublicationManifest(
+            JSON.parse(await readFile(manifestPath, "utf8")),
+          );
+          exists = true;
+          intro = parsed.intro;
+          title = parsed.title;
+          generatedAt = parsed.generatedAt;
+        } catch (error) {
+          if ((error as { code?: string }).code !== "ENOENT") {
+            manifestError =
+              error instanceof Error ? error.message : String(error);
+          }
+        }
+
+        reply.header("cache-control", "no-store");
+        return reply.send({
+          title,
+          defaultIntro: DEFAULT_PUBLICATION_INTRO,
+          intro,
+          exists,
+          generatedAt,
+          manifestError,
+          counts,
+          featured,
+          publishDir: path.relative(process.cwd(), publishDir) || ".",
+          maxIntroWords: MAX_INTRO_WORDS,
+        });
+      },
+    );
+
+    app.put(
+      "/review/api/publication/featured",
+      {
+        schema: {
+          tags: ["review"],
+          summary: "Set or clear the single featured publication conversion",
+        },
+      },
+      async (request, reply) => {
+        assertSameOrigin(request);
+        const body = request.body as { conversionId?: unknown } | undefined;
+        if (!body || !("conversionId" in body)) {
+          throw new AppError(
+            "bad_request",
+            "Expected a JSON body with a conversionId",
+            400,
+          );
+        }
+
+        const value = body.conversionId;
+        if (value === null) {
+          deps.store.setFeatured(null);
+          reply.header("cache-control", "no-store");
+          return reply.send({ conversionId: null });
+        }
+
+        if (
+          typeof value !== "number" ||
+          !Number.isInteger(value) ||
+          value < 1
+        ) {
+          throw new AppError("bad_request", "Invalid conversion id", 400);
+        }
+
+        const detail = deps.store.get(value);
+        if (!detail) {
+          throw new AppError("not_found", "Conversion not found", 404);
+        }
+        if (detail.status !== "success") {
+          throw new AppError(
+            "bad_request",
+            "Only successful conversions can be featured",
+            400,
+          );
+        }
+
+        deps.store.setFeatured(value);
+        reply.header("cache-control", "no-store");
+        return reply.send({ conversionId: value });
+      },
+    );
+
+    app.post(
+      "/review/api/publish",
+      {
+        schema: {
+          tags: ["review"],
+          summary: "Write the local publication staging bundle",
+        },
+      },
+      async (request, reply) => {
+        assertSameOrigin(request);
+        const body = request.body as
+          | { intro?: unknown; title?: unknown }
+          | undefined;
+        const intro =
+          body?.intro === undefined
+            ? undefined
+            : typeof body.intro === "string"
+              ? body.intro
+              : (() => {
+                  throw new AppError("bad_request", "Intro must be a string", 400);
+                })();
+        const title =
+          body?.title === undefined
+            ? undefined
+            : typeof body.title === "string"
+              ? body.title
+              : (() => {
+                  throw new AppError("bad_request", "Title must be a string", 400);
+                })();
+
+        const result = await createPublicationBundle({
+          store: deps.store,
+          outDir: deps.publishDir,
+          intro,
+          title,
+        });
+
+        reply.header("cache-control", "no-store");
+        return reply.send({
+          manifestPath:
+            path.relative(process.cwd(), result.manifestPath) ||
+            result.manifestPath,
+          assetsDir:
+            path.relative(process.cwd(), result.assetsDir) || result.assetsDir,
+          counts: result.counts,
+          introWords: result.introWords,
+          itemCount: result.manifest.items.length,
+          featuredId: result.featured?.id ?? null,
+        });
+      },
+    );
+  }
 
   app.get(
     "/review/api/conversions/:id",
@@ -133,6 +362,49 @@ export async function registerReviewRoutes(
 
       reply.header("cache-control", "no-store");
       return reply.send(detail);
+    },
+  );
+
+  app.put(
+    "/review/api/conversions/:id/selection",
+    {
+      schema: {
+        tags: ["review"],
+        summary: "Set or clear a publication rating for a conversion",
+      },
+    },
+    async (request, reply) => {
+      assertSameOrigin(request);
+      const id = parseId(request);
+      const detail = deps.store.get(id);
+      if (!detail) {
+        throw new AppError("not_found", "Conversion not found", 404);
+      }
+      if (detail.status !== "success") {
+        throw new AppError(
+          "bad_request",
+          "Only successful conversions can be rated for publication",
+          400,
+        );
+      }
+
+      const body = request.body as { rating?: unknown } | undefined;
+      const rating = body?.rating;
+      if (rating !== null && rating !== undefined && !isPublishRating(rating)) {
+        throw new AppError(
+          "bad_request",
+          "Rating must be 'nice', 'fair', 'bad', or null",
+          400,
+        );
+      }
+
+      const saved =
+        rating === null || rating === undefined
+          ? null
+          : (rating as PublishRating);
+      const result = deps.store.setSelection(id, saved);
+      reply.header("cache-control", "no-store");
+      return reply.send({ id, rating: result });
     },
   );
 

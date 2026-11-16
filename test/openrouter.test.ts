@@ -27,6 +27,8 @@ function makeConfig(baseUrl: string, overrides: Partial<Config> = {}): Config {
     requestTimeoutMs: 10_000,
     databasePath: ":memory:",
     reviewUiEnabled: false,
+    publishEnabled: false,
+    publishDir: ".publish",
     ...overrides,
   };
 }

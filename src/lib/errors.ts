@@ -9,6 +9,7 @@ export type ErrorCode =
   | "rate_limited"
   | "config_error"
   | "not_found"
+  | "forbidden"
   | "internal_error";
 
 export class AppError extends Error {

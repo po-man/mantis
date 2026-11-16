@@ -15,6 +15,10 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "batch": "tsx scripts/batch-vectorize.ts",
+    "publish:build": "tsx scripts/build-site.ts",
+    "publish:check": "tsx scripts/build-site.ts --check",
+    "publish:preview": "tsx scripts/build-site.ts --manifest .publish/selections.json --out site",
+    "publish:branch": "tsx scripts/publish-branch.ts",
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {

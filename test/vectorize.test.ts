@@ -1,3 +1,6 @@
+import { mkdtempSync, readFileSync, rmSync } from "node:fs";
+import { tmpdir } from "node:os";
+import path from "node:path";
 import sharp from "sharp";
 import { afterEach, describe, expect, it } from "vitest";
 import type { FastifyInstance } from "fastify";
@@ -67,6 +70,8 @@ function makeConfig(overrides: Partial<Config> = {}): Config {
     requestTimeoutMs: 10_000,
     databasePath: ":memory:",
     reviewUiEnabled: true,
+    publishEnabled: true,
+    publishDir: ".publish",
     ...overrides,
   };
 }
@@ -329,6 +334,165 @@ describe("POST /v1/vectorize", () => {
     });
     expect(parallaxSvg.statusCode).toBe(200);
     expect(parallaxSvg.body).toContain('id="subject"');
+  });
+
+  it("rates conversions and writes a local publication bundle", async () => {
+    const publishDir = mkdtempSync(path.join(tmpdir(), "vector-review-publish-"));
+    const client = new FakeClient([VALID_SVG, VALID_SVG]);
+    const app = await makeApp(client, makeConfig({ publishDir }));
+    const png = await makePng();
+    const payload = { image: png.toString("base64") };
+
+    await app.inject({ method: "POST", url: "/v1/vectorize", payload });
+    await app.inject({ method: "POST", url: "/v1/vectorize", payload });
+
+    const list = await app.inject({
+      method: "GET",
+      url: "/review/api/conversions",
+    });
+    const items = list.json().items as Array<{
+      id: number;
+      featured: boolean;
+    }>;
+    const first = items[0]!;
+    const second = items[1]!;
+
+    const invalid = await app.inject({
+      method: "PUT",
+      url: `/review/api/conversions/${first.id}/selection`,
+      payload: { rating: "great" },
+    });
+    expect(invalid.statusCode).toBe(400);
+
+    const rated = await app.inject({
+      method: "PUT",
+      url: `/review/api/conversions/${first.id}/selection`,
+      payload: { rating: "nice" },
+    });
+    expect(rated.statusCode).toBe(200);
+    expect(rated.json()).toEqual({ id: first.id, rating: "nice" });
+
+    const filtered = await app.inject({
+      method: "GET",
+      url: "/review/api/conversions?rating=nice",
+    });
+    expect(filtered.json().total).toBe(1);
+
+    const featured = await app.inject({
+      method: "PUT",
+      url: "/review/api/publication/featured",
+      payload: { conversionId: second.id },
+    });
+    expect(featured.statusCode).toBe(200);
+    expect(featured.json()).toEqual({ conversionId: second.id });
+
+    const featuredList = await app.inject({
+      method: "GET",
+      url: "/review/api/conversions",
+    });
+    const featuredItems = featuredList.json().items as Array<{
+      id: number;
+      featured: boolean;
+    }>;
+    expect(
+      featuredItems.find((item) => item.id === second.id)?.featured,
+    ).toBe(true);
+    expect(
+      featuredItems.find((item) => item.id === first.id)?.featured,
+    ).toBe(false);
+
+    const meta = await app.inject({
+      method: "GET",
+      url: "/review/api/publication",
+    });
+    expect(meta.statusCode).toBe(200);
+    expect(meta.json().counts).toEqual({ nice: 1, fair: 0, bad: 0, total: 1 });
+    expect(meta.json().featured).toEqual({
+      id: second.id,
+      title: `Conversion #${second.id}`,
+      rating: null,
+    });
+    expect(meta.json().exists).toBe(false);
+
+    const toLong = await app.inject({
+      method: "POST",
+      url: "/review/api/publish",
+      payload: { intro: Array.from({ length: 100 }, () => "word").join(" ") },
+    });
+    expect(toLong.statusCode).toBe(400);
+
+    const published = await app.inject({
+      method: "POST",
+      url: "/review/api/publish",
+      payload: {
+        title: "Custom selected studies",
+        intro: "A short publication intro.",
+      },
+    });
+    expect(published.statusCode).toBe(200);
+    const publishedBody = published.json() as {
+      manifestPath: string;
+      itemCount: number;
+      introWords: number;
+      featuredId: number | null;
+    };
+    expect(publishedBody.itemCount).toBe(1);
+    expect(publishedBody.introWords).toBe(4);
+    expect(publishedBody.featuredId).toBe(second.id);
+    const manifestText = readFileSync(publishedBody.manifestPath, "utf8");
+    expect(manifestText).toContain('"title": "Custom selected studies"');
+    expect(manifestText).toContain('"rating": "nice"');
+    expect(manifestText).toContain('"featured"');
+    expect(manifestText).toContain(`"id": ${second.id}`);
+
+    const after = await app.inject({
+      method: "GET",
+      url: "/review/api/publication",
+    });
+    expect(after.json().exists).toBe(true);
+    expect(after.json().intro).toBe("A short publication intro.");
+
+    rmSync(publishDir, { recursive: true, force: true });
+  });
+
+  it("publishes a featured-only bundle with no gallery items", async () => {
+    const publishDir = mkdtempSync(path.join(tmpdir(), "vector-featured-only-"));
+    const client = new FakeClient([VALID_SVG]);
+    const app = await makeApp(client, makeConfig({ publishDir }));
+    const png = await makePng();
+    await app.inject({
+      method: "POST",
+      url: "/v1/vectorize",
+      payload: { image: png.toString("base64") },
+    });
+
+    const list = await app.inject({
+      method: "GET",
+      url: "/review/api/conversions",
+    });
+    const id = (list.json().items as Array<{ id: number }>)[0]!.id;
+
+    const featured = await app.inject({
+      method: "PUT",
+      url: "/review/api/publication/featured",
+      payload: { conversionId: id },
+    });
+    expect(featured.statusCode).toBe(200);
+
+    const published = await app.inject({
+      method: "POST",
+      url: "/review/api/publish",
+      payload: { intro: "A featured-only publication." },
+    });
+    expect(published.statusCode).toBe(200);
+    const body = published.json() as {
+      itemCount: number;
+      featuredId: number | null;
+    };
+    expect(body.itemCount).toBe(0);
+    expect(body.featuredId).toBe(id);
+
+    rmSync(publishDir, { recursive: true, force: true });
   });
 
   it("records failed conversions with their error", async () => {
