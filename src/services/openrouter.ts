@@ -61,6 +61,9 @@ interface OpenRouterResponse {
     prompt_tokens?: number;
     completion_tokens?: number;
     total_tokens?: number;
+    completion_tokens_details?: {
+      reasoning_tokens?: number;
+    };
   };
 }
 
@@ -110,6 +113,10 @@ export class OpenRouterClient implements ChatClient {
       temperature: this.config.openrouterTemperature,
       max_tokens: options.maxTokens ?? this.config.openrouterMaxTokens,
     };
+
+    if (this.config.openrouterReasoningEffort) {
+      body.reasoning = { effort: this.config.openrouterReasoningEffort };
+    }
 
     if (this.config.openrouterProvider) {
       try {
@@ -208,6 +215,7 @@ export class OpenRouterClient implements ChatClient {
         promptTokens: usage?.promptTokens ?? 0,
         completionTokens: usage?.completionTokens ?? 0,
         totalTokens: usage?.totalTokens ?? 0,
+        reasoningTokens: payload.usage?.completion_tokens_details?.reasoning_tokens ?? 0,
         latencyMs,
         finishReason: choice?.finish_reason ?? null,
         contentLength: content.length,

@@ -128,6 +128,29 @@ describe("OpenRouterClient", () => {
     expect(captured?.body?.model).toBe("test/model");
     expect(captured?.body?.max_tokens).toBe(2048);
     expect(captured?.body?.temperature).toBe(0.2);
+    expect(captured?.body?.reasoning).toBeUndefined();
+  });
+
+  it("sends the configured reasoning effort", async () => {
+    let captured: CapturedRequest | undefined;
+
+    const baseUrl = await startServer((request, respond) => {
+      captured = request;
+      respond(
+        200,
+        JSON.stringify({
+          model: "test/model",
+          choices: [{ message: { content: "hello" }, finish_reason: "stop" }],
+        }),
+      );
+    });
+
+    const client = new OpenRouterClient(
+      makeConfig(baseUrl, { openrouterReasoningEffort: "low" }),
+    );
+    await client.complete([{ role: "user", content: "hi" }]);
+
+    expect(captured?.body?.reasoning).toEqual({ effort: "low" });
   });
 
   it("logs request id, token usage, and latency after a call", async () => {
@@ -143,6 +166,7 @@ describe("OpenRouterClient", () => {
             prompt_tokens: 1,
             completion_tokens: 2,
             total_tokens: 3,
+            completion_tokens_details: { reasoning_tokens: 1 },
           },
         }),
       );
@@ -169,6 +193,7 @@ describe("OpenRouterClient", () => {
       promptTokens: 1,
       completionTokens: 2,
       totalTokens: 3,
+      reasoningTokens: 1,
       finishReason: "stop",
       contentLength: 5,
     });

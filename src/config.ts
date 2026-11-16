@@ -15,6 +15,17 @@ const optionalString = z.preprocess(
   z.string().optional(),
 );
 
+// OpenRouter normalizes effort to a reasoning-token budget; the exact set of
+// supported values depends on the model.
+const reasoningEffort = z.preprocess(
+  (value) => (typeof value === "string" && value.trim() === "" ? undefined : value),
+  z
+    .enum(["none", "minimal", "low", "medium", "high", "max"])
+    .optional(),
+);
+
+export type ReasoningEffort = z.infer<typeof reasoningEffort>;
+
 const booleanString = z.preprocess((value) => {
   if (typeof value === "boolean") {
     return value;
@@ -47,6 +58,7 @@ const EnvSchema = z.object({
   OPENROUTER_BASE_URL: z.string().url().default("https://openrouter.ai/api/v1"),
   OPENROUTER_TEMPERATURE: z.coerce.number().min(0).max(2).default(0.2),
   OPENROUTER_MAX_TOKENS: z.coerce.number().int().positive().default(16_384),
+  OPENROUTER_REASONING_EFFORT: reasoningEffort,
   OPENROUTER_TIMEOUT_MS: z.coerce.number().int().positive().default(120_000),
   OPENROUTER_HTTP_REFERER: optionalString,
   OPENROUTER_APP_TITLE: z.string().min(1).default("vector"),
@@ -76,6 +88,8 @@ export interface Config {
   openrouterBaseUrl: string;
   openrouterTemperature: number;
   openrouterMaxTokens: number;
+  /** OpenRouter `reasoning.effort`; unset keeps the model default. */
+  openrouterReasoningEffort?: ReasoningEffort;
   openrouterTimeoutMs: number;
   openrouterHttpReferer?: string;
   openrouterAppTitle: string;
@@ -115,6 +129,7 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
     openrouterBaseUrl: value.OPENROUTER_BASE_URL,
     openrouterTemperature: value.OPENROUTER_TEMPERATURE,
     openrouterMaxTokens: value.OPENROUTER_MAX_TOKENS,
+    openrouterReasoningEffort: value.OPENROUTER_REASONING_EFFORT,
     openrouterTimeoutMs: value.OPENROUTER_TIMEOUT_MS,
     openrouterHttpReferer: value.OPENROUTER_HTTP_REFERER,
     openrouterAppTitle: value.OPENROUTER_APP_TITLE,

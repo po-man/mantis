@@ -60,6 +60,7 @@ real environment variables take precedence.
 | `OPENROUTER_BASE_URL` | `https://openrouter.ai/api/v1` | Upstream base URL |
 | `OPENROUTER_TEMPERATURE` | `0.2` | Sampling temperature |
 | `OPENROUTER_MAX_TOKENS` | `16384` | Completion budget (SVGs are token-heavy) |
+| `OPENROUTER_REASONING_EFFORT` | — | `none`/`minimal`/`low`/`medium`/`high`/`max`; unset keeps the model default (often `high`) |
 | `OPENROUTER_TIMEOUT_MS` | `120000` | Upstream request timeout |
 | `OPENROUTER_HTTP_REFERER` | — | Optional OpenRouter attribution header |
 | `OPENROUTER_APP_TITLE` | `vector` | OpenRouter `X-Title` header |
