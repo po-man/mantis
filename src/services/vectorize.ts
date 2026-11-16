@@ -176,7 +176,12 @@ export async function vectorizeImage(
       }
 
       if (error.code === "truncated" || result.finishReason === "length") {
-        maxTokens = Math.min(maxTokens * 2, MAX_REPAIR_TOKENS);
+        // Never shrink the budget: a configured max_tokens above the repair cap
+        // would otherwise be lowered by the retry and truncate again.
+        maxTokens = Math.max(
+          maxTokens,
+          Math.min(maxTokens * 2, MAX_REPAIR_TOKENS),
+        );
       }
 
       messages.push({

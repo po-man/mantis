@@ -11,6 +11,7 @@ import type {
   OpenRouterResult,
 } from "../src/services/openrouter.js";
 import type { PromptBundle } from "../src/services/prompt.js";
+import { vectorizeImage } from "../src/services/vectorize.js";
 
 const VALID_SVG = [
   "```xml",
@@ -460,5 +461,48 @@ describe("ops endpoints", () => {
     const response = await app.inject({ method: "GET", url: "/nope" });
     expect(response.statusCode).toBe(404);
     expect(response.json().error.code).toBe("not_found");
+  });
+});
+
+describe("retry token budget", () => {
+  it("never shrinks maxTokens when the first attempt is truncated", async () => {
+    const budgets: Array<number | undefined> = [];
+    const truncated = '```xml\n<svg xmlns="http://www.w3.org/2000/svg"><path d="M';
+    const client: ChatClient = {
+      async complete(_messages, options = {}) {
+        budgets.push(options.maxTokens);
+        const first = budgets.length === 1;
+        return {
+          content: first ? truncated : VALID_SVG,
+          finishReason: first ? "length" : "stop",
+          usage: { promptTokens: 10, completionTokens: 20, totalTokens: 30 },
+          model: "test/model",
+          latencyMs: 5,
+        };
+      },
+    };
+
+    const result = await vectorizeImage(
+      {
+        config: makeConfig({ openrouterMaxTokens: 65_536 }),
+        prompt: PROMPT,
+        client,
+      },
+      {
+        dataUrl: "data:image/png;base64,AAAA",
+        data: Buffer.from("stub"),
+        mime: "image/png",
+        width: 16,
+        height: 16,
+        bytes: 4,
+        originalWidth: 16,
+        originalHeight: 16,
+        resized: false,
+      },
+    );
+
+    expect(result.attempts).toBe(2);
+    expect(budgets[0]).toBe(65_536);
+    expect(budgets[1]).toBe(65_536);
   });
 });
