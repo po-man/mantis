@@ -1,5 +1,7 @@
 # Mantis
 
+https://github.com/user-attachments/assets/62f69c9f-f39f-4cc9-8c39-caac3d353786
+
 A lightweight, stateless microservice that turns a photo of a centered object into a
 clean, layered SVG. The heavy lifting is delegated to a vision-capable model through
 [OpenRouter](https://openrouter.ai); this service owns the HTTP contract, image
