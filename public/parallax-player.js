@@ -21,7 +21,6 @@
     const cy = (cursor.y - 0.5) * 2;
     const shift = multipliers.shift;
     const scaleMultiplier = multipliers.scale;
-    const rotateMultiplier = multipliers.rotate;
 
     const tx =
       node.translate.x.const +
@@ -48,9 +47,9 @@
       node.scale.cy * cy +
       node.scale.proximity * proximity;
     const scale = node.scale.const + scaleDelta * scaleMultiplier;
-    const rotate =
-      node.rotate.const +
-      (node.rotate.cx * cx + node.rotate.cy * cy) * rotateMultiplier;
+    // Cursor rotation is disabled; legacy rig coefficients are ignored.
+    // Idle rotation is added separately in combineMotions().
+    const rotate = node.rotate.const;
 
     return { tx: tx, ty: ty, scale: scale, rotate: rotate };
   }
@@ -399,7 +398,6 @@
     const multipliers = settings.multipliers || {
       shift: defaults.shift ? 80 / defaults.shift : 1,
       scale: defaults.scale ? 0.2 / defaults.scale : 1,
-      rotate: defaults.rotate ? 5 / defaults.rotate : 1,
     };
 
     const prefersReducedMotion =

@@ -165,7 +165,7 @@ response (`?format=json`) to read the `warnings` array.
           "radius": 0.55,
           "neutral": 0.9646
         },
-        "rotate": { "const": 0, "cx": 0.36, "cy": -0.36 }
+        "rotate": { "const": 0, "cx": 0, "cy": 0 }
       }
     ],
     "anchors": [
@@ -234,13 +234,21 @@ dist = hypot(u - px, v - py) / sqrt(2)
 proximity = exp(-(dist / scale.radius)^2) - scale.neutral
 s = scale.const + scale.cx*cx + scale.cy*cy + scale.proximity*proximity
 
-r = rotate.const + rotate.cx*cx + rotate.cy*cy
+r = rotate.const
 
 transform =
   translate(tx, ty)
   translate(pivot.x, pivot.y) rotate(r) scale(s)
   translate(-pivot.x, -pivot.y)
 ```
+
+Cursor-driven in-plane rotation is intentionally disabled. The old
+`rotate.cx*cx + rotate.cy*cy` dipole made one diagonal rotate while the opposite
+diagonal stayed upright, so the four corners did not feel like equivalent
+viewpoints. A purely linear rotation field cannot be nonzero and equal at all four
+corners, and a flat illustration has no need to roll in-plane as the viewpoint
+moves. Older rigs may still contain legacy `rotate.cx`/`rotate.cy` coefficients;
+the evaluator ignores them. Idle `data-anim` rotation is separate and still works.
 
 `depth` is stored relative to the nearest animated ancestor, so nested transforms
 compose to the absolute depth `z`. `scale.neutral` is the proximity value at rest;

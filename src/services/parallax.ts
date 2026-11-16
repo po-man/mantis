@@ -61,6 +61,10 @@ export interface ParallaxNode {
   baseTransform: string | null;
   translate: { x: Linear2D; y: Linear2D };
   scale: Scale2D;
+  /**
+   * Cursor rotation coefficients. New rigs set these to zero; legacy
+   * coefficients are ignored during evaluation.
+   */
   rotate: Linear2D;
   /** View-point-independent idle motion authored through `data-anim`. */
   idle?: IdleTrack;
@@ -147,7 +151,11 @@ export interface DeriveParallaxOptions {
   shift?: number;
   /** Maximum scale delta at |depth| = 0.5 and full proximity. */
   scale?: number;
-  /** Maximum rotation in degrees at |depth| = 0.5 and |cursor offset| = 1. */
+  /**
+   * Retained for rig compatibility. Cursor-driven in-plane rotation is
+   * disabled because a linear rotation field is asymmetric across diagonals;
+   * idle `data-anim` rotation is unaffected.
+   */
   rotate?: number;
   /** Proximity radius in normalized canvas units. */
   proximity?: number;
@@ -169,6 +177,7 @@ export interface ParallaxCursor {
 export interface ParallaxMultipliers {
   shift?: number;
   scale?: number;
+  /** @deprecated Cursor rotation is disabled; kept for compatibility. */
   rotate?: number;
 }
 
@@ -1233,7 +1242,6 @@ export function deriveParallaxRig(
     const direction = settings.direction === "direct" ? 1 : -1;
     const translateGain = direction * settings.shift * depth * info.gain;
     const scaleGain = settings.scale * depth * info.gain * 2;
-    const rotateGain = settings.rotate * depth * info.gain * 2;
 
     const normalizedX = (pivot[0] - viewBox[0]) / viewBox[2];
     const normalizedY = (pivot[1] - viewBox[1]) / viewBox[3];
@@ -1268,10 +1276,14 @@ export function deriveParallaxRig(
         radius: settings.proximity,
         neutral,
       },
+      // Cursor-driven in-plane rotation is intentionally disabled. A linear
+      // dipole such as rotateGain * (cx - cy) is zero on one diagonal and
+      // maximal on the other, making corner responses asymmetric. Idle
+      // rotation is carried separately by each node's `idle.rotate` track.
       rotate: {
         const: 0,
-        cx: rotateGain,
-        cy: -rotateGain,
+        cx: 0,
+        cy: 0,
       },
       ...(idle === undefined ? {} : { idle }),
     });
@@ -1366,7 +1378,6 @@ export function evaluateParallaxNode(
   const cy = (cursor.y - 0.5) * 2;
   const shift = multipliers.shift ?? 1;
   const scaleMultiplier = multipliers.scale ?? 1;
-  const rotateMultiplier = multipliers.rotate ?? 1;
 
   const tx =
     node.translate.x.const +
@@ -1389,9 +1400,10 @@ export function evaluateParallaxNode(
     node.scale.cx * cx + node.scale.cy * cy + node.scale.proximity * proximity;
   const scale = node.scale.const + scaleDelta * scaleMultiplier;
 
-  const rotate =
-    node.rotate.const +
-    (node.rotate.cx * cx + node.rotate.cy * cy) * rotateMultiplier;
+  // Cursor-driven rotation is disabled, including for legacy rigs whose
+  // rotate.cx/rotate.cy fields still carry the old asymmetric dipole. Idle
+  // rotation is added later by combineMotions().
+  const rotate = node.rotate.const;
 
   return { tx, ty, scale, rotate };
 }
