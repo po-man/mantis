@@ -1,0 +1,87 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="100%" height="100%">
+  <defs>
+    <clipPath id="clip-stem">
+      <path d="M 478 430 C 476 520 472 640 470 730 C 469 768 472 792 478 806 C 502 818 526 818 550 806 C 556 792 559 768 558 730 C 556 640 552 520 550 430 Z"/>
+    </clipPath>
+    <clipPath id="clip-ring">
+      <path d="M 470 430 L 610 430 C 632 458 652 486 665 514 C 648 526 628 536 606 546 C 586 556 562 564 538 566 C 516 568 494 566 474 560 C 448 552 428 538 415 522 C 430 490 450 458 470 430 Z"/>
+    </clipPath>
+    <clipPath id="clip-cap">
+      <path d="M 272 452 C 272 336 366 250 512 248 C 658 250 752 336 752 452 C 700 478 610 490 512 490 C 414 490 324 478 272 452 Z"/>
+    </clipPath>
+  </defs>
+
+  <g id="subject" data-z="0.5" data-pivot="512,512">
+
+    
+    <g id="stem" data-z="0.30" data-pivot="512,700" data-sockets="cap-joint:512,440 ring-joint:512,470" data-anim="breathe" data-anim-period="4" data-anim-amplitude="0.02">
+
+      <g id="stem-surface" data-z="0.30" data-pivot="512,620" clip-path="url(#clip-stem)">
+        <path id="stem-base" data-z="0.30" data-pivot="512,620" fill="#F0E6CE" stroke="none" d="M 478 430 C 476 520 472 640 470 730 C 469 768 472 792 478 806 C 502 818 526 818 550 806 C 556 792 559 768 558 730 C 556 640 552 520 550 430 Z"/>
+        <path id="stem-shadow" data-z="0.34" data-pivot="530,620" fill="#D6C6A2" stroke="none" d="M 520 432 C 524 540 528 660 530 740 C 531 776 528 796 522 808 C 534 814 544 812 550 806 C 556 792 559 768 558 730 C 556 640 552 520 550 430 Z"/>
+        <path id="stem-highlight" data-z="0.38" data-pivot="490,620" fill="#FCF7EA" stroke="none" d="M 484 432 C 482 540 478 660 476 740 C 475 776 478 796 484 806 C 490 810 496 812 502 812 C 494 760 492 640 494 432 Z"/>
+      </g>
+
+      <g id="stem-striations" data-z="0.40" data-pivot="512,620">
+        <path id="stem-fiber-1" data-z="0.40" data-pivot="500,620" fill="none" stroke="#D9C9A4" stroke-width="3" stroke-linecap="round" opacity="0.7" d="M 500 470 C 498 560 496 660 498 760"/>
+        <path id="stem-fiber-2" data-z="0.40" data-pivot="524,620" fill="none" stroke="#D9C9A4" stroke-width="3" stroke-linecap="round" opacity="0.7" d="M 524 480 C 526 570 528 670 526 770"/>
+        <path id="stem-fiber-3" data-z="0.40" data-pivot="540,620" fill="none" stroke="#D9C9A4" stroke-width="3" stroke-linecap="round" opacity="0.7" d="M 540 500 C 542 580 544 680 542 760"/>
+      </g>
+    </g>
+
+    
+    <g id="ring" data-z="0.50" data-pivot="512,470" data-anchor="ring-joint" data-weld="0.9" data-anim="twitch" data-anim-period="5" data-anim-amplitude="3">
+
+      <g id="ring-surface" data-z="0.50" data-pivot="540,500" clip-path="url(#clip-ring)">
+        <path id="ring-base" data-z="0.50" data-pivot="540,500" fill="#EDE0C0" stroke="none" d="M 470 430 L 610 430 C 632 458 652 486 665 514 C 648 526 628 536 606 546 C 586 556 562 564 538 566 C 516 568 494 566 474 560 C 448 552 428 538 415 522 C 430 490 450 458 470 430 Z"/>
+        <path id="ring-shadow" data-z="0.54" data-pivot="600,500" fill="#D8C7A0" stroke="none" d="M 556 430 L 610 430 C 632 458 652 486 665 514 C 648 526 628 536 606 546 C 586 556 562 564 538 566 C 550 540 556 490 556 430 Z"/>
+        <path id="ring-highlight" data-z="0.58" data-pivot="440,490" fill="#FBF5E6" stroke="none" d="M 470 430 C 450 458 430 490 415 522 C 428 538 448 552 474 560 C 468 520 466 470 470 430 Z"/>
+      </g>
+
+      <path id="ring-fringe" data-z="0.60" data-pivot="540,550" fill="#E3C46A" stroke="none" d="M 415 522 C 428 538 448 552 474 560 C 494 566 516 568 538 566 C 562 564 586 556 606 546 C 628 536 648 526 665 514 C 656 538 640 552 620 562 C 608 568 596 572 584 574 C 578 564 566 560 556 566 C 548 572 538 576 528 576 C 520 566 508 562 498 568 C 488 574 476 576 466 572 C 456 566 444 560 434 556 C 424 550 418 538 415 522 Z"/>
+    </g>
+
+    
+    <g id="cap" data-z="0.70" data-pivot="512,440" data-anchor="cap-joint" data-weld="0.9" data-anim="sway" data-anim-period="4.5" data-anim-amplitude="2.5">
+
+      <g id="cap-surface" data-z="0.70" data-pivot="512,380" clip-path="url(#clip-cap)">
+        <path id="cap-base" data-z="0.70" data-pivot="512,380" fill="#D42B2C" stroke="none" d="M 272 452 C 272 336 366 250 512 248 C 658 250 752 336 752 452 C 700 478 610 490 512 490 C 414 490 324 478 272 452 Z"/>
+        <path id="cap-shadow" data-z="0.74" data-pivot="560,430" fill="#A81E24" stroke="none" d="M 272 452 C 324 478 414 490 512 490 C 610 490 700 478 752 452 C 750 410 736 380 712 360 C 660 396 600 422 530 438 C 460 456 380 460 320 452 C 300 452 284 452 272 452 Z"/>
+        <path id="cap-highlight" data-z="0.78" data-pivot="400,340" fill="#F0603E" stroke="none" d="M 300 428 C 300 340 380 276 500 272 C 440 306 372 360 346 424 C 330 424 314 426 300 428 Z"/>
+      </g>
+
+      <g id="cap-rim" data-z="0.80" data-pivot="512,480" clip-path="url(#clip-cap)">
+        <path id="cap-rim-band" data-z="0.80" data-pivot="512,480" fill="#F2E6C8" stroke="none" d="M 272 452 C 324 478 414 490 512 490 C 610 490 700 478 752 452 C 706 466 612 478 512 478 C 412 478 318 466 272 452 Z"/>
+      </g>
+
+      <g id="cap-warts" data-z="0.84" data-pivot="512,360" clip-path="url(#clip-cap)" data-parallax="1.1">
+        <ellipse cx="512" cy="276" rx="10" ry="7" fill="#F8F0DE" stroke="none"/>
+        <ellipse cx="466" cy="286" rx="8" ry="6" fill="#F8F0DE" stroke="none"/>
+        <ellipse cx="560" cy="290" rx="9" ry="6" fill="#E8DBBC" stroke="none"/>
+        <ellipse cx="424" cy="304" rx="8" ry="6" fill="#F8F0DE" stroke="none"/>
+        <ellipse cx="604" cy="308" rx="8" ry="6" fill="#F8F0DE" stroke="none"/>
+        <ellipse cx="512" cy="312" rx="11" ry="7" fill="#F8F0DE" stroke="none"/>
+        <ellipse cx="372" cy="330" rx="7" ry="5" fill="#E8DBBC" stroke="none"/>
+        <ellipse cx="462" cy="332" rx="9" ry="6" fill="#F8F0DE" stroke="none"/>
+        <ellipse cx="566" cy="336" rx="9" ry="6" fill="#F8F0DE" stroke="none"/>
+        <ellipse cx="654" cy="340" rx="7" ry="5" fill="#E8DBBC" stroke="none"/>
+        <ellipse cx="334" cy="362" rx="6" ry="5" fill="#F8F0DE" stroke="none"/>
+        <ellipse cx="406" cy="362" rx="8" ry="6" fill="#F8F0DE" stroke="none"/>
+        <ellipse cx="512" cy="364" rx="11" ry="7" fill="#F8F0DE" stroke="none"/>
+        <ellipse cx="614" cy="368" rx="8" ry="6" fill="#E8DBBC" stroke="none"/>
+        <ellipse cx="706" cy="376" rx="6" ry="5" fill="#F8F0DE" stroke="none"/>
+        <ellipse cx="306" cy="400" rx="6" ry="4" fill="#E8DBBC" stroke="none"/>
+        <ellipse cx="364" cy="400" rx="7" ry="5" fill="#F8F0DE" stroke="none"/>
+        <ellipse cx="458" cy="402" rx="9" ry="6" fill="#F8F0DE" stroke="none"/>
+        <ellipse cx="568" cy="406" rx="8" ry="6" fill="#F8F0DE" stroke="none"/>
+        <ellipse cx="664" cy="408" rx="7" ry="5" fill="#E8DBBC" stroke="none"/>
+        <ellipse cx="326" cy="432" rx="6" ry="4" fill="#F8F0DE" stroke="none"/>
+        <ellipse cx="416" cy="436" rx="7" ry="5" fill="#F8F0DE" stroke="none"/>
+        <ellipse cx="516" cy="440" rx="8" ry="5" fill="#F8F0DE" stroke="none"/>
+        <ellipse cx="620" cy="438" rx="6" ry="4" fill="#E8DBBC" stroke="none"/>
+        <ellipse cx="714" cy="428" rx="5" ry="4" fill="#F8F0DE" stroke="none"/>
+      </g>
+    </g>
+
+  </g>
+</svg>

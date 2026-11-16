@@ -1,0 +1,71 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="100%" height="100%">
+  <defs>
+    <clipPath id="clip-vase">
+      <path d="M360,430 L360,530 C360,556 340,572 322,606 C300,648 288,704 290,760 C292,830 338,876 402,876 C466,876 512,830 514,760 C516,704 504,648 482,606 C464,572 444,556 444,530 L444,430 Z"/>
+    </clipPath>
+    <clipPath id="clip-left-leaf">
+      <path d="M398,335 C398,292 388,252 370,216 C348,172 322,138 304,120 C294,108 280,112 276,130 C266,182 242,244 210,300 C180,352 154,406 154,454 C154,502 180,530 216,530 C258,530 306,496 342,454 C372,418 394,372 398,335 Z"/>
+    </clipPath>
+    <clipPath id="clip-right-leaf">
+      <path d="M480,300 C496,250 528,196 566,164 C592,142 616,140 626,162 C646,206 682,290 730,376 C776,458 830,540 866,588 C878,604 872,618 852,616 C806,610 740,578 676,530 C610,480 546,414 506,356 C490,332 480,314 480,300 Z"/>
+    </clipPath>
+  </defs>
+
+  <g id="subject" data-z="0.5" data-pivot="512,512">
+
+    <g id="stems" data-z="0.20" data-pivot="405,430" data-anchor="vase-mouth" data-sockets="stem-left-tip:398,335 stem-right-tip:480,300">
+      <path id="stem-left" data-z="0.20" data-pivot="396,570" fill="none" stroke="#2A4A2E" stroke-width="9" stroke-linecap="round" d="M392,840 C396,740 398,620 400,540 C402,470 400,390 392,320"/>
+      <path id="stem-right" data-z="0.21" data-pivot="440,560" fill="none" stroke="#2A4A2E" stroke-width="9" stroke-linecap="round" d="M436,836 C428,730 420,620 416,540 C412,470 440,370 492,290"/>
+      <path id="stem-cross" data-z="0.22" data-pivot="414,660" fill="none" stroke="#2A4A2E" stroke-width="7" stroke-linecap="round" d="M404,800 C412,700 420,620 424,560"/>
+    </g>
+
+    <g id="vase" data-z="0.30" data-pivot="402,660" data-sockets="vase-mouth:405,430" data-anim="breathe" data-anim-period="4.5" data-anim-amplitude="2">
+      <g id="vase-surface" clip-path="url(#clip-vase)">
+        <path id="vase-glass" data-z="0.30" data-pivot="402,660" fill="#DCE9EF" opacity="0.28" d="M360,430 L360,530 C360,556 340,572 322,606 C300,648 288,704 290,760 C292,830 338,876 402,876 C466,876 512,830 514,760 C516,704 504,648 482,606 C464,572 444,556 444,530 L444,430 Z"/>
+        <path id="vase-water" data-z="0.33" data-pivot="402,760" fill="#B9D6DC" opacity="0.32" d="M280,650 C330,674 474,674 524,650 L524,900 L280,900 Z"/>
+        <path id="vase-water-line" data-z="0.36" data-pivot="402,660" fill="#D8ECEE" opacity="0.75" d="M280,650 C330,674 474,674 524,650 C474,662 330,662 280,650 Z"/>
+        <path id="vase-shadow-left" data-z="0.38" data-pivot="330,700" fill="#9FBCC8" opacity="0.28" d="M360,430 L360,530 C360,556 340,572 322,606 C300,648 288,704 290,760 C292,800 310,836 340,858 C310,830 300,790 300,750 C298,700 312,650 334,610 C352,576 372,558 372,530 L372,430 Z"/>
+        <path id="vase-highlight-right" data-z="0.42" data-pivot="490,700" fill="#FFFFFF" opacity="0.70" d="M470,560 C492,600 506,660 504,720 C502,780 480,830 448,858 C486,838 512,790 514,730 C516,672 500,610 470,560 Z"/>
+        <path id="vase-highlight-neck" data-z="0.44" data-pivot="432,480" fill="#FFFFFF" opacity="0.55" d="M424,440 L436,440 L436,520 C436,540 448,552 458,570 C440,556 424,542 424,520 Z"/>
+      </g>
+      <path id="vase-outline" data-z="0.45" data-pivot="402,660" fill="none" stroke="#A6C0CC" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" opacity="0.70" d="M360,430 L360,530 C360,556 340,572 322,606 C300,648 288,704 290,760 C292,830 338,876 402,876 C466,876 512,830 514,760 C516,704 504,648 482,606 C464,572 444,556 444,530 L444,430"/>
+      <ellipse id="vase-rim" data-z="0.46" data-pivot="402,430" cx="402" cy="430" rx="42" ry="10" fill="none" stroke="#A6C0CC" stroke-width="6" opacity="0.90"/>
+    </g>
+
+    <g id="right-leaf" data-z="0.62" data-pivot="480,300" data-anchor="stem-right-tip" data-anim="sway" data-anim-period="4.2" data-anim-amplitude="2.5">
+      <g id="right-leaf-surface" clip-path="url(#clip-right-leaf)">
+        <path id="right-leaf-base" data-z="0.62" data-pivot="660,400" fill="#4A7A48" d="M480,300 C496,250 528,196 566,164 C592,142 616,140 626,162 C646,206 682,290 730,376 C776,458 830,540 866,588 C878,604 872,618 852,616 C806,610 740,578 676,530 C610,480 546,414 506,356 C490,332 480,314 480,300 Z"/>
+        <path id="right-leaf-shadow" data-z="0.64" data-pivot="700,500" fill="#35603A" opacity="0.55" d="M480,300 C490,340 520,390 560,440 C620,510 700,570 800,606 L820,660 L460,660 Z"/>
+        <path id="right-leaf-highlight" data-z="0.70" data-pivot="560,200" fill="#6A9A60" opacity="0.55" d="M480,300 C496,250 528,196 566,164 C592,142 616,140 626,162 L610,172 C596,154 578,160 556,182 C524,216 500,264 490,306 Z"/>
+        <g id="right-leaf-veins" data-z="0.68" data-pivot="660,400" fill="none" stroke="#8FB87E" stroke-width="5" stroke-linecap="round" opacity="0.55">
+          <path d="M484,306 C580,382 720,482 862,586"/>
+          <path d="M540,352 C560,300 590,240 620,196"/>
+          <path d="M600,400 C630,340 670,270 700,220"/>
+          <path d="M660,448 C700,390 750,320 790,270"/>
+          <path d="M730,500 C770,450 820,390 850,340"/>
+          <path d="M560,370 C580,420 610,470 650,510"/>
+          <path d="M640,430 C660,480 690,520 730,550"/>
+          <path d="M720,490 C740,530 770,560 800,580"/>
+        </g>
+      </g>
+    </g>
+
+    <g id="left-leaf" data-z="0.78" data-pivot="398,335" data-anchor="stem-left-tip" data-anim="sway" data-anim-period="3.6" data-anim-amplitude="2.5">
+      <g id="left-leaf-surface" clip-path="url(#clip-left-leaf)">
+        <path id="left-leaf-base" data-z="0.78" data-pivot="280,320" fill="#2E5636" d="M398,335 C398,292 388,252 370,216 C348,172 322,138 304,120 C294,108 280,112 276,130 C266,182 242,244 210,300 C180,352 154,406 154,454 C154,502 180,530 216,530 C258,530 306,496 342,454 C372,418 394,372 398,335 Z"/>
+        <path id="left-leaf-shadow" data-z="0.80" data-pivot="220,440" fill="#22422A" opacity="0.55" d="M120,600 L120,380 C180,400 250,450 310,520 L360,600 Z"/>
+        <path id="left-leaf-highlight" data-z="0.86" data-pivot="360,220" fill="#4C7A4C" opacity="0.60" d="M398,335 C398,292 388,252 370,216 C348,172 322,138 304,120 L322,112 C348,140 378,190 396,240 C410,280 414,315 412,340 Z"/>
+        <g id="left-leaf-veins" data-z="0.84" data-pivot="280,320" fill="none" stroke="#7FA870" stroke-width="5" stroke-linecap="round" opacity="0.55">
+          <path d="M396,332 C372,290 342,220 304,128"/>
+          <path d="M378,282 C340,300 296,326 258,362"/>
+          <path d="M362,240 C322,258 278,286 240,320"/>
+          <path d="M344,200 C308,218 272,244 240,276"/>
+          <path d="M324,162 C296,180 270,202 248,228"/>
+          <path d="M386,300 C396,320 400,340 396,360"/>
+          <path d="M380,262 C392,282 398,302 398,322"/>
+        </g>
+      </g>
+    </g>
+
+  </g>
+</svg>

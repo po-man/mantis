@@ -1,0 +1,486 @@
+{
+  "format": "vector.publication",
+  "version": 1,
+  "title": "vector · selected results",
+  "intro": "Mantis is an image-to-animation project. You give one photo of a centered object; a vision model (VLM) traces the subject into clean, layered vector shapes, annotates depth, and the service derives a tiny parallax rig. The result is a static SVG that also responds to a cursor or a phone's tilt. These are selected outputs from our local evaluation runs, grouped by our own quality ratings. Have fun!",
+  "generatedAt": "2026-11-16T09:58:05.155Z",
+  "items": [
+    {
+      "id": 367,
+      "rating": "nice",
+      "title": "Conversion #367",
+      "model": "deepseek/deepseek-v4.1-flash-1017",
+      "promptVersion": "edf246a4c1cf",
+      "createdAt": 1794821810542,
+      "inputWidth": 502,
+      "inputHeight": 512,
+      "assets": {
+        "input": "assets/0001-367-input.png",
+        "svg": "assets/0001-367.svg",
+        "rig": "assets/0001-367.rig.json"
+      }
+    },
+    {
+      "id": 368,
+      "rating": "nice",
+      "title": "Conversion #368",
+      "model": "deepseek/deepseek-v4.1-flash-1017",
+      "promptVersion": "edf246a4c1cf",
+      "createdAt": 1794821872559,
+      "inputWidth": 810,
+      "inputHeight": 1084,
+      "assets": {
+        "input": "assets/0002-368-input.png",
+        "svg": "assets/0002-368.svg",
+        "rig": "assets/0002-368.rig.json"
+      }
+    },
+    {
+      "id": 375,
+      "rating": "nice",
+      "title": "Conversion #375",
+      "model": "deepseek/deepseek-v4.1-flash-1017",
+      "promptVersion": "edf246a4c1cf",
+      "createdAt": 1794822141574,
+      "inputWidth": 626,
+      "inputHeight": 530,
+      "assets": {
+        "input": "assets/0003-375-input.png",
+        "svg": "assets/0003-375.svg",
+        "rig": "assets/0003-375.rig.json"
+      }
+    },
+    {
+      "id": 372,
+      "rating": "nice",
+      "title": "Conversion #372",
+      "model": "deepseek/deepseek-v4.1-flash-1017",
+      "promptVersion": "edf246a4c1cf",
+      "createdAt": 1794822076652,
+      "inputWidth": 786,
+      "inputHeight": 938,
+      "assets": {
+        "input": "assets/0004-372-input.png",
+        "svg": "assets/0004-372.svg",
+        "rig": "assets/0004-372.rig.json"
+      }
+    },
+    {
+      "id": 396,
+      "rating": "nice",
+      "title": "Conversion #396",
+      "model": "deepseek/deepseek-v4.1-flash-1017",
+      "promptVersion": "edf246a4c1cf",
+      "createdAt": 1794822848391,
+      "inputWidth": 812,
+      "inputHeight": 1050,
+      "assets": {
+        "input": "assets/0005-396-input.png",
+        "svg": "assets/0005-396.svg",
+        "rig": "assets/0005-396.rig.json"
+      }
+    },
+    {
+      "id": 354,
+      "rating": "fair",
+      "title": "Conversion #354",
+      "model": "deepseek/deepseek-v4.1-flash-1017",
+      "promptVersion": "edf246a4c1cf",
+      "createdAt": 1794821475979,
+      "inputWidth": 814,
+      "inputHeight": 962,
+      "assets": {
+        "input": "assets/0006-354-input.png",
+        "svg": "assets/0006-354.svg",
+        "rig": "assets/0006-354.rig.json"
+      }
+    },
+    {
+      "id": 359,
+      "rating": "fair",
+      "title": "Conversion #359",
+      "model": "deepseek/deepseek-v4.1-flash-1017",
+      "promptVersion": "edf246a4c1cf",
+      "createdAt": 1794821612945,
+      "inputWidth": 692,
+      "inputHeight": 504,
+      "assets": {
+        "input": "assets/0007-359-input.png",
+        "svg": "assets/0007-359.svg",
+        "rig": "assets/0007-359.rig.json"
+      }
+    },
+    {
+      "id": 360,
+      "rating": "fair",
+      "title": "Conversion #360",
+      "model": "deepseek/deepseek-v4.1-flash-1017",
+      "promptVersion": "edf246a4c1cf",
+      "createdAt": 1794821638667,
+      "inputWidth": 632,
+      "inputHeight": 516,
+      "assets": {
+        "input": "assets/0008-360-input.png",
+        "svg": "assets/0008-360.svg",
+        "rig": "assets/0008-360.rig.json"
+      }
+    },
+    {
+      "id": 361,
+      "rating": "fair",
+      "title": "Conversion #361",
+      "model": "deepseek/deepseek-v4.1-flash-1017",
+      "promptVersion": "edf246a4c1cf",
+      "createdAt": 1794821691426,
+      "inputWidth": 818,
+      "inputHeight": 1102,
+      "assets": {
+        "input": "assets/0009-361-input.png",
+        "svg": "assets/0009-361.svg",
+        "rig": "assets/0009-361.rig.json"
+      }
+    },
+    {
+      "id": 366,
+      "rating": "fair",
+      "title": "Conversion #366",
+      "model": "deepseek/deepseek-v4.1-flash-1017",
+      "promptVersion": "edf246a4c1cf",
+      "createdAt": 1794821794178,
+      "inputWidth": 814,
+      "inputHeight": 546,
+      "assets": {
+        "input": "assets/0010-366-input.png",
+        "svg": "assets/0010-366.svg",
+        "rig": "assets/0010-366.rig.json"
+      }
+    },
+    {
+      "id": 379,
+      "rating": "fair",
+      "title": "Conversion #379",
+      "model": "deepseek/deepseek-v4.1-flash-1017",
+      "promptVersion": "edf246a4c1cf",
+      "createdAt": 1794822274348,
+      "inputWidth": 806,
+      "inputHeight": 728,
+      "assets": {
+        "input": "assets/0011-379-input.png",
+        "svg": "assets/0011-379.svg",
+        "rig": "assets/0011-379.rig.json"
+      }
+    },
+    {
+      "id": 383,
+      "rating": "fair",
+      "title": "Conversion #383",
+      "model": "deepseek/deepseek-v4.1-flash-1017",
+      "promptVersion": "edf246a4c1cf",
+      "createdAt": 1794822401598,
+      "inputWidth": 732,
+      "inputHeight": 788,
+      "assets": {
+        "input": "assets/0012-383-input.png",
+        "svg": "assets/0012-383.svg",
+        "rig": "assets/0012-383.rig.json"
+      }
+    },
+    {
+      "id": 371,
+      "rating": "fair",
+      "title": "Conversion #371",
+      "model": "deepseek/deepseek-v4.1-flash-1017",
+      "promptVersion": "edf246a4c1cf",
+      "createdAt": 1794822035864,
+      "inputWidth": 814,
+      "inputHeight": 1220,
+      "assets": {
+        "input": "assets/0013-371-input.png",
+        "svg": "assets/0013-371.svg",
+        "rig": "assets/0013-371.rig.json"
+      }
+    },
+    {
+      "id": 365,
+      "rating": "fair",
+      "title": "Conversion #365",
+      "model": "deepseek/deepseek-v4.1-flash-1017",
+      "promptVersion": "edf246a4c1cf",
+      "createdAt": 1794821776888,
+      "inputWidth": 586,
+      "inputHeight": 514,
+      "assets": {
+        "input": "assets/0014-365-input.png",
+        "svg": "assets/0014-365.svg",
+        "rig": "assets/0014-365.rig.json"
+      }
+    },
+    {
+      "id": 385,
+      "rating": "fair",
+      "title": "Conversion #385",
+      "model": "deepseek/deepseek-v4.1-flash-1017",
+      "promptVersion": "edf246a4c1cf",
+      "createdAt": 1794822494390,
+      "inputWidth": 540,
+      "inputHeight": 528,
+      "assets": {
+        "input": "assets/0015-385-input.png",
+        "svg": "assets/0015-385.svg",
+        "rig": "assets/0015-385.rig.json"
+      }
+    },
+    {
+      "id": 390,
+      "rating": "fair",
+      "title": "Conversion #390",
+      "model": "deepseek/deepseek-v4.1-flash-1017",
+      "promptVersion": "edf246a4c1cf",
+      "createdAt": 1794822613783,
+      "inputWidth": 458,
+      "inputHeight": 410,
+      "assets": {
+        "input": "assets/0016-390-input.png",
+        "svg": "assets/0016-390.svg",
+        "rig": "assets/0016-390.rig.json"
+      }
+    },
+    {
+      "id": 389,
+      "rating": "fair",
+      "title": "Conversion #389",
+      "model": "deepseek/deepseek-v4.1-flash-1017",
+      "promptVersion": "edf246a4c1cf",
+      "createdAt": 1794822585093,
+      "inputWidth": 816,
+      "inputHeight": 1010,
+      "assets": {
+        "input": "assets/0017-389-input.png",
+        "svg": "assets/0017-389.svg",
+        "rig": "assets/0017-389.rig.json"
+      }
+    },
+    {
+      "id": 386,
+      "rating": "fair",
+      "title": "Conversion #386",
+      "model": "deepseek/deepseek-v4.1-flash-1017",
+      "promptVersion": "edf246a4c1cf",
+      "createdAt": 1794822536992,
+      "inputWidth": 630,
+      "inputHeight": 632,
+      "assets": {
+        "input": "assets/0018-386-input.png",
+        "svg": "assets/0018-386.svg",
+        "rig": "assets/0018-386.rig.json"
+      }
+    },
+    {
+      "id": 387,
+      "rating": "fair",
+      "title": "Conversion #387",
+      "model": "deepseek/deepseek-v4.1-flash-1017",
+      "promptVersion": "edf246a4c1cf",
+      "createdAt": 1794822537095,
+      "inputWidth": 724,
+      "inputHeight": 674,
+      "assets": {
+        "input": "assets/0019-387-input.png",
+        "svg": "assets/0019-387.svg",
+        "rig": "assets/0019-387.rig.json"
+      }
+    },
+    {
+      "id": 382,
+      "rating": "fair",
+      "title": "Conversion #382",
+      "model": "deepseek/deepseek-v4.1-flash-1017",
+      "promptVersion": "edf246a4c1cf",
+      "createdAt": 1794822395882,
+      "inputWidth": 818,
+      "inputHeight": 960,
+      "assets": {
+        "input": "assets/0020-382-input.png",
+        "svg": "assets/0020-382.svg",
+        "rig": "assets/0020-382.rig.json"
+      }
+    },
+    {
+      "id": 394,
+      "rating": "fair",
+      "title": "Conversion #394",
+      "model": "deepseek/deepseek-v4.1-flash-1017",
+      "promptVersion": "edf246a4c1cf",
+      "createdAt": 1794822765823,
+      "inputWidth": 810,
+      "inputHeight": 894,
+      "assets": {
+        "input": "assets/0021-394-input.png",
+        "svg": "assets/0021-394.svg",
+        "rig": "assets/0021-394.rig.json"
+      }
+    },
+    {
+      "id": 369,
+      "rating": "bad",
+      "title": "Conversion #369",
+      "model": "deepseek/deepseek-v4.1-flash-1017",
+      "promptVersion": "edf246a4c1cf",
+      "createdAt": 1794821901164,
+      "inputWidth": 778,
+      "inputHeight": 774,
+      "assets": {
+        "input": "assets/0022-369-input.png",
+        "svg": "assets/0022-369.svg",
+        "rig": "assets/0022-369.rig.json"
+      }
+    },
+    {
+      "id": 356,
+      "rating": "bad",
+      "title": "Conversion #356",
+      "model": "deepseek/deepseek-v4.1-flash-1017",
+      "promptVersion": "edf246a4c1cf",
+      "createdAt": 1794821523772,
+      "inputWidth": 802,
+      "inputHeight": 540,
+      "assets": {
+        "input": "assets/0023-356-input.png",
+        "svg": "assets/0023-356.svg",
+        "rig": "assets/0023-356.rig.json"
+      }
+    },
+    {
+      "id": 362,
+      "rating": "bad",
+      "title": "Conversion #362",
+      "model": "deepseek/deepseek-v4.1-flash-1017",
+      "promptVersion": "edf246a4c1cf",
+      "createdAt": 1794821699050,
+      "inputWidth": 678,
+      "inputHeight": 514,
+      "assets": {
+        "input": "assets/0024-362-input.png",
+        "svg": "assets/0024-362.svg",
+        "rig": "assets/0024-362.rig.json"
+      }
+    },
+    {
+      "id": 370,
+      "rating": "bad",
+      "title": "Conversion #370",
+      "model": "deepseek/deepseek-v4.1-flash-1017",
+      "promptVersion": "edf246a4c1cf",
+      "createdAt": 1794822024644,
+      "inputWidth": 808,
+      "inputHeight": 1034,
+      "assets": {
+        "input": "assets/0025-370-input.png",
+        "svg": "assets/0025-370.svg",
+        "rig": "assets/0025-370.rig.json"
+      }
+    },
+    {
+      "id": 374,
+      "rating": "bad",
+      "title": "Conversion #374",
+      "model": "deepseek/deepseek-v4.1-flash-1017",
+      "promptVersion": "edf246a4c1cf",
+      "createdAt": 1794822123610,
+      "inputWidth": 796,
+      "inputHeight": 540,
+      "assets": {
+        "input": "assets/0026-374-input.png",
+        "svg": "assets/0026-374.svg",
+        "rig": "assets/0026-374.rig.json"
+      }
+    },
+    {
+      "id": 373,
+      "rating": "bad",
+      "title": "Conversion #373",
+      "model": "deepseek/deepseek-v4.1-flash-1017",
+      "promptVersion": "edf246a4c1cf",
+      "createdAt": 1794822099655,
+      "inputWidth": 682,
+      "inputHeight": 536,
+      "assets": {
+        "input": "assets/0027-373-input.png",
+        "svg": "assets/0027-373.svg",
+        "rig": "assets/0027-373.rig.json"
+      }
+    },
+    {
+      "id": 392,
+      "rating": "bad",
+      "title": "Conversion #392",
+      "model": "deepseek/deepseek-v4.1-flash-1017",
+      "promptVersion": "edf246a4c1cf",
+      "createdAt": 1794822692840,
+      "inputWidth": 790,
+      "inputHeight": 782,
+      "assets": {
+        "input": "assets/0028-392-input.png",
+        "svg": "assets/0028-392.svg",
+        "rig": "assets/0028-392.rig.json"
+      }
+    },
+    {
+      "id": 391,
+      "rating": "bad",
+      "title": "Conversion #391",
+      "model": "deepseek/deepseek-v4.1-flash-1017",
+      "promptVersion": "edf246a4c1cf",
+      "createdAt": 1794822660550,
+      "inputWidth": 658,
+      "inputHeight": 636,
+      "assets": {
+        "input": "assets/0029-391-input.png",
+        "svg": "assets/0029-391.svg",
+        "rig": "assets/0029-391.rig.json"
+      }
+    },
+    {
+      "id": 395,
+      "rating": "bad",
+      "title": "Conversion #395",
+      "model": "deepseek/deepseek-v4.1-flash-1017",
+      "promptVersion": "edf246a4c1cf",
+      "createdAt": 1794822810305,
+      "inputWidth": 806,
+      "inputHeight": 922,
+      "assets": {
+        "input": "assets/0030-395-input.png",
+        "svg": "assets/0030-395.svg",
+        "rig": "assets/0030-395.rig.json"
+      }
+    },
+    {
+      "id": 363,
+      "rating": "bad",
+      "title": "Conversion #363",
+      "model": "deepseek/deepseek-v4.1-flash-1017",
+      "promptVersion": "edf246a4c1cf",
+      "createdAt": 1794821702611,
+      "inputWidth": 780,
+      "inputHeight": 772,
+      "assets": {
+        "input": "assets/0031-363-input.png",
+        "svg": "assets/0031-363.svg",
+        "rig": "assets/0031-363.rig.json"
+      }
+    }
+  ],
+  "featured": {
+    "id": 222,
+    "rating": null,
+    "title": "Conversion #222",
+    "model": "deepseek/deepseek-v4.1-flash-1017",
+    "promptVersion": "7ac8d4187fbd",
+    "createdAt": 1794801860476,
+    "assets": {
+      "svg": "assets/featured-222.svg",
+      "rig": "assets/featured-222.rig.json"
+    }
+  }
+}

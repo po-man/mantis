@@ -1,0 +1,1074 @@
+{
+  "format": "vector.parallax",
+  "version": 3,
+  "viewBox": [
+    0,
+    0,
+    1024,
+    1024
+  ],
+  "cursor": {
+    "space": "normalized",
+    "neutral": [
+      0.5,
+      0.5
+    ]
+  },
+  "defaults": {
+    "shift": 40,
+    "scale": 0.06,
+    "rotate": 1.5,
+    "proximity": 0.55,
+    "direction": "inverse",
+    "neutralZ": 0.5
+  },
+  "nodes": [
+    {
+      "id": "subject",
+      "tag": "g",
+      "z": 0.5,
+      "parentZ": 0.5,
+      "depth": 0,
+      "pivot": [
+        512,
+        512
+      ],
+      "gain": 1,
+      "weld": 1,
+      "baseTransform": null,
+      "translate": {
+        "x": {
+          "const": 0,
+          "cx": 0,
+          "cy": 0
+        },
+        "y": {
+          "const": 0,
+          "cx": 0,
+          "cy": 0
+        }
+      },
+      "scale": {
+        "const": 1,
+        "cx": 0,
+        "cy": 0,
+        "proximity": 0,
+        "radius": 0.55,
+        "neutral": 1
+      },
+      "rotate": {
+        "const": 0,
+        "cx": 0,
+        "cy": 0
+      }
+    },
+    {
+      "id": "pot-body",
+      "tag": "g",
+      "z": 0.15,
+      "parentZ": 0.5,
+      "depth": -0.35,
+      "pivot": [
+        516,
+        700
+      ],
+      "gain": 1,
+      "weld": 1,
+      "baseTransform": null,
+      "translate": {
+        "x": {
+          "const": 0,
+          "cx": 14,
+          "cy": 0
+        },
+        "y": {
+          "const": 0,
+          "cx": 0,
+          "cy": 14
+        }
+      },
+      "scale": {
+        "const": 1,
+        "cx": 0,
+        "cy": 0,
+        "proximity": -0.041999999999999996,
+        "radius": 0.55,
+        "neutral": 0.9457862214032478
+      },
+      "rotate": {
+        "const": 0,
+        "cx": 0,
+        "cy": 0
+      }
+    },
+    {
+      "id": "pot-body-surface",
+      "tag": "g",
+      "z": 0.15,
+      "parentZ": 0.15,
+      "depth": 0,
+      "pivot": [
+        516,
+        700
+      ],
+      "gain": 1,
+      "weld": 1,
+      "baseTransform": null,
+      "translate": {
+        "x": {
+          "const": 0,
+          "cx": 0,
+          "cy": 0
+        },
+        "y": {
+          "const": 0,
+          "cx": 0,
+          "cy": 0
+        }
+      },
+      "scale": {
+        "const": 1,
+        "cx": 0,
+        "cy": 0,
+        "proximity": 0,
+        "radius": 0.55,
+        "neutral": 0.9457862214032478
+      },
+      "rotate": {
+        "const": 0,
+        "cx": 0,
+        "cy": 0
+      }
+    },
+    {
+      "id": "pot-base",
+      "tag": "path",
+      "z": 0.15,
+      "parentZ": 0.15,
+      "depth": 0,
+      "pivot": [
+        516,
+        700
+      ],
+      "gain": 1,
+      "weld": 1,
+      "baseTransform": null,
+      "translate": {
+        "x": {
+          "const": 0,
+          "cx": 0,
+          "cy": 0
+        },
+        "y": {
+          "const": 0,
+          "cx": 0,
+          "cy": 0
+        }
+      },
+      "scale": {
+        "const": 1,
+        "cx": 0,
+        "cy": 0,
+        "proximity": 0,
+        "radius": 0.55,
+        "neutral": 0.9457862214032478
+      },
+      "rotate": {
+        "const": 0,
+        "cx": 0,
+        "cy": 0
+      }
+    },
+    {
+      "id": "pot-shadow",
+      "tag": "path",
+      "z": 0.17,
+      "parentZ": 0.15,
+      "depth": 0.020000000000000018,
+      "pivot": [
+        600,
+        700
+      ],
+      "gain": 1,
+      "weld": 1,
+      "baseTransform": null,
+      "translate": {
+        "x": {
+          "const": 0,
+          "cx": -0.8000000000000007,
+          "cy": 0
+        },
+        "y": {
+          "const": 0,
+          "cx": 0,
+          "cy": -0.8000000000000007
+        }
+      },
+      "scale": {
+        "const": 1,
+        "cx": 0,
+        "cy": 0,
+        "proximity": 0.002400000000000002,
+        "radius": 0.55,
+        "neutral": 0.9343347248399215
+      },
+      "rotate": {
+        "const": 0,
+        "cx": 0,
+        "cy": 0
+      }
+    },
+    {
+      "id": "pot-highlight",
+      "tag": "path",
+      "z": 0.19,
+      "parentZ": 0.15,
+      "depth": 0.04000000000000001,
+      "pivot": [
+        400,
+        700
+      ],
+      "gain": 1,
+      "weld": 1,
+      "baseTransform": null,
+      "translate": {
+        "x": {
+          "const": 0,
+          "cx": -1.6000000000000003,
+          "cy": 0
+        },
+        "y": {
+          "const": 0,
+          "cx": 0,
+          "cy": -1.6000000000000003
+        }
+      },
+      "scale": {
+        "const": 1,
+        "cx": 0,
+        "cy": 0,
+        "proximity": 0.0048000000000000004,
+        "radius": 0.55,
+        "neutral": 0.9272919068481371
+      },
+      "rotate": {
+        "const": 0,
+        "cx": 0,
+        "cy": 0
+      }
+    },
+    {
+      "id": "soil",
+      "tag": "ellipse",
+      "z": 0.3,
+      "parentZ": 0.15,
+      "depth": 0.15,
+      "pivot": [
+        516,
+        458
+      ],
+      "gain": 1,
+      "weld": 1,
+      "baseTransform": null,
+      "translate": {
+        "x": {
+          "const": 0,
+          "cx": -6,
+          "cy": 0
+        },
+        "y": {
+          "const": 0,
+          "cx": 0,
+          "cy": -6
+        }
+      },
+      "scale": {
+        "const": 1,
+        "cx": 0,
+        "cy": 0,
+        "proximity": 0.018,
+        "radius": 0.55,
+        "neutral": 0.9953888902490856
+      },
+      "rotate": {
+        "const": 0,
+        "cx": 0,
+        "cy": 0
+      }
+    },
+    {
+      "id": "cactus-main",
+      "tag": "g",
+      "z": 0.4,
+      "parentZ": 0.5,
+      "depth": -0.09999999999999998,
+      "pivot": [
+        516,
+        470
+      ],
+      "gain": 1,
+      "weld": 1,
+      "baseTransform": null,
+      "translate": {
+        "x": {
+          "const": 0,
+          "cx": 3.999999999999999,
+          "cy": 0
+        },
+        "y": {
+          "const": 0,
+          "cx": 0,
+          "cy": 3.999999999999999
+        }
+      },
+      "scale": {
+        "const": 1,
+        "cx": 0,
+        "cy": 0,
+        "proximity": -0.011999999999999997,
+        "radius": 0.55,
+        "neutral": 0.997198081015057
+      },
+      "rotate": {
+        "const": 0,
+        "cx": 0,
+        "cy": 0
+      },
+      "idle": {
+        "preset": "sway",
+        "period": 4.5,
+        "delay": 0,
+        "amplitude": 2.5,
+        "rotate": {
+          "wave": "sine",
+          "amplitude": 2.5,
+          "period": 4.5,
+          "phase": 0.9793460050132126
+        }
+      }
+    },
+    {
+      "id": "cactus-main-surface",
+      "tag": "g",
+      "z": 0.4,
+      "parentZ": 0.4,
+      "depth": 0,
+      "pivot": [
+        500,
+        300
+      ],
+      "gain": 1,
+      "weld": 1,
+      "baseTransform": null,
+      "translate": {
+        "x": {
+          "const": 0,
+          "cx": 0,
+          "cy": 0
+        },
+        "y": {
+          "const": 0,
+          "cx": 0,
+          "cy": 0
+        }
+      },
+      "scale": {
+        "const": 1,
+        "cx": 0,
+        "cy": 0,
+        "proximity": 0,
+        "radius": 0.55,
+        "neutral": 0.9313937399728873
+      },
+      "rotate": {
+        "const": 0,
+        "cx": 0,
+        "cy": 0
+      }
+    },
+    {
+      "id": "cactus-main-base",
+      "tag": "path",
+      "z": 0.4,
+      "parentZ": 0.4,
+      "depth": 0,
+      "pivot": [
+        500,
+        300
+      ],
+      "gain": 1,
+      "weld": 1,
+      "baseTransform": null,
+      "translate": {
+        "x": {
+          "const": 0,
+          "cx": 0,
+          "cy": 0
+        },
+        "y": {
+          "const": 0,
+          "cx": 0,
+          "cy": 0
+        }
+      },
+      "scale": {
+        "const": 1,
+        "cx": 0,
+        "cy": 0,
+        "proximity": 0,
+        "radius": 0.55,
+        "neutral": 0.9313937399728873
+      },
+      "rotate": {
+        "const": 0,
+        "cx": 0,
+        "cy": 0
+      }
+    },
+    {
+      "id": "cactus-main-shadow",
+      "tag": "path",
+      "z": 0.44,
+      "parentZ": 0.4,
+      "depth": 0.03999999999999998,
+      "pivot": [
+        580,
+        300
+      ],
+      "gain": 1,
+      "weld": 1,
+      "baseTransform": null,
+      "translate": {
+        "x": {
+          "const": 0,
+          "cx": -1.5999999999999992,
+          "cy": 0
+        },
+        "y": {
+          "const": 0,
+          "cx": 0,
+          "cy": -1.5999999999999992
+        }
+      },
+      "scale": {
+        "const": 1,
+        "cx": 0,
+        "cy": 0,
+        "proximity": 0.004799999999999998,
+        "radius": 0.55,
+        "neutral": 0.9248394829670998
+      },
+      "rotate": {
+        "const": 0,
+        "cx": 0,
+        "cy": 0
+      }
+    },
+    {
+      "id": "cactus-main-mid",
+      "tag": "path",
+      "z": 0.46,
+      "parentZ": 0.4,
+      "depth": 0.06,
+      "pivot": [
+        530,
+        300
+      ],
+      "gain": 1,
+      "weld": 1,
+      "baseTransform": null,
+      "translate": {
+        "x": {
+          "const": 0,
+          "cx": -2.4,
+          "cy": 0
+        },
+        "y": {
+          "const": 0,
+          "cx": 0,
+          "cy": -2.4
+        }
+      },
+      "scale": {
+        "const": 1,
+        "cx": 0,
+        "cy": 0,
+        "proximity": 0.0072,
+        "radius": 0.55,
+        "neutral": 0.9311295058383103
+      },
+      "rotate": {
+        "const": 0,
+        "cx": 0,
+        "cy": 0
+      }
+    },
+    {
+      "id": "cactus-main-highlight",
+      "tag": "path",
+      "z": 0.48,
+      "parentZ": 0.4,
+      "depth": 0.07999999999999996,
+      "pivot": [
+        430,
+        300
+      ],
+      "gain": 1,
+      "weld": 1,
+      "baseTransform": null,
+      "translate": {
+        "x": {
+          "const": 0,
+          "cx": -3.1999999999999984,
+          "cy": 0
+        },
+        "y": {
+          "const": 0,
+          "cx": 0,
+          "cy": -3.1999999999999984
+        }
+      },
+      "scale": {
+        "const": 1,
+        "cx": 0,
+        "cy": 0,
+        "proximity": 0.009599999999999996,
+        "radius": 0.55,
+        "neutral": 0.9217830719929669
+      },
+      "rotate": {
+        "const": 0,
+        "cx": 0,
+        "cy": 0
+      }
+    },
+    {
+      "id": "spines-main",
+      "tag": "path",
+      "z": 0.49,
+      "parentZ": 0.4,
+      "depth": 0.08999999999999997,
+      "pivot": [
+        500,
+        300
+      ],
+      "gain": 1,
+      "weld": 1,
+      "baseTransform": null,
+      "translate": {
+        "x": {
+          "const": 0,
+          "cx": -3.5999999999999988,
+          "cy": 0
+        },
+        "y": {
+          "const": 0,
+          "cx": 0,
+          "cy": -3.5999999999999988
+        }
+      },
+      "scale": {
+        "const": 1,
+        "cx": 0,
+        "cy": 0,
+        "proximity": 0.010799999999999995,
+        "radius": 0.55,
+        "neutral": 0.9313937399728873
+      },
+      "rotate": {
+        "const": 0,
+        "cx": 0,
+        "cy": 0
+      }
+    },
+    {
+      "id": "cactus-lobe",
+      "tag": "g",
+      "z": 0.5,
+      "parentZ": 0.5,
+      "depth": 0,
+      "pivot": [
+        556,
+        460
+      ],
+      "gain": 1,
+      "weld": 1,
+      "baseTransform": null,
+      "translate": {
+        "x": {
+          "const": 0,
+          "cx": 0,
+          "cy": 0
+        },
+        "y": {
+          "const": 0,
+          "cx": 0,
+          "cy": 0
+        }
+      },
+      "scale": {
+        "const": 1,
+        "cx": 0,
+        "cy": 0,
+        "proximity": 0,
+        "radius": 0.55,
+        "neutral": 0.9927125528622334
+      },
+      "rotate": {
+        "const": 0,
+        "cx": 0,
+        "cy": 0
+      },
+      "idle": {
+        "preset": "twitch",
+        "period": 5,
+        "delay": 1.2,
+        "amplitude": 2,
+        "rotate": {
+          "wave": "twitch",
+          "amplitude": 2,
+          "period": 5,
+          "phase": 0.7181297378754243,
+          "duty": 0.12,
+          "decay": 4
+        }
+      }
+    },
+    {
+      "id": "cactus-lobe-surface",
+      "tag": "g",
+      "z": 0.5,
+      "parentZ": 0.5,
+      "depth": 0,
+      "pivot": [
+        590,
+        350
+      ],
+      "gain": 1,
+      "weld": 1,
+      "baseTransform": null,
+      "translate": {
+        "x": {
+          "const": 0,
+          "cx": 0,
+          "cy": 0
+        },
+        "y": {
+          "const": 0,
+          "cx": 0,
+          "cy": 0
+        }
+      },
+      "scale": {
+        "const": 1,
+        "cx": 0,
+        "cy": 0,
+        "proximity": 0,
+        "radius": 0.55,
+        "neutral": 0.950317336978912
+      },
+      "rotate": {
+        "const": 0,
+        "cx": 0,
+        "cy": 0
+      }
+    },
+    {
+      "id": "cactus-lobe-base",
+      "tag": "path",
+      "z": 0.5,
+      "parentZ": 0.5,
+      "depth": 0,
+      "pivot": [
+        590,
+        350
+      ],
+      "gain": 1,
+      "weld": 1,
+      "baseTransform": null,
+      "translate": {
+        "x": {
+          "const": 0,
+          "cx": 0,
+          "cy": 0
+        },
+        "y": {
+          "const": 0,
+          "cx": 0,
+          "cy": 0
+        }
+      },
+      "scale": {
+        "const": 1,
+        "cx": 0,
+        "cy": 0,
+        "proximity": 0,
+        "radius": 0.55,
+        "neutral": 0.950317336978912
+      },
+      "rotate": {
+        "const": 0,
+        "cx": 0,
+        "cy": 0
+      }
+    },
+    {
+      "id": "cactus-lobe-shadow",
+      "tag": "path",
+      "z": 0.52,
+      "parentZ": 0.5,
+      "depth": 0.020000000000000018,
+      "pivot": [
+        615,
+        350
+      ],
+      "gain": 1,
+      "weld": 1,
+      "baseTransform": null,
+      "translate": {
+        "x": {
+          "const": 0,
+          "cx": -0.8000000000000007,
+          "cy": 0
+        },
+        "y": {
+          "const": 0,
+          "cx": 0,
+          "cy": -0.8000000000000007
+        }
+      },
+      "scale": {
+        "const": 1,
+        "cx": 0,
+        "cy": 0,
+        "proximity": 0.002400000000000002,
+        "radius": 0.55,
+        "neutral": 0.9435629803253085
+      },
+      "rotate": {
+        "const": 0,
+        "cx": 0,
+        "cy": 0
+      }
+    },
+    {
+      "id": "cactus-lobe-highlight",
+      "tag": "path",
+      "z": 0.54,
+      "parentZ": 0.5,
+      "depth": 0.040000000000000036,
+      "pivot": [
+        575,
+        350
+      ],
+      "gain": 1,
+      "weld": 1,
+      "baseTransform": null,
+      "translate": {
+        "x": {
+          "const": 0,
+          "cx": -1.6000000000000014,
+          "cy": 0
+        },
+        "y": {
+          "const": 0,
+          "cx": 0,
+          "cy": -1.6000000000000014
+        }
+      },
+      "scale": {
+        "const": 1,
+        "cx": 0,
+        "cy": 0,
+        "proximity": 0.004800000000000004,
+        "radius": 0.55,
+        "neutral": 0.9534909055652954
+      },
+      "rotate": {
+        "const": 0,
+        "cx": 0,
+        "cy": 0
+      }
+    },
+    {
+      "id": "spines-lobe",
+      "tag": "path",
+      "z": 0.55,
+      "parentZ": 0.5,
+      "depth": 0.050000000000000044,
+      "pivot": [
+        620,
+        340
+      ],
+      "gain": 1,
+      "weld": 1,
+      "baseTransform": null,
+      "translate": {
+        "x": {
+          "const": 0,
+          "cx": -2.0000000000000018,
+          "cy": 0
+        },
+        "y": {
+          "const": 0,
+          "cx": 0,
+          "cy": -2.0000000000000018
+        }
+      },
+      "scale": {
+        "const": 1,
+        "cx": 0,
+        "cy": 0,
+        "proximity": 0.006000000000000005,
+        "radius": 0.55,
+        "neutral": 0.9370486320681741
+      },
+      "rotate": {
+        "const": 0,
+        "cx": 0,
+        "cy": 0
+      }
+    },
+    {
+      "id": "pot-rim",
+      "tag": "g",
+      "z": 0.6,
+      "parentZ": 0.5,
+      "depth": 0.09999999999999998,
+      "pivot": [
+        516,
+        456
+      ],
+      "gain": 1,
+      "weld": 1,
+      "baseTransform": null,
+      "translate": {
+        "x": {
+          "const": 0,
+          "cx": -3.999999999999999,
+          "cy": 0
+        },
+        "y": {
+          "const": 0,
+          "cx": 0,
+          "cy": -3.999999999999999
+        }
+      },
+      "scale": {
+        "const": 1,
+        "cx": 0,
+        "cy": 0,
+        "proximity": 0.011999999999999997,
+        "radius": 0.55,
+        "neutral": 0.9950437585260584
+      },
+      "rotate": {
+        "const": 0,
+        "cx": 0,
+        "cy": 0
+      }
+    },
+    {
+      "id": "rim-surface",
+      "tag": "g",
+      "z": 0.6,
+      "parentZ": 0.6,
+      "depth": 0,
+      "pivot": [
+        516,
+        456
+      ],
+      "gain": 1,
+      "weld": 1,
+      "baseTransform": null,
+      "translate": {
+        "x": {
+          "const": 0,
+          "cx": 0,
+          "cy": 0
+        },
+        "y": {
+          "const": 0,
+          "cx": 0,
+          "cy": 0
+        }
+      },
+      "scale": {
+        "const": 1,
+        "cx": 0,
+        "cy": 0,
+        "proximity": 0,
+        "radius": 0.55,
+        "neutral": 0.9950437585260584
+      },
+      "rotate": {
+        "const": 0,
+        "cx": 0,
+        "cy": 0
+      }
+    },
+    {
+      "id": "rim-band",
+      "tag": "path",
+      "z": 0.6,
+      "parentZ": 0.6,
+      "depth": 0,
+      "pivot": [
+        516,
+        456
+      ],
+      "gain": 1,
+      "weld": 1,
+      "baseTransform": null,
+      "translate": {
+        "x": {
+          "const": 0,
+          "cx": 0,
+          "cy": 0
+        },
+        "y": {
+          "const": 0,
+          "cx": 0,
+          "cy": 0
+        }
+      },
+      "scale": {
+        "const": 1,
+        "cx": 0,
+        "cy": 0,
+        "proximity": 0,
+        "radius": 0.55,
+        "neutral": 0.9950437585260584
+      },
+      "rotate": {
+        "const": 0,
+        "cx": 0,
+        "cy": 0
+      }
+    },
+    {
+      "id": "rim-highlight",
+      "tag": "path",
+      "z": 0.62,
+      "parentZ": 0.6,
+      "depth": 0.020000000000000018,
+      "pivot": [
+        516,
+        440
+      ],
+      "gain": 1,
+      "weld": 1,
+      "baseTransform": null,
+      "translate": {
+        "x": {
+          "const": 0,
+          "cx": -0.8000000000000007,
+          "cy": 0
+        },
+        "y": {
+          "const": 0,
+          "cx": 0,
+          "cy": -0.8000000000000007
+        }
+      },
+      "scale": {
+        "const": 1,
+        "cx": 0,
+        "cy": 0,
+        "proximity": 0.002400000000000002,
+        "radius": 0.55,
+        "neutral": 0.9918366325809557
+      },
+      "rotate": {
+        "const": 0,
+        "cx": 0,
+        "cy": 0
+      }
+    },
+    {
+      "id": "rim-shadow",
+      "tag": "path",
+      "z": 0.64,
+      "parentZ": 0.6,
+      "depth": 0.040000000000000036,
+      "pivot": [
+        516,
+        500
+      ],
+      "gain": 1,
+      "weld": 1,
+      "baseTransform": null,
+      "translate": {
+        "x": {
+          "const": 0,
+          "cx": -1.6000000000000014,
+          "cy": 0
+        },
+        "y": {
+          "const": 0,
+          "cx": 0,
+          "cy": -1.6000000000000014
+        }
+      },
+      "scale": {
+        "const": 1,
+        "cx": 0,
+        "cy": 0,
+        "proximity": 0.004800000000000004,
+        "radius": 0.55,
+        "neutral": 0.9997478204131559
+      },
+      "rotate": {
+        "const": 0,
+        "cx": 0,
+        "cy": 0
+      }
+    }
+  ],
+  "anchors": [
+    {
+      "id": "soil-bed",
+      "host": "pot-body",
+      "point": [
+        516,
+        470
+      ],
+      "members": [
+        {
+          "node": "cactus-main",
+          "frame": "shared"
+        }
+      ]
+    },
+    {
+      "id": "lobe-joint",
+      "host": "cactus-main",
+      "point": [
+        556,
+        460
+      ],
+      "members": [
+        {
+          "node": "cactus-lobe",
+          "frame": "shared"
+        }
+      ]
+    },
+    {
+      "id": "rim-seat",
+      "host": "pot-body",
+      "point": [
+        516,
+        456
+      ],
+      "members": [
+        {
+          "node": "pot-rim",
+          "frame": "shared"
+        }
+      ]
+    }
+  ],
+  "synthetic": false,
+  "warnings": []
+}

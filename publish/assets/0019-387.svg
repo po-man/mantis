@@ -1,0 +1,89 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="100%" height="100%">
+  <defs>
+    <clipPath id="clip-stem">
+      <path d="M 486,430 L 486,860 C 486,886 538,886 538,860 L 538,430 Z"/>
+    </clipPath>
+    <clipPath id="clip-cap">
+      <path d="M 240,478 C 300,330 400,190 512,150 C 624,190 724,330 784,478 C 700,512 610,524 512,524 C 414,524 324,512 240,478 Z"/>
+    </clipPath>
+  </defs>
+
+  <g id="subject" data-z="0.5" data-pivot="512,512" data-anim="bob" data-anim-period="3.6" data-anim-amplitude="6">
+
+    <g id="stem" data-z="0.20" data-pivot="512,700" data-sockets="cap-joint:512,470">
+      <g id="stem-surface" clip-path="url(#clip-stem)">
+        <path id="stem-base" data-z="0.20" data-pivot="512,700" d="M 486,430 L 486,860 C 486,886 538,886 538,860 L 538,430 Z" fill="#F2EDE6" stroke="none"/>
+        <path id="stem-shadow" data-z="0.22" data-pivot="525,700" d="M 512,430 L 512,878 C 528,878 538,872 538,860 L 538,430 Z" fill="#DCD3C8" stroke="none"/>
+        <path id="stem-highlight" data-z="0.24" data-pivot="498,700" d="M 494,440 L 494,856 C 494,864 498,868 503,870 L 503,440 Z" fill="#FBF8F4" stroke="none"/>
+      </g>
+    </g>
+
+    <g id="cap" data-z="0.45" data-pivot="512,470" data-anchor="cap-joint" data-sockets="ladybug-perch:445,232" data-anim="nod" data-anim-period="4.6" data-anim-amplitude="2">
+      <g id="cap-surface" clip-path="url(#clip-cap)">
+        <path id="cap-base" data-z="0.45" data-pivot="512,340" d="M 240,478 C 300,330 400,190 512,150 C 624,190 724,330 784,478 C 700,512 610,524 512,524 C 414,524 324,512 240,478 Z" fill="#D9CBBE" stroke="none"/>
+        <path id="cap-shadow" data-z="0.47" data-pivot="650,340" d="M 512,150 C 624,190 724,330 784,478 C 700,512 610,524 512,524 Z" fill="#C4B2A2" stroke="none"/>
+        <path id="cap-midtone" data-z="0.49" data-pivot="512,510" d="M 240,478 C 324,512 414,524 512,524 C 610,524 700,512 784,478 C 700,540 610,555 512,555 C 414,555 324,540 240,478 Z" fill="#CDBCAB" stroke="none"/>
+        <path id="cap-apex" data-z="0.50" data-pivot="512,200" d="M 390,275 C 410,195 455,158 512,152 C 569,158 614,195 634,275 C 590,240 434,240 390,275 Z" fill="#C08048" stroke="none"/>
+        <path id="cap-highlight" data-z="0.54" data-pivot="380,300" d="M 296,430 C 320,330 390,225 486,170 C 424,238 366,330 340,440 Z" fill="#F0E7DB" opacity="0.55" stroke="none"/>
+      </g>
+
+      <g id="cap-striations" data-z="0.52" data-pivot="512,360" fill="none" stroke="#A8917E" stroke-width="3.5" stroke-linecap="round" opacity="0.6">
+        <path d="M 459.8,241.2 C 393.8,318.0 327.8,394.9 261.8,471.7"/>
+        <path d="M 465.3,238.0 C 406.2,317.8 347.2,397.6 288.2,477.4"/>
+        <path d="M 470.8,235.1 C 418.7,317.6 366.6,400.1 314.5,482.6"/>
+        <path d="M 476.3,232.6 C 431.1,317.4 386.0,402.2 340.8,487.0"/>
+        <path d="M 481.8,230.4 C 443.6,317.2 405.4,404.0 367.2,490.8"/>
+        <path d="M 487.3,228.6 C 456.0,317.1 424.8,405.5 393.5,494.0"/>
+        <path d="M 492.8,227.2 C 468.4,317.0 444.1,406.8 419.8,496.6"/>
+        <path d="M 498.3,226.1 C 480.9,316.9 463.5,407.7 446.2,498.5"/>
+        <path d="M 503.8,225.4 C 493.3,316.9 482.9,408.3 472.5,499.8"/>
+        <path d="M 509.3,225.0 C 505.8,316.8 502.3,408.6 498.8,500.4"/>
+        <path d="M 514.8,225.0 C 518.2,316.8 521.7,408.6 525.2,500.4"/>
+        <path d="M 520.3,225.4 C 530.7,316.9 541.1,408.3 551.5,499.8"/>
+        <path d="M 525.8,226.1 C 543.1,316.9 560.5,407.7 577.8,498.5"/>
+        <path d="M 531.3,227.2 C 555.6,317.0 579.9,406.8 604.2,496.6"/>
+        <path d="M 536.8,228.6 C 568.0,317.1 599.2,405.5 630.5,494.0"/>
+        <path d="M 542.3,230.4 C 580.4,317.2 618.6,404.0 656.8,490.8"/>
+        <path d="M 547.8,232.6 C 592.9,317.4 638.0,402.2 683.2,487.0"/>
+        <path d="M 553.3,235.1 C 605.3,317.6 657.4,400.1 709.5,482.6"/>
+        <path d="M 558.8,238.0 C 617.8,317.8 676.8,397.6 735.8,477.4"/>
+        <path d="M 564.3,241.2 C 630.2,318.0 696.2,394.9 762.2,471.7"/>
+      </g>
+
+      <ellipse id="cap-blemish" data-z="0.53" data-pivot="575,290" cx="575" cy="290" rx="8" ry="13" fill="#8A7565" opacity="0.65" stroke="none"/>
+    </g>
+
+    <g id="ladybug" data-z="0.72" data-pivot="445,232" data-anchor="ladybug-perch" data-anim="twitch" data-anim-period="5" data-anim-amplitude="3">
+
+      <g id="ladybug-legs" data-z="0.71" data-pivot="450,235" fill="none" stroke="#1A1418" stroke-width="5" stroke-linecap="round">
+        <path d="M 429,236 L 424,252"/>
+        <path d="M 449,231 L 447,248"/>
+        <path d="M 470,217 L 476,232"/>
+      </g>
+
+      <path id="ladybug-body" data-z="0.72" data-pivot="440,200" d="M 403.8,216.9 C 396.2,200.6 407.4,182.1 427.3,172.8 C 447.2,163.5 468.6,166.8 476.2,183.1 C 483.8,199.4 472.6,217.9 452.7,227.2 C 432.8,236.5 411.4,233.2 403.8,216.9 Z" fill="#D93A2B" stroke="none"/>
+
+      <g id="ladybug-spots" data-z="0.74" data-pivot="440,200" fill="#1A1418" stroke="none">
+        <circle cx="421" cy="195" r="7"/>
+        <circle cx="453" cy="185" r="6"/>
+        <circle cx="438" cy="214" r="6"/>
+        <circle cx="462" cy="201" r="5"/>
+      </g>
+
+      <path id="ladybug-highlight" data-z="0.75" data-pivot="418,190" d="M 408.6,203.6 C 408.0,190.7 417.3,179.7 428.2,174.6 C 419.8,185.2 414.2,196.6 414.7,207.4 Z" fill="#E8604F" opacity="0.85" stroke="none"/>
+
+      <path id="ladybug-head" data-z="0.76" data-pivot="401,224" d="M 385,224 C 385,215 392,208 401,208 C 410,208 417,215 417,224 C 417,233 410,240 401,240 C 392,240 385,233 385,224 Z" fill="#1A1418" stroke="none"/>
+
+      <g id="ladybug-head-marks" data-z="0.77" data-pivot="401,224" fill="#F4F6FA" stroke="none">
+        <ellipse cx="394" cy="219" rx="4" ry="3"/>
+        <ellipse cx="399" cy="212" rx="3.5" ry="2.5"/>
+      </g>
+
+      <g id="ladybug-antennae" data-z="0.78" data-pivot="390,210" fill="none" stroke="#1A1418" stroke-width="4" stroke-linecap="round">
+        <path d="M 392,212 L 382,202"/>
+        <path d="M 398,208 L 394,196"/>
+      </g>
+
+    </g>
+  </g>
+</svg>

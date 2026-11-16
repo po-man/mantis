@@ -1,0 +1,102 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="100%" height="100%">
+  <defs>
+    <clipPath id="clip-stem">
+      <path d="M 452,570 C 440,660 414,742 390,822 C 380,852 374,872 372,892 L 386,894 C 388,872 394,852 404,822 C 428,742 456,660 470,572 Z"/>
+    </clipPath>
+    <clipPath id="clip-head">
+      <path d="M 198,466 C 268,428 372,420 452,448 C 430,380 400,300 392,246 C 420,300 450,300 464,230 C 490,290 520,290 546,240 C 566,300 590,320 606,288 C 620,340 640,380 654,354 C 690,400 740,420 792,442 C 722,478 640,492 548,500 C 580,560 590,610 570,650 C 530,650 470,640 440,610 C 420,560 410,520 400,500 C 320,500 260,490 198,466 Z"/>
+    </clipPath>
+    <clipPath id="clip-petals-back">
+      <path d="M 436,474 C 400,398 386,316 392,246 C 428,314 458,396 478,472 Z"/>
+      <path d="M 462,474 C 444,398 446,308 464,230 C 490,306 498,398 502,472 Z"/>
+      <path d="M 496,474 C 502,398 520,310 546,240 C 560,316 552,400 532,472 Z"/>
+      <path d="M 522,474 C 542,408 574,338 606,288 C 606,358 574,420 556,474 Z"/>
+      <path d="M 440,474 C 408,420 366,364 332,330 C 376,372 424,420 470,472 Z"/>
+    </clipPath>
+    <clipPath id="clip-petals-mid">
+      <path d="M 448,478 C 408,442 358,402 318,374 C 364,406 414,444 470,478 Z"/>
+      <path d="M 528,478 C 566,436 612,392 654,354 C 610,398 566,440 552,478 Z"/>
+    </clipPath>
+    <clipPath id="clip-petals-front">
+      <path d="M 452,448 C 370,432 270,442 198,466 C 268,492 372,506 450,502 Z"/>
+      <path d="M 545,450 C 630,428 720,428 792,442 C 722,478 630,492 548,500 Z"/>
+      <path d="M 468,502 C 480,570 515,625 570,650 C 592,600 580,540 550,498 Z"/>
+    </clipPath>
+  </defs>
+
+  <g id="subject" data-z="0.5" data-pivot="512,512">
+
+    
+    <g id="stem" data-z="0.12" data-pivot="380,890" data-sockets="bloom:462,580" data-anim="sway" data-anim-period="4.6" data-anim-amplitude="2">
+      <g id="stem-surface" clip-path="url(#clip-stem)">
+        <path id="stem-base" d="M 452,570 C 440,660 414,742 390,822 C 380,852 374,872 372,892 L 386,894 C 388,872 394,852 404,822 C 428,742 456,660 470,572 Z" fill="#7A4A3C" stroke="none"/>
+        <path id="stem-shadow" data-z="0.14" data-pivot="420,740" d="M 452,570 C 440,660 414,742 390,822 C 380,852 374,872 372,892 L 378,893 C 382,860 390,830 402,800 C 426,730 450,660 464,574 Z" fill="#5A332A" stroke="none"/>
+        <path id="stem-highlight" data-z="0.18" data-pivot="440,700" d="M 460,574 C 450,660 426,740 404,818 C 398,838 394,856 392,872 L 398,872 C 402,850 408,830 416,808 C 438,736 460,660 468,576 Z" fill="#96604E" stroke="none"/>
+      </g>
+    </g>
+
+    
+    <g id="flower-head" data-z="0.45" data-pivot="462,580" data-anchor="bloom" data-anim="breathe" data-anim-period="4" data-anim-amplitude="2">
+
+      
+      <g id="head-surface" data-z="0.46" data-pivot="490,430" clip-path="url(#clip-head)">
+        <path id="head-base" d="M 198,466 C 268,428 372,420 452,448 C 430,380 400,300 392,246 C 420,300 450,300 464,230 C 490,290 520,290 546,240 C 566,300 590,320 606,288 C 620,340 640,380 654,354 C 690,400 740,420 792,442 C 722,478 640,492 548,500 C 580,560 590,610 570,650 C 530,650 470,640 440,610 C 420,560 410,520 400,500 C 320,500 260,490 198,466 Z" fill="#F2AECB" stroke="none"/>
+        <path id="head-shadow" data-z="0.48" data-pivot="560,500" d="M 470,220 C 520,320 560,420 570,520 C 580,580 590,620 600,680 L 820,680 L 820,220 Z" fill="#E07FA9" stroke="none"/>
+        <path id="head-highlight" data-z="0.52" data-pivot="400,380" d="M 300,430 C 350,360 420,310 500,280 C 470,350 420,410 350,450 C 320,466 300,470 280,470 Z" fill="#F9D6E4" stroke="none"/>
+      </g>
+
+      
+      <g id="petals-back" data-z="0.50" data-pivot="490,470">
+        <g id="petals-back-surface" clip-path="url(#clip-petals-back)">
+          <path id="petal-back-1" d="M 436,474 C 400,398 386,316 392,246 C 428,314 458,396 478,472 Z" fill="#F2AECB" stroke="none"/>
+          <path id="petal-back-2" d="M 462,474 C 444,398 446,308 464,230 C 490,306 498,398 502,472 Z" fill="#F5BBD4" stroke="none"/>
+          <path id="petal-back-3" d="M 496,474 C 502,398 520,310 546,240 C 560,316 552,400 532,472 Z" fill="#F2AECB" stroke="none"/>
+          <path id="petal-back-4" d="M 522,474 C 542,408 574,338 606,288 C 606,358 574,420 556,474 Z" fill="#EDA0C1" stroke="none"/>
+          <path id="petal-back-5" d="M 440,474 C 408,420 366,364 332,330 C 376,372 424,420 470,472 Z" fill="#EDA0C1" stroke="none"/>
+          <path id="petals-back-shadow" data-z="0.52" data-pivot="540,400" d="M 500,220 C 530,300 548,400 552,500 L 700,500 L 700,220 Z" fill="#E07FA9" stroke="none"/>
+          <path id="petals-back-highlight" data-z="0.55" data-pivot="410,360" d="M 380,220 C 396,300 414,400 424,500 L 350,500 C 348,400 356,300 344,220 Z" fill="#F9D6E4" stroke="none"/>
+        </g>
+      </g>
+
+      
+      <g id="bloom-center" data-z="0.54" data-pivot="490,460">
+        <path id="center-base" d="M 448,472 C 452,438 470,424 492,424 C 516,424 534,440 536,472 C 534,496 512,508 490,508 C 466,508 450,494 448,472 Z" fill="#D06A96" stroke="none"/>
+        <path id="center-shadow" data-z="0.56" data-pivot="512,470" d="M 496,424 C 516,424 534,440 536,472 C 534,496 512,508 490,508 C 508,494 514,462 496,424 Z" fill="#C9557F" stroke="none"/>
+        <circle id="center-stamen-1" data-z="0.58" data-pivot="478,452" cx="478" cy="452" r="6" fill="#F6E3A8" stroke="none"/>
+        <circle id="center-stamen-2" data-z="0.58" data-pivot="502,448" cx="502" cy="448" r="5" fill="#F6E3A8" stroke="none"/>
+        <circle id="center-stamen-3" data-z="0.58" data-pivot="492,470" cx="492" cy="470" r="4" fill="#F9EFC8" stroke="none"/>
+      </g>
+
+      
+      <g id="petals-mid" data-z="0.58" data-pivot="490,470">
+        <g id="petals-mid-surface" clip-path="url(#clip-petals-mid)">
+          <path id="petal-mid-1" d="M 448,478 C 408,442 358,402 318,374 C 364,406 414,444 470,478 Z" fill="#F5BBD4" stroke="none"/>
+          <path id="petal-mid-2" d="M 528,478 C 566,436 612,392 654,354 C 610,398 566,440 552,478 Z" fill="#EDA0C1" stroke="none"/>
+          <path id="petals-mid-shadow" data-z="0.60" data-pivot="560,430" d="M 540,340 C 570,390 580,440 584,500 L 700,500 L 700,340 Z" fill="#E07FA9" stroke="none"/>
+          <path id="petals-mid-highlight" data-z="0.63" data-pivot="400,420" d="M 360,360 C 386,400 410,440 424,500 L 356,500 C 352,440 348,400 336,360 Z" fill="#F9D6E4" stroke="none"/>
+        </g>
+      </g>
+
+      
+      <g id="petals-front" data-z="0.64" data-pivot="490,500" data-anim="twitch" data-anim-period="5" data-anim-amplitude="2">
+        <g id="petals-front-surface" clip-path="url(#clip-petals-front)">
+          <path id="petal-front-left" d="M 452,448 C 370,432 270,442 198,466 C 268,492 372,506 450,502 Z" fill="#F5BBD4" stroke="none"/>
+          <path id="petal-front-right" d="M 545,450 C 630,428 720,428 792,442 C 722,478 630,492 548,500 Z" fill="#F2AECB" stroke="none"/>
+          <path id="petal-front-bottom" d="M 468,502 C 480,570 515,625 570,650 C 592,600 580,540 550,498 Z" fill="#F5BBD4" stroke="none"/>
+          <path id="petals-front-shadow" data-z="0.66" data-pivot="560,540" d="M 500,430 C 540,500 570,570 590,680 L 820,680 L 820,430 Z" fill="#E07FA9" stroke="none"/>
+          <path id="petals-front-highlight" data-z="0.70" data-pivot="380,470" d="M 200,462 C 280,452 360,458 440,470 L 440,500 C 360,494 280,492 210,478 Z" fill="#F9D6E4" stroke="none"/>
+        </g>
+
+        
+        <g id="droplets" data-z="0.72" data-pivot="520,570">
+          <ellipse id="drop-1" data-z="0.72" data-pivot="522,562" cx="522" cy="562" rx="15" ry="10" fill="#FDEFF5" stroke="none" opacity="0.75"/>
+          <ellipse id="drop-2" data-z="0.74" data-pivot="548,602" cx="548" cy="602" rx="9" ry="7" fill="#FDEFF5" stroke="none" opacity="0.7"/>
+          <ellipse id="drop-3" data-z="0.72" data-pivot="332,482" cx="332" cy="482" rx="11" ry="7" fill="#FDEFF5" stroke="none" opacity="0.65"/>
+          <circle id="drop-glint-1" data-z="0.76" data-pivot="517,558" cx="517" cy="558" r="3.5" fill="#FFFFFF" stroke="none"/>
+          <circle id="drop-glint-2" data-z="0.76" data-pivot="545,599" cx="545" cy="599" r="2.2" fill="#FFFFFF" stroke="none"/>
+        </g>
+      </g>
+
+    </g>
+  </g>
+</svg>
