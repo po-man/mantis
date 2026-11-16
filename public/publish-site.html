@@ -43,7 +43,21 @@
           <span class="muted" id="viewer-count"></span>
           <button id="viewer-next" type="button" aria-label="Next result">→</button>
           <span class="spacer"></span>
-          <button id="viewer-tilt" type="button" hidden>Enable tilt</button>
+          <button
+            id="viewer-tilt"
+            class="tilt-toggle"
+            type="button"
+            aria-label="Toggle gyroscope control"
+            aria-pressed="false"
+            title="Toggle gyroscope control"
+            hidden
+          >
+            <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round">
+              <circle cx="12" cy="12" r="8.5"></circle>
+              <ellipse cx="12" cy="12" rx="3.8" ry="8.5"></ellipse>
+              <ellipse cx="12" cy="12" rx="8.5" ry="3.8" transform="rotate(45 12 12)"></ellipse>
+            </svg>
+          </button>
           <button id="viewer-bg" type="button">Dark bg</button>
           <span class="hint" id="viewer-hint">Move the cursor</span>
         </footer>

@@ -43,6 +43,7 @@
   let dragMode = false;
   let tiltState = "unknown";
   let tiltPermission = "unknown";
+  let tiltWanted = false;
   let orientationHandler = null;
   let gyroTimer = 0;
   let dragging = false;
@@ -117,13 +118,44 @@
   function updateHint() {
     if (tiltState === "gyro") {
       hintNode.textContent = "Tilt or swipe to browse";
+    } else if (tiltState === "pending") {
+      hintNode.textContent =
+        "Tilt your phone or tap the gyroscope to turn it off";
     } else if (tiltState === "drag") {
-      hintNode.textContent = "Drag to look · swipe from an edge to browse";
+      const canTilt =
+        "DeviceOrientationEvent" in window && tiltPermission !== "denied";
+      hintNode.textContent = canTilt
+        ? "Drag to look · tap the gyroscope to tilt"
+        : "Drag to look · swipe from an edge to browse";
     } else if (finePointer) {
       hintNode.textContent = "Move the cursor · ← → to browse";
     } else {
       hintNode.textContent = "Drag to look";
     }
+  }
+
+  function syncTiltButton() {
+    if (!tiltButton) return;
+    if (!coarsePointer) {
+      tiltButton.hidden = true;
+      return;
+    }
+
+    const supported = "DeviceOrientationEvent" in window;
+    const active = tiltState === "gyro" || tiltState === "pending";
+    tiltButton.hidden = false;
+    tiltButton.disabled = !supported || tiltPermission === "denied";
+    tiltButton.setAttribute("aria-pressed", active ? "true" : "false");
+
+    const label = !supported
+      ? "Gyroscope unavailable"
+      : tiltPermission === "denied"
+        ? "Gyroscope permission denied"
+        : active
+          ? "Turn off gyroscope control"
+          : "Turn on gyroscope control";
+    tiltButton.title = label;
+    tiltButton.setAttribute("aria-label", label);
   }
 
   function syncBackgroundButton() {
@@ -230,7 +262,7 @@
       if (tiltState !== "gyro") {
         tiltState = "gyro";
         dragMode = false;
-        tiltButton.hidden = true;
+        syncTiltButton();
         updateHint();
       }
       clearTimeout(gyroTimer);
@@ -247,20 +279,33 @@
   }
 
   function fallBackToDrag() {
+    tiltWanted = false;
     tiltState = "drag";
     dragMode = true;
-    tiltButton.hidden = true;
+    syncTiltButton();
     updateHint();
   }
 
-  async function enableTilt() {
-    if (!("DeviceOrientationEvent" in window)) {
-      tiltPermission = "denied";
-      fallBackToDrag();
+  async function toggleTilt() {
+    if (!("DeviceOrientationEvent" in window) || tiltPermission === "denied") {
       return;
     }
+
+    if (tiltState === "gyro" || tiltState === "pending") {
+      detachOrientation();
+      tiltWanted = false;
+      tiltState = "drag";
+      dragMode = true;
+      syncTiltButton();
+      updateHint();
+      return;
+    }
+
     const constructor = window.DeviceOrientationEvent;
-    if (typeof constructor.requestPermission === "function") {
+    if (
+      typeof constructor.requestPermission === "function" &&
+      tiltPermission !== "granted"
+    ) {
       try {
         const permission = await constructor.requestPermission();
         if (permission !== "granted") {
@@ -277,9 +322,12 @@
     } else {
       tiltPermission = "granted";
     }
+
+    tiltWanted = true;
     tiltState = "pending";
     dragMode = true;
     attachOrientation();
+    syncTiltButton();
     updateHint();
     clearTimeout(gyroTimer);
     gyroTimer = window.setTimeout(() => {
@@ -296,7 +344,7 @@
     if (!coarsePointer) {
       tiltState = "pointer";
       dragMode = false;
-      tiltButton.hidden = true;
+      syncTiltButton();
       updateHint();
       return;
     }
@@ -313,34 +361,48 @@
         return;
       }
       if (tiltPermission === "granted") {
-        tiltState = "pending";
-        dragMode = true;
-        tiltButton.hidden = true;
-        attachOrientation();
-        updateHint();
-        clearTimeout(gyroTimer);
-        gyroTimer = window.setTimeout(() => {
-          if (tiltState !== "gyro") fallBackToDrag();
-        }, 1600);
+        if (tiltWanted) {
+          tiltState = "pending";
+          dragMode = true;
+          attachOrientation();
+          syncTiltButton();
+          updateHint();
+          clearTimeout(gyroTimer);
+          gyroTimer = window.setTimeout(() => {
+            if (tiltState !== "gyro") fallBackToDrag();
+          }, 1600);
+        } else {
+          tiltState = "drag";
+          dragMode = true;
+          syncTiltButton();
+          updateHint();
+        }
         return;
       }
-      tiltState = "unknown";
+      tiltState = "drag";
       dragMode = true;
-      tiltButton.hidden = false;
+      syncTiltButton();
       updateHint();
       return;
     }
 
     tiltPermission = "granted";
-    tiltState = "unknown";
-    dragMode = true;
-    tiltButton.hidden = true;
-    attachOrientation();
-    updateHint();
-    clearTimeout(gyroTimer);
-    gyroTimer = window.setTimeout(() => {
-      if (tiltState !== "gyro") fallBackToDrag();
-    }, 1600);
+    if (tiltWanted) {
+      tiltState = "pending";
+      dragMode = true;
+      attachOrientation();
+      syncTiltButton();
+      updateHint();
+      clearTimeout(gyroTimer);
+      gyroTimer = window.setTimeout(() => {
+        if (tiltState !== "gyro") fallBackToDrag();
+      }, 1600);
+    } else {
+      tiltState = "drag";
+      dragMode = true;
+      syncTiltButton();
+      updateHint();
+    }
   }
 
   function resetViewerSession() {
@@ -353,6 +415,7 @@
     dragging = false;
     pointerStart = null;
     navGesture = false;
+    syncTiltButton();
     hideStatus();
     document.body.classList.remove("viewer-open");
   }
@@ -453,7 +516,7 @@
 
   prevButton.addEventListener("click", () => go(-1));
   nextButton.addEventListener("click", () => go(1));
-  tiltButton.addEventListener("click", enableTilt);
+  tiltButton.addEventListener("click", toggleTilt);
   bgButton.addEventListener("click", () => {
     dark = !dark;
     if (player) player.setDark(dark);

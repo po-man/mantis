@@ -350,6 +350,20 @@ dialog::backdrop { background: rgba(1, 4, 9, 0.76); }
 }
 .viewer-foot button:hover { border-color: var(--accent); }
 .viewer-foot button:disabled { opacity: 0.4; cursor: default; }
+.viewer-foot .tilt-toggle {
+  width: 36px;
+  height: 34px;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.viewer-foot .tilt-toggle svg { width: 19px; height: 19px; }
+.viewer-foot .tilt-toggle[aria-pressed="true"] {
+  color: var(--accent);
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 14%, transparent);
+}
 .hint { color: var(--muted); font-size: 12px; }
 
 @media (max-width: 860px) {

@@ -130,6 +130,9 @@ describe("buildSite", () => {
     expect(html).toContain("Nov 16, 2026, 09:28 UTC");
     expect(html).toMatch(/href="https:\/\/github\.com\/[^"]+"/);
     expect(html).toContain("GitHub repository");
+    expect(html).toContain('id="viewer-tilt"');
+    expect(html).toContain('class="tilt-toggle"');
+    expect(html).not.toContain("Enable tilt");
     expect(html).not.toContain("gallery result");
     expect(html).not.toContain("tag publish");
     expect(html).toContain('id="good"');
