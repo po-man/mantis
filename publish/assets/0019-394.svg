@@ -1,0 +1,234 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="100%" height="100%">
+  <defs>
+    <clipPath id="clip-stem">
+      <path d="M 452,1024 C 455,860 470,700 522,562 L 558,562 C 505,700 490,860 486,1024 Z"/>
+    </clipPath>
+    <clipPath id="clip-petal-top">
+      <path d="M 613,558 C 665,460 700,380 660,120 C 600,220 540,300 507,532 Z"/>
+    </clipPath>
+    <clipPath id="clip-petal-right">
+      <path d="M 540,494 C 700,400 830,380 940,395 C 830,520 700,600 580,596 Z"/>
+    </clipPath>
+    <clipPath id="clip-petal-lower-right">
+      <path d="M 569,491 C 700,490 830,540 905,600 C 760,680 620,660 551,599 Z"/>
+    </clipPath>
+    <clipPath id="clip-petal-left">
+      <path d="M 578,493 C 450,430 300,390 140,400 C 280,500 400,560 542,597 Z"/>
+    </clipPath>
+    <clipPath id="clip-petal-upper-left">
+      <path d="M 602,502 C 540,400 470,330 253,247 C 300,380 400,500 518,588 Z"/>
+    </clipPath>
+    <clipPath id="clip-petal-front">
+      <path d="M 493,524 C 450,560 430,620 505,715 C 570,700 630,660 627,566 Z"/>
+    </clipPath>
+    <clipPath id="clip-flower-core">
+      <path d="M 560,490 C 600,490 625,515 625,545 C 625,575 600,600 560,600 C 520,600 495,575 495,545 C 495,515 520,490 560,490 Z"/>
+    </clipPath>
+  </defs>
+
+  <g id="subject" data-z="0.5" data-pivot="512,512" data-anim="bob" data-anim-period="3.8" data-anim-amplitude="4">
+
+    <g id="stem" data-z="0.28" data-pivot="470,800" data-anim="sway" data-anim-period="4.6" data-anim-amplitude="2" data-sockets="flower-base:560,545">
+
+      <g id="buds" data-z="0.12" data-pivot="400,300">
+        <g id="bud-left" data-z="0.10" data-pivot="200,300">
+          <path id="bud-left-base" d="M 278,382 C 250,330 240,290 135,185 C 150,270 160,350 202,418 Z" fill="#6E9B4A" stroke="none" data-z="0.10" data-pivot="200,300"/>
+          <path id="bud-left-shadow" d="M 240,400 C 220,340 200,280 135,185 C 160,270 175,340 202,418 Z" fill="#4A7233" stroke="none" opacity="0.65" data-z="0.11" data-pivot="190,300"/>
+          <path id="bud-left-light" d="M 278,382 C 250,330 240,290 135,185 C 175,255 205,320 235,375 Z" fill="#93C066" stroke="none" opacity="0.8" data-z="0.12" data-pivot="210,300"/>
+        </g>
+        <g id="bud-center" data-z="0.13" data-pivot="480,250">
+          <path id="bud-center-base" d="M 534,384 C 525,300 515,220 450,105 C 430,200 425,300 446,396 Z" fill="#6E9B4A" stroke="none" data-z="0.13" data-pivot="480,250"/>
+          <path id="bud-center-shadow" d="M 500,390 C 490,300 480,210 450,105 C 430,200 425,300 446,396 Z" fill="#4A7233" stroke="none" opacity="0.65" data-z="0.14" data-pivot="470,250"/>
+          <path id="bud-center-light" d="M 534,384 C 525,300 515,220 450,105 C 480,200 500,300 510,380 Z" fill="#93C066" stroke="none" opacity="0.8" data-z="0.15" data-pivot="490,250"/>
+        </g>
+        <g id="bud-right" data-z="0.16" data-pivot="630,210">
+          <path id="bud-right-base" d="M 658,288 C 650,250 645,200 620,130 C 600,190 595,240 602,292 Z" fill="#6E9B4A" stroke="none" data-z="0.16" data-pivot="630,210"/>
+          <path id="bud-right-shadow" d="M 635,290 C 630,240 625,190 620,130 C 600,190 595,240 602,292 Z" fill="#4A7233" stroke="none" opacity="0.65" data-z="0.17" data-pivot="620,210"/>
+          <path id="bud-right-light" d="M 658,288 C 650,250 645,200 620,130 C 640,190 650,240 655,285 Z" fill="#93C066" stroke="none" opacity="0.8" data-z="0.18" data-pivot="640,210"/>
+        </g>
+      </g>
+
+      <g id="stem-body" data-z="0.28" data-pivot="470,800">
+        <g id="stem-surface" clip-path="url(#clip-stem)" data-z="0.28" data-pivot="470,800">
+          <path id="stem-base" d="M 452,1024 C 455,860 470,700 522,562 L 558,562 C 505,700 490,860 486,1024 Z" fill="#4F8C3C" stroke="none" data-z="0.28" data-pivot="470,800"/>
+          <path id="stem-shadow" d="M 470,1024 C 472,860 485,700 540,562 L 558,562 C 505,700 490,860 486,1024 Z" fill="#3A6B2B" stroke="none" opacity="0.55" data-z="0.29" data-pivot="500,800"/>
+          <path id="stem-highlight" d="M 452,1024 C 455,860 470,700 522,562 L 534,562 C 480,700 466,860 464,1024 Z" fill="#6FA84F" stroke="none" opacity="0.7" data-z="0.30" data-pivot="480,800"/>
+        </g>
+      </g>
+
+      <g id="leaves-left" data-z="0.31" data-pivot="400,700">
+        <g id="leaf-a" data-z="0.31" data-pivot="420,590">
+          <path id="leaf-a-base" d="M 505,595 C 450,555 380,540 335,560 C 385,610 445,640 505,625 Z" fill="#4E8B3A" stroke="none" data-z="0.31" data-pivot="420,590"/>
+          <path id="leaf-a-light" d="M 505,595 C 450,555 380,540 335,560 C 400,575 460,590 505,605 Z" fill="#74AE52" stroke="none" opacity="0.85" data-z="0.32" data-pivot="420,575"/>
+          <path id="leaf-a-midrib" d="M 505,610 C 450,595 390,580 340,562" fill="none" stroke="#37662A" stroke-width="3" stroke-linecap="round" opacity="0.7"/>
+        </g>
+        <g id="leaf-b" data-z="0.32" data-pivot="350,720">
+          <path id="leaf-b-base" d="M 490,690 C 400,660 280,690 200,755 C 300,790 410,770 490,730 Z" fill="#4E8B3A" stroke="none" data-z="0.32" data-pivot="350,720"/>
+          <path id="leaf-b-light" d="M 490,690 C 400,660 280,690 200,755 C 290,745 400,720 490,705 Z" fill="#74AE52" stroke="none" opacity="0.85" data-z="0.33" data-pivot="350,710"/>
+          <path id="leaf-b-midrib" d="M 490,710 C 400,715 290,730 205,753" fill="none" stroke="#37662A" stroke-width="3" stroke-linecap="round" opacity="0.7"/>
+        </g>
+        <g id="leaf-e" data-z="0.33" data-pivot="360,1000">
+          <path id="leaf-e-base" d="M 455,975 C 380,960 300,980 255,1015 C 330,1040 400,1030 450,1010 Z" fill="#4E8B3A" stroke="none" data-z="0.33" data-pivot="360,1000"/>
+          <path id="leaf-e-light" d="M 455,975 C 380,960 300,980 255,1015 C 340,1000 400,990 455,990 Z" fill="#74AE52" stroke="none" opacity="0.85" data-z="0.34" data-pivot="360,990"/>
+          <path id="leaf-e-midrib" d="M 452,992 C 390,995 320,1005 258,1013" fill="none" stroke="#37662A" stroke-width="3" stroke-linecap="round" opacity="0.7"/>
+        </g>
+      </g>
+
+      <g id="leaves-right" data-z="0.34" data-pivot="560,800">
+        <g id="leaf-c" data-z="0.34" data-pivot="620,645">
+          <path id="leaf-c-base" d="M 560,615 C 620,610 670,640 690,680 C 640,690 590,675 560,650 Z" fill="#4E8B3A" stroke="none" data-z="0.34" data-pivot="620,645"/>
+          <path id="leaf-c-light" d="M 560,615 C 620,610 670,640 690,680 C 640,665 600,640 560,630 Z" fill="#74AE52" stroke="none" opacity="0.85" data-z="0.35" data-pivot="620,640"/>
+          <path id="leaf-c-midrib" d="M 560,632 C 610,640 655,658 688,678" fill="none" stroke="#37662A" stroke-width="3" stroke-linecap="round" opacity="0.7"/>
+        </g>
+        <g id="leaf-d" data-z="0.35" data-pivot="560,880" data-anim="twitch" data-anim-period="5.2" data-anim-amplitude="3">
+          <path id="leaf-d-base" d="M 495,810 C 560,830 620,890 645,960 C 570,940 510,890 480,845 Z" fill="#4E8B3A" stroke="none" data-z="0.35" data-pivot="560,880"/>
+          <path id="leaf-d-light" d="M 495,810 C 560,830 620,890 645,960 C 590,910 540,860 495,830 Z" fill="#74AE52" stroke="none" opacity="0.85" data-z="0.36" data-pivot="560,875"/>
+          <path id="leaf-d-midrib" d="M 490,828 C 540,860 590,905 640,955" fill="none" stroke="#37662A" stroke-width="3" stroke-linecap="round" opacity="0.7"/>
+        </g>
+      </g>
+
+    </g>
+
+    <g id="petal-top" data-z="0.38" data-pivot="560,545" data-anchor="flower-base">
+      <g id="petal-top-surface" clip-path="url(#clip-petal-top)" data-z="0.38" data-pivot="600,340">
+        <path id="petal-top-base" d="M 613,558 C 665,460 700,380 660,120 C 600,220 540,300 507,532 Z" fill="#EFA6C2" stroke="none" data-z="0.38" data-pivot="600,340"/>
+        <path id="petal-top-shadow" d="M 560,545 C 600,400 630,250 660,120 C 700,380 665,460 613,558 Z" fill="#D980A6" stroke="none" opacity="0.5" data-z="0.40" data-pivot="620,340"/>
+        <path id="petal-top-cream" d="M 590,355 C 624,355 652,383 652,417 C 652,451 624,479 590,479 C 556,479 528,451 528,417 C 528,383 556,355 590,355 Z" fill="#FBF2E2" stroke="none" data-z="0.42" data-pivot="590,417"/>
+        <g id="petal-top-speckles" data-z="0.44" data-pivot="590,420">
+          <circle cx="575" cy="395" r="4.5" fill="#B94E76" stroke="none"/>
+          <circle cx="605" cy="430" r="4.5" fill="#B94E76" stroke="none"/>
+          <circle cx="560" cy="440" r="4.5" fill="#B94E76" stroke="none"/>
+          <circle cx="620" cy="400" r="4.5" fill="#B94E76" stroke="none"/>
+          <circle cx="590" cy="460" r="4.5" fill="#B94E76" stroke="none"/>
+          <circle cx="630" cy="440" r="4.5" fill="#B94E76" stroke="none"/>
+        </g>
+        <path id="petal-top-highlight" d="M 507,532 C 540,300 600,220 660,120 C 620,240 580,400 560,545 Z" fill="#F9CFE0" stroke="none" opacity="0.7" data-z="0.46" data-pivot="580,340"/>
+      </g>
+      <path id="petal-top-midrib" d="M 560,545 C 590,420 620,280 660,130" fill="none" stroke="#D980A6" stroke-width="3" stroke-linecap="round" opacity="0.5"/>
+    </g>
+
+    <g id="petal-right" data-z="0.40" data-pivot="560,545" data-anchor="flower-base">
+      <g id="petal-right-surface" clip-path="url(#clip-petal-right)" data-z="0.40" data-pivot="740,495">
+        <path id="petal-right-base" d="M 540,494 C 700,400 830,380 940,395 C 830,520 700,600 580,596 Z" fill="#EFA6C2" stroke="none" data-z="0.40" data-pivot="740,495"/>
+        <path id="petal-right-shadow" d="M 560,545 C 700,480 830,430 940,395 C 830,520 700,600 580,596 Z" fill="#D980A6" stroke="none" opacity="0.5" data-z="0.42" data-pivot="750,520"/>
+        <path id="petal-right-cream" d="M 674,438 C 708,438 736,466 736,500 C 736,534 708,562 674,562 C 640,562 612,534 612,500 C 612,466 640,438 674,438 Z" fill="#FBF2E2" stroke="none" data-z="0.44" data-pivot="674,500"/>
+        <g id="petal-right-speckles" data-z="0.46" data-pivot="680,510">
+          <circle cx="660" cy="480" r="4.5" fill="#B94E76" stroke="none"/>
+          <circle cx="690" cy="510" r="4.5" fill="#B94E76" stroke="none"/>
+          <circle cx="650" cy="520" r="4.5" fill="#B94E76" stroke="none"/>
+          <circle cx="710" cy="490" r="4.5" fill="#B94E76" stroke="none"/>
+          <circle cx="680" cy="540" r="4.5" fill="#B94E76" stroke="none"/>
+          <circle cx="720" cy="520" r="4.5" fill="#B94E76" stroke="none"/>
+        </g>
+        <path id="petal-right-highlight" d="M 540,494 C 700,400 830,380 940,395 C 850,430 720,470 560,545 Z" fill="#F9CFE0" stroke="none" opacity="0.7" data-z="0.48" data-pivot="730,450"/>
+      </g>
+      <path id="petal-right-midrib" d="M 560,545 C 680,510 820,450 935,398" fill="none" stroke="#D980A6" stroke-width="3" stroke-linecap="round" opacity="0.5"/>
+    </g>
+
+    <g id="petal-lower-right" data-z="0.42" data-pivot="560,545" data-anchor="flower-base">
+      <g id="petal-lower-right-surface" clip-path="url(#clip-petal-lower-right)" data-z="0.42" data-pivot="720,570">
+        <path id="petal-lower-right-base" d="M 569,491 C 700,490 830,540 905,600 C 760,680 620,660 551,599 Z" fill="#EFA6C2" stroke="none" data-z="0.42" data-pivot="720,570"/>
+        <path id="petal-lower-right-shadow" d="M 560,545 C 700,560 820,580 905,600 C 760,680 620,660 551,599 Z" fill="#D980A6" stroke="none" opacity="0.5" data-z="0.44" data-pivot="720,600"/>
+        <path id="petal-lower-right-cream" d="M 663,499 C 697,499 725,527 725,561 C 725,595 697,623 663,623 C 629,623 601,595 601,561 C 601,527 629,499 663,499 Z" fill="#FBF2E2" stroke="none" data-z="0.46" data-pivot="663,561"/>
+        <g id="petal-lower-right-speckles" data-z="0.48" data-pivot="670,570">
+          <circle cx="650" cy="545" r="4.5" fill="#B94E76" stroke="none"/>
+          <circle cx="680" cy="575" r="4.5" fill="#B94E76" stroke="none"/>
+          <circle cx="640" cy="580" r="4.5" fill="#B94E76" stroke="none"/>
+          <circle cx="700" cy="555" r="4.5" fill="#B94E76" stroke="none"/>
+          <circle cx="670" cy="600" r="4.5" fill="#B94E76" stroke="none"/>
+          <circle cx="710" cy="580" r="4.5" fill="#B94E76" stroke="none"/>
+        </g>
+        <path id="petal-lower-right-highlight" d="M 569,491 C 700,490 830,540 905,600 C 800,570 680,550 560,545 Z" fill="#F9CFE0" stroke="none" opacity="0.7" data-z="0.50" data-pivot="720,540"/>
+      </g>
+      <path id="petal-lower-right-midrib" d="M 560,545 C 680,560 800,580 900,598" fill="none" stroke="#D980A6" stroke-width="3" stroke-linecap="round" opacity="0.5"/>
+    </g>
+
+    <g id="petal-left" data-z="0.44" data-pivot="560,545" data-anchor="flower-base">
+      <g id="petal-left-surface" clip-path="url(#clip-petal-left)" data-z="0.44" data-pivot="360,495">
+        <path id="petal-left-base" d="M 578,493 C 450,430 300,390 140,400 C 280,500 400,560 542,597 Z" fill="#EFA6C2" stroke="none" data-z="0.44" data-pivot="360,495"/>
+        <path id="petal-left-shadow" d="M 560,545 C 450,480 300,440 140,400 C 280,500 400,560 542,597 Z" fill="#D980A6" stroke="none" opacity="0.5" data-z="0.46" data-pivot="350,520"/>
+        <path id="petal-left-cream" d="M 434,439 C 468,439 496,467 496,501 C 496,535 468,563 434,563 C 400,563 372,535 372,501 C 372,467 400,439 434,439 Z" fill="#FBF2E2" stroke="none" data-z="0.48" data-pivot="434,501"/>
+        <g id="petal-left-speckles" data-z="0.50" data-pivot="440,510">
+          <circle cx="420" cy="485" r="4.5" fill="#B94E76" stroke="none"/>
+          <circle cx="450" cy="515" r="4.5" fill="#B94E76" stroke="none"/>
+          <circle cx="410" cy="520" r="4.5" fill="#B94E76" stroke="none"/>
+          <circle cx="470" cy="495" r="4.5" fill="#B94E76" stroke="none"/>
+          <circle cx="440" cy="540" r="4.5" fill="#B94E76" stroke="none"/>
+          <circle cx="480" cy="520" r="4.5" fill="#B94E76" stroke="none"/>
+        </g>
+        <path id="petal-left-highlight" d="M 578,493 C 450,430 300,390 140,400 C 280,440 430,490 560,545 Z" fill="#F9CFE0" stroke="none" opacity="0.7" data-z="0.52" data-pivot="370,450"/>
+      </g>
+      <path id="petal-left-midrib" d="M 560,545 C 460,500 300,440 145,403" fill="none" stroke="#D980A6" stroke-width="3" stroke-linecap="round" opacity="0.5"/>
+    </g>
+
+    <g id="petal-upper-left" data-z="0.48" data-pivot="560,545" data-anchor="flower-base">
+      <g id="petal-upper-left-surface" clip-path="url(#clip-petal-upper-left)" data-z="0.48" data-pivot="430,420">
+        <path id="petal-upper-left-base" d="M 602,502 C 540,400 470,330 253,247 C 300,380 400,500 518,588 Z" fill="#EFA6C2" stroke="none" data-z="0.48" data-pivot="430,420"/>
+        <path id="petal-upper-left-shadow" d="M 560,545 C 480,470 380,380 253,247 C 300,380 400,500 518,588 Z" fill="#D980A6" stroke="none" opacity="0.5" data-z="0.50" data-pivot="420,450"/>
+        <path id="petal-upper-left-cream" d="M 468,394 C 502,394 530,422 530,456 C 530,490 502,518 468,518 C 434,518 406,490 406,456 C 406,422 434,394 468,394 Z" fill="#FBF2E2" stroke="none" data-z="0.52" data-pivot="468,456"/>
+        <g id="petal-upper-left-speckles" data-z="0.54" data-pivot="470,465">
+          <circle cx="450" cy="430" r="4.5" fill="#B94E76" stroke="none"/>
+          <circle cx="480" cy="470" r="4.5" fill="#B94E76" stroke="none"/>
+          <circle cx="440" cy="480" r="4.5" fill="#B94E76" stroke="none"/>
+          <circle cx="500" cy="450" r="4.5" fill="#B94E76" stroke="none"/>
+          <circle cx="470" cy="500" r="4.5" fill="#B94E76" stroke="none"/>
+          <circle cx="510" cy="480" r="4.5" fill="#B94E76" stroke="none"/>
+        </g>
+        <path id="petal-upper-left-highlight" d="M 602,502 C 540,400 470,330 253,247 C 320,330 420,430 560,545 Z" fill="#F9CFE0" stroke="none" opacity="0.7" data-z="0.56" data-pivot="440,390"/>
+      </g>
+      <path id="petal-upper-left-midrib" d="M 560,545 C 480,470 380,380 253,247" fill="none" stroke="#D980A6" stroke-width="3" stroke-linecap="round" opacity="0.5"/>
+    </g>
+
+    <g id="petal-front" data-z="0.52" data-pivot="560,545" data-anchor="flower-base">
+      <g id="petal-front-surface" clip-path="url(#clip-petal-front)" data-z="0.52" data-pivot="545,620">
+        <path id="petal-front-base" d="M 493,524 C 450,560 430,620 505,715 C 570,700 630,660 627,566 Z" fill="#EFA6C2" stroke="none" data-z="0.52" data-pivot="545,620"/>
+        <path id="petal-front-shadow" d="M 560,545 C 560,620 540,680 505,715 C 570,700 630,660 627,566 Z" fill="#D980A6" stroke="none" opacity="0.5" data-z="0.54" data-pivot="570,630"/>
+        <path id="petal-front-cream" d="M 543,534 C 577,534 605,562 605,596 C 605,630 577,658 543,658 C 509,658 481,630 481,596 C 481,562 509,534 543,534 Z" fill="#FBF2E2" stroke="none" data-z="0.56" data-pivot="543,596"/>
+        <g id="petal-front-speckles" data-z="0.58" data-pivot="550,605">
+          <circle cx="530" cy="580" r="4.5" fill="#B94E76" stroke="none"/>
+          <circle cx="560" cy="610" r="4.5" fill="#B94E76" stroke="none"/>
+          <circle cx="520" cy="615" r="4.5" fill="#B94E76" stroke="none"/>
+          <circle cx="570" cy="590" r="4.5" fill="#B94E76" stroke="none"/>
+          <circle cx="545" cy="630" r="4.5" fill="#B94E76" stroke="none"/>
+          <circle cx="580" cy="615" r="4.5" fill="#B94E76" stroke="none"/>
+        </g>
+        <path id="petal-front-highlight" d="M 493,524 C 450,560 430,620 505,715 C 520,660 540,600 560,545 Z" fill="#F9CFE0" stroke="none" opacity="0.7" data-z="0.60" data-pivot="510,610"/>
+      </g>
+      <path id="petal-front-midrib" d="M 560,545 C 540,600 520,660 507,710" fill="none" stroke="#D980A6" stroke-width="3" stroke-linecap="round" opacity="0.5"/>
+    </g>
+
+    <g id="flower-center" data-z="0.62" data-pivot="560,545" data-anchor="flower-base">
+
+      <g id="flower-core" data-z="0.60" data-pivot="560,545">
+        <g id="flower-core-surface" clip-path="url(#clip-flower-core)" data-z="0.60" data-pivot="560,545">
+          <path id="flower-core-base" d="M 560,490 C 600,490 625,515 625,545 C 625,575 600,600 560,600 C 520,600 495,575 495,545 C 495,515 520,490 560,490 Z" fill="#FBF2E2" stroke="none" data-z="0.60" data-pivot="560,545"/>
+          <path id="flower-core-shadow" d="M 560,600 C 520,600 495,575 495,545 C 510,570 535,585 560,585 Z" fill="#EFE0C8" stroke="none" opacity="0.8" data-z="0.61" data-pivot="530,570"/>
+        </g>
+      </g>
+
+      <g id="filaments" data-z="0.63" data-pivot="560,545">
+        <path id="filament-1" d="M 560,545 L 532,318" fill="none" stroke="#F2EAD8" stroke-width="7" stroke-linecap="round" data-z="0.63" data-pivot="546,430"/>
+        <path id="filament-2" d="M 560,545 L 574,368" fill="none" stroke="#F2EAD8" stroke-width="7" stroke-linecap="round" data-z="0.63" data-pivot="567,456"/>
+        <path id="filament-3" d="M 560,545 L 625,302" fill="none" stroke="#F2EAD8" stroke-width="7" stroke-linecap="round" data-z="0.63" data-pivot="592,423"/>
+        <path id="filament-4" d="M 560,545 L 652,351" fill="none" stroke="#F2EAD8" stroke-width="7" stroke-linecap="round" data-z="0.63" data-pivot="606,448"/>
+        <path id="filament-5" d="M 560,545 L 605,392" fill="none" stroke="#F2EAD8" stroke-width="7" stroke-linecap="round" data-z="0.63" data-pivot="582,468"/>
+      </g>
+
+      <g id="pistil" data-z="0.65" data-pivot="580,400">
+        <path id="pistil-stalk" d="M 560,545 C 575,450 590,360 598,282" fill="none" stroke="#E8EFD8" stroke-width="11" stroke-linecap="round" data-z="0.65" data-pivot="580,400"/>
+        <path id="pistil-stigma" d="M 598,250 C 612,250 618,262 614,274 C 610,284 600,288 592,284 C 584,280 582,268 586,258 C 589,252 593,250 598,250 Z" fill="#E4D27A" stroke="none" data-z="0.66" data-pivot="600,268"/>
+        <path id="pistil-stigma-shadow" d="M 598,250 C 606,252 610,260 610,268 C 606,262 602,256 598,250 Z" fill="#C9B45A" stroke="none" data-z="0.67" data-pivot="604,258"/>
+      </g>
+
+      <g id="anthers" data-z="0.68" data-pivot="600,330">
+        <path id="anther-1" d="M 527.8,282.1 Q 537,299.2 532.2,317.9 Q 523.1,300.9 527.8,282.1 Z" fill="#6E1B26" stroke="none" data-z="0.68" data-pivot="530,300"/>
+        <path id="anther-2" d="M 576.4,332.1 Q 582,350.5 573.6,367.9 Q 568,349.5 576.4,332.1 Z" fill="#6E1B26" stroke="none" data-z="0.68" data-pivot="575,350"/>
+        <path id="anther-3" d="M 634.7,267.6 Q 636.8,286.8 625.3,302.4 Q 623.2,283.2 634.7,267.6 Z" fill="#6E1B26" stroke="none" data-z="0.68" data-pivot="630,285"/>
+        <path id="anther-4" d="M 667.7,318.7 Q 666.3,338 652.3,351.3 Q 653.7,332 667.7,318.7 Z" fill="#6E1B26" stroke="none" data-z="0.68" data-pivot="660,335"/>
+        <path id="anther-5" d="M 615.1,357.7 Q 616.7,377 604.9,392.3 Q 603.3,373 615.1,357.7 Z" fill="#6E1B26" stroke="none" data-z="0.68" data-pivot="610,375"/>
+      </g>
+
+    </g>
+
+  </g>
+</svg>

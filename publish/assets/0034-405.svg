@@ -1,0 +1,144 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="100%" height="100%">
+  <defs>
+    <clipPath id="clip-torso">
+      <path d="M 340,470 C 340,432 378,410 425,408 L 585,408 C 640,412 678,440 682,482 L 700,1024 L 312,1024 Z"/>
+    </clipPath>
+    <clipPath id="clip-head">
+      <path d="M 380,232 C 374,160 428,126 502,124 C 578,122 632,162 634,236 C 636,300 620,362 590,398 C 566,428 532,442 502,442 C 468,442 432,426 406,396 C 380,364 384,300 380,232 Z"/>
+    </clipPath>
+    <clipPath id="clip-left-arm">
+      <path d="M 352,462 C 318,512 288,592 272,682 C 260,752 252,820 250,866 L 302,874 C 306,826 314,760 328,690 C 344,610 368,540 392,494 Z"/>
+    </clipPath>
+    <clipPath id="clip-right-arm">
+      <path d="M 672,462 C 720,486 790,528 858,568 C 918,604 968,630 1008,650 L 1008,724 C 958,702 898,676 838,646 C 778,616 714,580 668,542 Z"/>
+    </clipPath>
+    <clipPath id="clip-mask">
+      <path d="M 345,255 C 345,215 375,198 415,198 L 610,198 C 650,198 678,218 678,258 L 678,330 C 678,368 650,392 612,392 L 560,392 C 545,392 535,400 528,412 L 512,432 L 496,412 C 489,400 479,392 464,392 L 412,392 C 374,392 345,368 345,330 Z"/>
+    </clipPath>
+    <clipPath id="clip-regulator">
+      <path d="M 452,412 C 452,398 470,392 500,392 C 530,392 548,398 548,412 L 554,472 C 558,512 536,542 500,542 C 464,542 442,512 446,472 Z"/>
+    </clipPath>
+    <clipPath id="clip-left-eye">
+      <path d="M 388,300 C 390,276 406,264 426,264 C 449,264 463,278 465,300 C 463,322 449,334 426,334 C 406,334 390,322 388,300 Z"/>
+    </clipPath>
+    <clipPath id="clip-right-eye">
+      <path d="M 658,300 C 656,276 640,264 620,264 C 597,264 583,278 581,300 C 583,322 597,334 620,334 C 640,334 656,322 658,300 Z"/>
+    </clipPath>
+  </defs>
+
+  <g id="subject" data-z="0.5" data-pivot="512,512">
+
+    
+    <g id="right-arm" data-z="0.18" data-pivot="680,470" data-anchor="shoulder-right">
+      <g clip-path="url(#clip-right-arm)">
+        <path d="M 672,462 C 720,486 790,528 858,568 C 918,604 968,630 1008,650 L 1008,724 C 958,702 898,676 838,646 C 778,616 714,580 668,542 Z" fill="#16161E" stroke="none"/>
+        <path d="M 672,462 C 720,486 790,528 858,568 L 858,602 C 790,564 720,524 672,502 Z" fill="#0B0B11" stroke="none" data-z="0.20" data-pivot="760,530" id="parallax-1"/>
+        <path d="M 700,500 C 760,532 830,572 900,610 L 900,630 C 830,592 760,554 700,522 Z" fill="#2C2C3C" stroke="none" data-z="0.24" data-pivot="800,565" id="parallax-2"/>
+      </g>
+    </g>
+
+    
+    <g id="hose" data-z="0.25" data-pivot="445,470" data-anchor="hose">
+      <path d="M 448,468 C 386,470 306,452 268,404 C 236,362 248,306 296,288" fill="none" stroke="#14141C" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M 442,462 C 388,462 316,444 282,400 C 254,362 262,314 300,296" fill="none" stroke="#2E2E40" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" data-z="0.27" data-pivot="360,380" id="parallax-3"/>
+    </g>
+
+    
+    <g id="torso" data-z="0.35" data-pivot="500,700" data-anim="breathe" data-anim-period="4" data-anim-amplitude="0.02" data-sockets="shoulder-left:355,470 shoulder-right:680,470 neck:500,430">
+      <g clip-path="url(#clip-torso)">
+        <path d="M 340,470 C 340,432 378,410 425,408 L 585,408 C 640,412 678,440 682,482 L 700,1024 L 312,1024 Z" fill="#16161E" stroke="none"/>
+        <path d="M 340,470 C 340,432 378,410 425,408 L 468,408 L 452,1024 L 312,1024 Z" fill="#0B0B11" stroke="none" data-z="0.37" data-pivot="390,700" id="parallax-4"/>
+        <path d="M 585,408 C 640,412 678,440 682,482 L 700,1024 L 596,1024 L 588,408 Z" fill="#22222E" stroke="none" data-z="0.39" data-pivot="640,700" id="parallax-5"/>
+        <path d="M 636,428 C 664,448 678,472 682,504 L 690,640 L 656,628 L 648,470 Z" fill="#34344A" stroke="none" data-z="0.43" data-pivot="665,530" id="parallax-6"/>
+      </g>
+    </g>
+
+    
+    <g id="left-arm" data-z="0.42" data-pivot="355,470" data-anchor="shoulder-left">
+      <g clip-path="url(#clip-left-arm)">
+        <path d="M 352,462 C 318,512 288,592 272,682 C 260,752 252,820 250,866 L 302,874 C 306,826 314,760 328,690 C 344,610 368,540 392,494 Z" fill="#16161E" stroke="none"/>
+        <path d="M 352,462 C 318,512 288,592 272,682 C 260,752 252,820 250,866 L 274,870 C 276,820 284,750 296,682 C 310,600 332,530 358,486 Z" fill="#0B0B11" stroke="none" data-z="0.44" data-pivot="300,660" id="parallax-7"/>
+        <path d="M 372,500 C 350,548 330,610 318,680 L 332,676 C 344,610 362,552 384,510 Z" fill="#2C2C3C" stroke="none" data-z="0.48" data-pivot="350,590" id="parallax-8"/>
+      </g>
+      <g id="left-hand" data-z="0.46" data-pivot="272,880">
+        <path d="M 250,856 C 236,870 232,892 242,908 C 254,924 280,924 294,910 C 304,900 306,884 300,868 Z" fill="#D9A583" stroke="none"/>
+        <path d="M 252,872 C 248,884 250,896 256,904" fill="none" stroke="#B9855F" stroke-width="4" stroke-linecap="round"/>
+        <path d="M 268,868 C 266,882 268,896 272,906" fill="none" stroke="#B9855F" stroke-width="4" stroke-linecap="round"/>
+        <path d="M 284,868 C 284,882 286,894 288,902" fill="none" stroke="#B9855F" stroke-width="4" stroke-linecap="round"/>
+      </g>
+    </g>
+
+    
+    <g id="head" data-z="0.55" data-pivot="500,430" data-anchor="neck" data-anim="nod" data-anim-period="4" data-anim-amplitude="2" data-sockets="mask:500,300 mouth:500,430 snokel:665,215">
+      <g clip-path="url(#clip-head)">
+        <path d="M 380,232 C 374,160 428,126 502,124 C 578,122 632,162 634,236 C 636,300 620,362 590,398 C 566,428 532,442 502,442 C 468,442 432,426 406,396 C 380,364 384,300 380,232 Z" fill="#D9A583" stroke="none"/>
+        <path d="M 380,232 C 374,160 428,126 502,124 L 502,442 C 468,442 432,426 406,396 C 380,364 384,300 380,232 Z" fill="#BC8760" stroke="none" data-z="0.57" data-pivot="440,290" id="parallax-9"/>
+        <path d="M 560,150 C 610,180 634,220 634,270 L 620,360 L 560,300 Z" fill="#E8B892" stroke="none" data-z="0.59" data-pivot="600,250" id="parallax-10"/>
+        <path d="M 430,150 C 470,132 520,132 556,148 L 520,192 L 450,198 Z" fill="#F2CDAE" stroke="none" data-z="0.61" data-pivot="490,165" id="parallax-11"/>
+      </g>
+
+      
+      <g id="hair" data-z="0.57" data-pivot="505,170">
+        <path d="M 372,228 C 358,152 420,104 505,100 C 592,96 648,144 642,228 C 622,192 592,176 560,182 C 530,188 500,176 470,182 C 440,188 398,198 372,228 Z" fill="#6B4A32" stroke="none"/>
+        <path d="M 430,140 C 470,120 520,118 556,132 L 530,158 L 452,164 Z" fill="#8A6446" stroke="none" data-z="0.59" data-pivot="490,140" id="parallax-12"/>
+      </g>
+
+      
+      <g id="left-eye" data-z="0.60" data-pivot="426,299" data-anim="blink" data-anim-period="5" data-anim-amplitude="0.9">
+        <g clip-path="url(#clip-left-eye)">
+          <path d="M 388,300 C 390,276 406,264 426,264 C 449,264 463,278 465,300 C 463,322 449,334 426,334 C 406,334 390,322 388,300 Z" fill="#F4F6FA" stroke="none" data-z="0.50" data-pivot="426,299" id="parallax-13"/>
+          <circle cx="427" cy="299" r="21" fill="#4E7C8E" stroke="none" data-z="0.52" data-pivot="427,299" id="parallax-14"/>
+          <circle cx="427" cy="299" r="9" fill="#161421" stroke="none" data-z="0.54" data-pivot="427,299" id="parallax-15"/>
+          <path d="M 388,300 C 390,276 406,264 426,264 C 449,264 463,278 465,300 L 452,296 C 440,282 412,282 400,296 Z" fill="#C9D2DC" stroke="none" opacity="0.7" data-z="0.57" data-pivot="426,282" id="parallax-16"/>
+          <circle cx="419" cy="290" r="5" fill="#FFFFFF" stroke="none" data-z="0.59" data-pivot="419,290" id="parallax-17"/>
+        </g>
+        <path id="left-lash" d="M 406,270 C 398,262 390,254 386,246 C 394,254 402,262 410,268 Z" fill="#2A1E18" stroke="none"/>
+      </g>
+
+      
+      <g id="right-eye" data-z="0.60" data-pivot="620,299" data-anim="blink" data-anim-period="5" data-anim-amplitude="0.9">
+        <g clip-path="url(#clip-right-eye)">
+          <path d="M 658,300 C 656,276 640,264 620,264 C 597,264 583,278 581,300 C 583,322 597,334 620,334 C 640,334 656,322 658,300 Z" fill="#F4F6FA" stroke="none" data-z="0.50" data-pivot="620,299" id="parallax-18"/>
+          <circle cx="619" cy="299" r="21" fill="#4E7C8E" stroke="none" data-z="0.52" data-pivot="619,299" id="parallax-19"/>
+          <circle cx="619" cy="299" r="9" fill="#161421" stroke="none" data-z="0.54" data-pivot="619,299" id="parallax-20"/>
+          <path d="M 658,300 C 656,276 640,264 620,264 C 597,264 583,278 581,300 L 594,296 C 606,282 634,282 646,296 Z" fill="#C9D2DC" stroke="none" opacity="0.7" data-z="0.57" data-pivot="620,282" id="parallax-21"/>
+          <circle cx="611" cy="290" r="5" fill="#FFFFFF" stroke="none" data-z="0.59" data-pivot="611,290" id="parallax-22"/>
+        </g>
+        <path id="right-lash" d="M 580,270 C 588,262 596,254 600,246 C 592,254 584,262 576,268 Z" fill="#2A1E18" stroke="none"/>
+      </g>
+    </g>
+
+    
+    <g id="snorkel" data-z="0.60" data-pivot="665,215" data-anchor="snokel">
+      <path d="M 668,214 C 692,178 700,152 702,132" fill="none" stroke="#E8762A" stroke-width="20" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M 702,136 C 704,126 706,118 706,110" fill="none" stroke="#F2C23A" stroke-width="20" stroke-linecap="round" stroke-linejoin="round" data-z="0.62" data-pivot="704,124" id="parallax-23"/>
+      <path d="M 672,206 C 690,180 696,158 698,140" fill="none" stroke="#F09A50" stroke-width="6" stroke-linecap="round" data-z="0.64" data-pivot="686,172" id="parallax-24"/>
+    </g>
+
+    
+    <g id="mask" data-z="0.68" data-pivot="500,300" data-anchor="mask" data-sockets="snokel:665,215">
+      <path d="M 676,272 C 700,268 716,262 726,254 L 726,286 C 714,294 698,300 676,304 Z" fill="#1A1A24" stroke="none" data-z="0.66" data-pivot="700,280" id="parallax-25"/>
+      <g clip-path="url(#clip-mask)">
+        <path d="M 345,255 C 345,215 375,198 415,198 L 610,198 C 650,198 678,218 678,258 L 678,330 C 678,368 650,392 612,392 L 560,392 C 545,392 535,400 528,412 L 512,432 L 496,412 C 489,400 479,392 464,392 L 412,392 C 374,392 345,368 345,330 Z" fill="#2C7FC0" stroke="none"/>
+        <path d="M 345,255 C 345,215 375,198 415,198 L 610,198 C 650,198 678,218 678,258 L 678,300 L 345,300 Z" fill="#1B5C93" stroke="none" data-z="0.70" data-pivot="500,250" id="parallax-26"/>
+        <path d="M 360,240 C 362,214 384,204 416,204 L 470,204 L 430,240 Z" fill="#5FB4E8" stroke="none" data-z="0.74" data-pivot="415,222" id="parallax-27"/>
+        <path d="M 560,204 L 610,204 C 642,204 664,216 668,242 L 600,240 Z" fill="#5FB4E8" stroke="none" data-z="0.74" data-pivot="615,222" id="parallax-28"/>
+      </g>
+      <path d="M 365,255 C 365,228 385,215 415,215 L 480,215 C 495,215 500,225 500,245 L 500,320 C 500,345 485,360 460,360 L 415,360 C 385,360 365,345 365,320 Z" fill="#9FD8EE" stroke="none" opacity="0.25" data-z="0.72" data-pivot="432,288" id="parallax-29"/>
+      <path d="M 672,255 C 672,228 652,215 622,215 L 552,215 C 537,215 532,225 532,245 L 532,320 C 532,345 547,360 572,360 L 622,360 C 652,360 672,345 672,320 Z" fill="#9FD8EE" stroke="none" opacity="0.25" data-z="0.72" data-pivot="600,288" id="parallax-30"/>
+    </g>
+
+    
+    <g id="regulator" data-z="0.75" data-pivot="500,430" data-anchor="mouth" data-sockets="hose:445,470">
+      <g clip-path="url(#clip-regulator)">
+        <path d="M 452,412 C 452,398 470,392 500,392 C 530,392 548,398 548,412 L 554,472 C 558,512 536,542 500,542 C 464,542 442,512 446,472 Z" fill="#1A1A24" stroke="none"/>
+        <path d="M 452,412 C 452,398 470,392 500,392 L 500,542 C 464,542 442,512 446,472 Z" fill="#0C0C12" stroke="none" data-z="0.77" data-pivot="470,470" id="parallax-31"/>
+        <path d="M 520,404 C 540,410 548,420 550,436 L 552,470 L 528,462 Z" fill="#33334A" stroke="none" data-z="0.79" data-pivot="536,435" id="parallax-32"/>
+      </g>
+      <ellipse cx="500" cy="480" rx="46" ry="38" fill="#2A2A36" stroke="none" data-z="0.80" data-pivot="500,480" id="parallax-33"/>
+      <ellipse cx="500" cy="480" rx="32" ry="26" fill="#0E0E16" stroke="none" data-z="0.82" data-pivot="500,480" id="parallax-34"/>
+      <path d="M 470,458 C 480,450 500,448 514,452" fill="none" stroke="#4A4A60" stroke-width="5" stroke-linecap="round" data-z="0.84" data-pivot="492,452" id="parallax-35"/>
+    </g>
+
+  </g>
+</svg>
