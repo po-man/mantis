@@ -44,6 +44,7 @@ export interface VectorizeResult {
     elements: number;
     paths: number;
     rigNodes: number;
+    idleNodes: number;
   };
 }
 
@@ -159,6 +160,9 @@ export async function vectorizeImage(
           elements: parsed.stats.elements,
           paths: parsed.stats.paths,
           rigNodes: parallax.rig.nodes.length,
+          idleNodes: parallax.rig.nodes.filter(
+            (node) => node.idle !== undefined,
+          ).length,
         },
       };
     } catch (error) {

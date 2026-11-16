@@ -513,14 +513,98 @@
         return { tx: tx, ty: ty, scale: scale, rotate: rotate };
       }
 
+      // Keep in sync with evaluateOscillator() in src/services/parallax.ts.
+      function evaluateOscillator(oscillator, time) {
+        const period = Math.max(0.1, oscillator.period);
+        const shifted = time + oscillator.phase * period;
+        const local = ((shifted % period) + period) % period;
+
+        switch (oscillator.wave) {
+          case "sine": {
+            const value = Math.sin((2 * Math.PI * shifted) / period);
+            const initial = Math.sin(2 * Math.PI * oscillator.phase);
+            return (value - initial) * oscillator.amplitude;
+          }
+          case "pulse": {
+            const width = Math.max(0.001, (oscillator.duty || 0.1) * period);
+            if (local > width) return 0;
+            const u = local / width;
+            return Math.sin(Math.PI * u) ** 2 * oscillator.amplitude;
+          }
+          case "bounce": {
+            const width = Math.max(0.001, (oscillator.duty || 0.35) * period);
+            if (local > width) return 0;
+            const u = local / width;
+            return Math.sin(Math.PI * u) * oscillator.amplitude;
+          }
+          case "twitch": {
+            const width = Math.max(0.001, (oscillator.duty || 0.12) * period);
+            if (local > width) return 0;
+            const u = local / width;
+            const decay = oscillator.decay || 4;
+            return (
+              Math.exp(-decay * u) *
+              Math.sin(2 * Math.PI * 2 * u) *
+              oscillator.amplitude
+            );
+          }
+        }
+        return 0;
+      }
+
+      // Keep in sync with evaluateIdleNode() in src/services/parallax.ts.
+      function evaluateIdleMotion(node, time) {
+        const idle = node.idle;
+        if (!idle) {
+          return { tx: 0, ty: 0, scaleX: 1, scaleY: 1, rotate: 0 };
+        }
+        const tx = idle.translate && idle.translate.x
+          ? evaluateOscillator(idle.translate.x, time)
+          : 0;
+        const ty = idle.translate && idle.translate.y
+          ? evaluateOscillator(idle.translate.y, time)
+          : 0;
+        const sx = idle.scale && idle.scale.x
+          ? evaluateOscillator(idle.scale.x, time)
+          : 0;
+        const sy = idle.scale && idle.scale.y
+          ? evaluateOscillator(idle.scale.y, time)
+          : 0;
+        const rotate = idle.rotate ? evaluateOscillator(idle.rotate, time) : 0;
+        return {
+          tx: tx,
+          ty: ty,
+          scaleX: 1 + sx,
+          scaleY: 1 + sy,
+          rotate: rotate,
+        };
+      }
+
+      // Keep in sync with combineMotions() in src/services/parallax.ts.
+      function combineMotions(parallax, idle) {
+        return {
+          tx: parallax.tx + idle.tx,
+          ty: parallax.ty + idle.ty,
+          scale: parallax.scale,
+          scaleX: parallax.scale * idle.scaleX,
+          scaleY: parallax.scale * idle.scaleY,
+          rotate: parallax.rotate + idle.rotate,
+        };
+      }
+
       function transformForMotion(node, motion, correction) {
         const dx = correction ? correction.dx : 0;
         const dy = correction ? correction.dy : 0;
+        const scaleX = motion.scaleX === undefined ? motion.scale : motion.scaleX;
+        const scaleY = motion.scaleY === undefined ? motion.scale : motion.scaleY;
+        const scale = scaleX === scaleY
+          ? "scale(" + formatMotion(scaleX) + ")"
+          : "scale(" + formatMotion(scaleX) + " " + formatMotion(scaleY) + ")";
         return (
           "translate(" + formatMotion(motion.tx + dx) + " " + formatMotion(motion.ty + dy) + ") " +
           "translate(" + formatMotion(node.pivot[0]) + " " + formatMotion(node.pivot[1]) + ") " +
           "rotate(" + formatMotion(motion.rotate) + ") " +
-          "scale(" + formatMotion(motion.scale) + ") " +
+          scale + " " +
           "translate(" + formatMotion(-node.pivot[0]) + " " + formatMotion(-node.pivot[1]) + ")"
         );
       }
@@ -534,11 +618,15 @@
         const pivotY = node.pivot[1];
         const dx = point[0] - pivotX;
         const dy = point[1] - pivotY;
+        const scaleX = motion.scaleX === undefined ? motion.scale : motion.scaleX;
+        const scaleY = motion.scaleY === undefined ? motion.scale : motion.scaleY;
+        const scaledX = scaleX * dx;
+        const scaledY = scaleY * dy;
         return [
           pivotX + motion.tx + (correction ? correction.dx : 0) +
-            motion.scale * (cos * dx - sin * dy),
+            cos * scaledX - sin * scaledY,
           pivotY + motion.ty + (correction ? correction.dy : 0) +
-            motion.scale * (sin * dx + cos * dy),
+            sin * scaledX + cos * scaledY,
         ];
       }
 
@@ -735,6 +823,10 @@
           rotate: 1.5,
         };
 
+        const prefersReducedMotion =
+          typeof window.matchMedia === "function" &&
+          window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
         const state = {
           playing: false,
           playStart: 0,
@@ -747,6 +839,9 @@
           },
           raf: 0,
           lastTime: 0,
+          time: 0,
+          idle: !prefersReducedMotion,
+          speed: 1,
           destroyed: false,
           anchorsVisible: false,
         };
@@ -819,18 +914,17 @@
           overlay.replaceChildren(fragment);
         }
 
-        function apply(cursor) {
+        function apply(cursor, time) {
           const motions = new Map();
           for (const node of rig.nodes) {
-            motions.set(
-              node.id,
-              evaluateParallaxMotion(
-                node,
-                cursor,
-                rig.viewBox,
-                state.multipliers,
-              ),
+            const parallax = evaluateParallaxMotion(
+              node,
+              cursor,
+              rig.viewBox,
+              state.multipliers,
             );
+            const idle = evaluateIdleMotion(node, time);
+            motions.set(node.id, combineMotions(parallax, idle));
           }
           const corrections = resolveAnchorCorrections(rig, motions);
           for (const node of rig.nodes) {
@@ -854,6 +948,9 @@
           if (state.destroyed) return;
           const dt = state.lastTime ? Math.min(now - state.lastTime, 64) : 16;
           state.lastTime = now;
+          if (state.idle) {
+            state.time += (dt / 1000) * state.speed;
+          }
           if (state.playing) {
             const time = (now - state.playStart) / 1000;
             state.target.x = 0.5 + 0.32 * Math.sin(time * 0.9);
@@ -862,7 +959,7 @@
           const easing = 1 - Math.exp(-dt / 90);
           state.current.x += (state.target.x - state.current.x) * easing;
           state.current.y += (state.target.y - state.current.y) * easing;
-          apply(state.current);
+          apply(state.current, state.time);
           state.raf = requestAnimationFrame(frame);
         }
 
@@ -894,6 +991,7 @@
 
         const checkerboardButton = $("p-checkerboard");
         const anchorsButton = $("p-anchors");
+        const idleButton = $("p-idle");
         const play = $("p-play");
         const reset = $("p-reset");
 
@@ -937,7 +1035,23 @@
         listen(anchorsButton, "click", () => {
           state.anchorsVisible = !state.anchorsVisible;
           syncAnchorsButton();
-          apply(state.current);
+          apply(state.current, state.time);
+        });
+
+        function syncIdleButton() {
+          if (!idleButton) return;
+          idleButton.textContent = state.idle ? "Idle on" : "Idle off";
+          idleButton.setAttribute(
+            "aria-pressed",
+            state.idle ? "true" : "false",
+          );
+        }
+        syncIdleButton();
+        listen(idleButton, "click", () => {
+          state.idle = !state.idle;
+          if (!state.idle) state.time = 0;
+          syncIdleButton();
+          apply(state.current, state.time);
         });
 
         listen(play, "click", () => {
@@ -955,12 +1069,13 @@
           state.target.y = 0.5;
           state.current.x = 0.5;
           state.current.y = 0.5;
+          state.time = 0;
           if (play) play.textContent = "Play";
           if (hint) hint.classList.remove("hidden");
-          apply(state.current);
+          apply(state.current, state.time);
         });
 
-        apply(state.current);
+        apply(state.current, state.time);
         state.raf = requestAnimationFrame(frame);
 
         parallaxPlayer = {
@@ -1018,6 +1133,7 @@
           ? '<div class="preview-actions">' +
             '<button id="p-checkerboard" type="button" aria-pressed="false">Dark bg</button>' +
             '<button id="p-anchors" type="button" aria-pressed="false">Anchors</button>' +
+            '<button id="p-idle" type="button" aria-pressed="true">Idle on</button>' +
             '<button id="p-play">Play</button><button id="p-reset">Reset</button></div>'
           : "";
 

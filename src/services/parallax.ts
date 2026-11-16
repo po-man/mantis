@@ -62,6 +62,52 @@ export interface ParallaxNode {
   translate: { x: Linear2D; y: Linear2D };
   scale: Scale2D;
   rotate: Linear2D;
+  /** View-point-independent idle motion authored through `data-anim`. */
+  idle?: IdleTrack;
+}
+
+export type IdlePreset =
+  | "breathe"
+  | "bob"
+  | "sway"
+  | "blink"
+  | "nod"
+  | "twitch"
+  | "wave"
+  | "hop";
+
+export type IdleWave = "sine" | "pulse" | "bounce" | "twitch";
+
+export interface IdleOscillator {
+  wave: IdleWave;
+  /** Channel amplitude: viewBox units, degrees, or a scale fraction. */
+  amplitude: number;
+  /** Seconds per cycle. */
+  period: number;
+  /** Normalized phase offset in `[0, 1)`; the waveform is neutral at t = 0. */
+  phase: number;
+  /** Active-window width as a fraction of the period (pulse/bounce/twitch). */
+  duty?: number;
+  /** Decay rate for the twitch waveform. */
+  decay?: number;
+}
+
+export interface IdleTrack {
+  preset: IdlePreset;
+  period: number;
+  delay: number;
+  amplitude: number;
+  translate?: { x?: IdleOscillator; y?: IdleOscillator };
+  scale?: { x?: IdleOscillator; y?: IdleOscillator };
+  rotate?: IdleOscillator;
+}
+
+export interface IdleMotion {
+  tx: number;
+  ty: number;
+  scaleX: number;
+  scaleY: number;
+  rotate: number;
 }
 
 export interface ParallaxAnchor {
@@ -77,7 +123,7 @@ export interface ParallaxAnchor {
 
 export interface ParallaxRig {
   format: "vector.parallax";
-  version: 1 | 2;
+  version: 1 | 2 | 3;
   viewBox: [number, number, number, number];
   cursor: { space: "normalized"; neutral: [number, number] };
   defaults: {
@@ -130,6 +176,9 @@ export interface ParallaxMotion {
   tx: number;
   ty: number;
   scale: number;
+  /** Optional non-uniform scale; defaults to `scale` when omitted. */
+  scaleX?: number;
+  scaleY?: number;
   rotate: number;
 }
 
@@ -156,6 +205,10 @@ interface ElementInfo {
   pivotAttr: string | undefined;
   anchorAttr: string | undefined;
   socketsAttr: string | undefined;
+  animAttr: string | undefined;
+  animPeriodAttr: string | undefined;
+  animAmplitudeAttr: string | undefined;
+  animDelayAttr: string | undefined;
   weld: number;
   gain: number;
   hasClip: boolean;
@@ -206,6 +259,320 @@ function parseWeld(value: string | undefined): number {
   }
   const parsed = Number.parseFloat(value);
   return Number.isFinite(parsed) ? Math.min(1, Math.max(0, parsed)) : 1;
+}
+
+interface IdlePresetSpec {
+  amplitude: number;
+  period: number;
+  delay: number;
+  wave: IdleWave;
+  channel: "translateY" | "scale" | "rotate" | "scaleY" | "hop";
+  duty?: number;
+  decay?: number;
+  minAmplitude: number;
+  maxAmplitude: number;
+}
+
+/**
+ * Closed vocabulary of idle motions. The prompt asks the model to pick one of
+ * these presets; the rig resolves it into concrete oscillators.
+ */
+const IDLE_PRESETS: Record<IdlePreset, IdlePresetSpec> = {
+  breathe: {
+    amplitude: 0.02,
+    period: 4,
+    delay: 0,
+    wave: "sine",
+    channel: "scale",
+    minAmplitude: 0,
+    maxAmplitude: 0.05,
+  },
+  bob: {
+    amplitude: 6,
+    period: 3,
+    delay: 0,
+    wave: "sine",
+    channel: "translateY",
+    minAmplitude: 0,
+    maxAmplitude: 20,
+  },
+  sway: {
+    amplitude: 3,
+    period: 3.5,
+    delay: 0,
+    wave: "sine",
+    channel: "rotate",
+    minAmplitude: 0,
+    maxAmplitude: 12,
+  },
+  blink: {
+    amplitude: 0.9,
+    period: 4.5,
+    delay: 0.6,
+    wave: "pulse",
+    channel: "scaleY",
+    duty: 0.04,
+    minAmplitude: 0,
+    maxAmplitude: 0.95,
+  },
+  nod: {
+    amplitude: 2.5,
+    period: 4,
+    delay: 0,
+    wave: "sine",
+    channel: "rotate",
+    minAmplitude: 0,
+    maxAmplitude: 8,
+  },
+  twitch: {
+    amplitude: 3,
+    period: 5,
+    delay: 1.2,
+    wave: "twitch",
+    channel: "rotate",
+    duty: 0.12,
+    decay: 4,
+    minAmplitude: 0,
+    maxAmplitude: 10,
+  },
+  wave: {
+    amplitude: 8,
+    period: 2,
+    delay: 0,
+    wave: "sine",
+    channel: "rotate",
+    minAmplitude: 0,
+    maxAmplitude: 20,
+  },
+  hop: {
+    amplitude: 12,
+    period: 3,
+    delay: 0.4,
+    wave: "bounce",
+    channel: "hop",
+    duty: 0.35,
+    minAmplitude: 0,
+    maxAmplitude: 30,
+  },
+};
+
+function hashFraction(value: string): number {
+  let hash = 2166136261;
+  for (let index = 0; index < value.length; index += 1) {
+    hash ^= value.charCodeAt(index);
+    hash = Math.imul(hash, 16777619);
+  }
+  return (hash >>> 0) / 4294967296;
+}
+
+function clampNumber(
+  value: string | undefined,
+  fallback: number,
+  min: number,
+  max: number,
+  label: string,
+  warnings: string[],
+): number {
+  if (value === undefined || value.trim() === "") {
+    return fallback;
+  }
+  const parsed = Number.parseFloat(value);
+  if (!Number.isFinite(parsed)) {
+    warnings.push(`ignored non-numeric ${label} "${value}"`);
+    return fallback;
+  }
+  if (parsed < min || parsed > max) {
+    const clamped = Math.min(max, Math.max(min, parsed));
+    warnings.push(`clamped ${label} ${parsed} to [${min}, ${max}]`);
+    return clamped;
+  }
+  return parsed;
+}
+
+function hasClipInSubtree(info: ElementInfo): boolean {
+  if (info.hasClip) {
+    return true;
+  }
+  return info.children.some((child) => hasClipInSubtree(child));
+}
+
+function buildIdleTrack(
+  preset: IdlePreset,
+  amplitude: number,
+  period: number,
+  delay: number,
+  seed: string,
+  spec: IdlePresetSpec,
+): IdleTrack {
+  const jitter = hashFraction(seed) * 0.5;
+  const eventPhase = (eventDelay: number): number => {
+    const phase = (1 - (eventDelay + jitter) / period) % 1;
+    return phase < 0 ? phase + 1 : phase;
+  };
+  const sinePhase = (delay / period + hashFraction(`${seed}:sine`)) % 1;
+  const oscillator = (
+    wave: IdleWave,
+    channelAmplitude: number,
+    phase: number,
+    duty?: number,
+    decay?: number,
+  ): IdleOscillator => ({
+    wave,
+    amplitude: channelAmplitude,
+    period,
+    phase,
+    ...(duty === undefined ? {} : { duty }),
+    ...(decay === undefined ? {} : { decay }),
+  });
+
+  switch (spec.channel) {
+    case "scale":
+      return {
+        preset,
+        period,
+        delay,
+        amplitude,
+        scale: {
+          x: oscillator(spec.wave, amplitude, sinePhase),
+          y: oscillator(spec.wave, amplitude, sinePhase),
+        },
+      };
+    case "translateY":
+      return {
+        preset,
+        period,
+        delay,
+        amplitude,
+        translate: { y: oscillator(spec.wave, amplitude, sinePhase) },
+      };
+    case "rotate":
+      return {
+        preset,
+        period,
+        delay,
+        amplitude,
+        rotate: oscillator(
+          spec.wave,
+          amplitude,
+          spec.wave === "sine" ? sinePhase : eventPhase(delay),
+          spec.duty,
+          spec.decay,
+        ),
+      };
+    case "scaleY":
+      return {
+        preset,
+        period,
+        delay,
+        amplitude,
+        scale: {
+          y: oscillator(
+            spec.wave,
+            -amplitude,
+            eventPhase(delay),
+            spec.duty,
+          ),
+        },
+      };
+    case "hop": {
+      const landing = delay + period * (spec.duty ?? 0.35);
+      return {
+        preset,
+        period,
+        delay,
+        amplitude,
+        translate: {
+          y: oscillator(
+            spec.wave,
+            -amplitude,
+            eventPhase(delay),
+            spec.duty,
+          ),
+        },
+        scale: {
+          x: oscillator("pulse", amplitude * 0.0015, eventPhase(landing), 0.12),
+          y: oscillator("pulse", -amplitude * 0.003, eventPhase(landing), 0.12),
+        },
+      };
+    }
+  }
+}
+
+function parseIdleTrack(
+  info: ElementInfo,
+  synthetic: boolean,
+  warnings: string[],
+): IdleTrack | undefined {
+  if (!info.animAttr) {
+    return undefined;
+  }
+  if (!synthetic && info.zAttr === undefined) {
+    warnings.push(
+      `data-anim on ${describeElement(info)} is ignored because the element has no data-z`,
+    );
+    return undefined;
+  }
+
+  const preset = info.animAttr.trim().toLowerCase() as IdlePreset;
+  const spec = IDLE_PRESETS[preset];
+  if (!spec) {
+    warnings.push(
+      `unknown data-anim preset "${info.animAttr}" on ${describeElement(info)}; ignored`,
+    );
+    return undefined;
+  }
+
+  const period = clampNumber(
+    info.animPeriodAttr,
+    spec.period,
+    0.5,
+    10,
+    `data-anim-period on ${describeElement(info)}`,
+    warnings,
+  );
+  const amplitude = clampNumber(
+    info.animAmplitudeAttr,
+    spec.amplitude,
+    spec.minAmplitude,
+    spec.maxAmplitude,
+    `data-anim-amplitude on ${describeElement(info)}`,
+    warnings,
+  );
+  const delay = clampNumber(
+    info.animDelayAttr,
+    spec.delay,
+    0,
+    10,
+    `data-anim-delay on ${describeElement(info)}`,
+    warnings,
+  );
+
+  if (preset === "blink") {
+    if (!/eye|lid/i.test(info.id ?? "")) {
+      warnings.push(
+        `data-anim="blink" on ${describeElement(info)} does not look like an eye group; blink may squash the wrong shape`,
+      );
+    }
+    if (!hasClipInSubtree(info)) {
+      warnings.push(
+        `data-anim="blink" on ${describeElement(info)} has no clip-path on itself or a descendant; the blink will squash the whole group instead of closing an aperture`,
+      );
+    }
+  }
+  if (info.anchorAttr && (preset === "bob" || preset === "hop")) {
+    warnings.push(
+      `data-anim="${preset}" on ${describeElement(info)} translates an anchored part; the joint weld will cancel the motion`,
+    );
+  }
+
+  return buildIdleTrack(
+    preset,
+    amplitude,
+    period,
+    delay,
+    info.id ?? "idle",
+    spec,
+  );
 }
 
 interface SocketDecl {
@@ -338,6 +705,10 @@ function buildTree($: CheerioAPI): { root: ElementInfo; all: ElementInfo[] } {
       pivotAttr: $el.attr("data-pivot"),
       anchorAttr: $el.attr("data-anchor"),
       socketsAttr: $el.attr("data-sockets"),
+      animAttr: $el.attr("data-anim"),
+      animPeriodAttr: $el.attr("data-anim-period"),
+      animAmplitudeAttr: $el.attr("data-anim-amplitude"),
+      animDelayAttr: $el.attr("data-anim-delay"),
       weld: parseWeld($el.attr("data-weld")),
       gain: parseGain($el.attr("data-parallax")),
       hasClip: $el.attr("clip-path") !== undefined,
@@ -603,6 +974,15 @@ export function deriveParallaxRig(
 
   // Nearest animated ancestor, used to express motion relative to the parent.
   const animatedSet = new Set(animated);
+  if (!synthetic) {
+    for (const info of all) {
+      if (info.animAttr && !animatedSet.has(info)) {
+        warnings.push(
+          `data-anim on ${describeElement(info)} is ignored because the element has no data-z`,
+        );
+      }
+    }
+  }
   const parentAnimated = new Map<ElementInfo, ElementInfo | null>();
   for (const info of animated) {
     let cursor = info.parent;
@@ -864,6 +1244,8 @@ export function deriveParallaxRig(
         ? Math.exp(-((neutralDist / settings.proximity) ** 2))
         : 0;
 
+    const idle = parseIdleTrack(info, synthetic, warnings);
+
     nodes.push({
       id,
       tag: info.tag,
@@ -891,7 +1273,15 @@ export function deriveParallaxRig(
         cx: rotateGain,
         cy: -rotateGain,
       },
+      ...(idle === undefined ? {} : { idle }),
     });
+  }
+
+  const idleNodes = nodes.filter((node) => node.idle !== undefined);
+  if (idleNodes.length > 4) {
+    warnings.push(
+      `${idleNodes.length} elements carry data-anim; at most 4 idle motions are recommended`,
+    );
   }
 
   if (!synthetic) {
@@ -940,7 +1330,7 @@ export function deriveParallaxRig(
 
   const rig: ParallaxRig = {
     format: "vector.parallax",
-    version: anchors.length > 0 ? 2 : 1,
+    version: idleNodes.length > 0 ? 3 : anchors.length > 0 ? 2 : 1,
     viewBox,
     cursor: { space: "normalized", neutral: [0.5, 0.5] },
     defaults: {
@@ -1006,23 +1396,134 @@ export function evaluateParallaxNode(
   return { tx, ty, scale, rotate };
 }
 
-/** Builds the SVG transform string for one node at the given cursor. */
+/** Evaluates one idle oscillator at a time in seconds. */
+function evaluateOscillator(oscillator: IdleOscillator, time: number): number {
+  const period = Math.max(0.1, oscillator.period);
+  const shifted = time + oscillator.phase * period;
+  const local = ((shifted % period) + period) % period;
+
+  switch (oscillator.wave) {
+    case "sine": {
+      const value = Math.sin((2 * Math.PI * shifted) / period);
+      const initial = Math.sin(2 * Math.PI * oscillator.phase);
+      return (value - initial) * oscillator.amplitude;
+    }
+    case "pulse": {
+      const width = Math.max(0.001, (oscillator.duty ?? 0.1) * period);
+      if (local > width) {
+        return 0;
+      }
+      const u = local / width;
+      return Math.sin(Math.PI * u) ** 2 * oscillator.amplitude;
+    }
+    case "bounce": {
+      const width = Math.max(0.001, (oscillator.duty ?? 0.35) * period);
+      if (local > width) {
+        return 0;
+      }
+      const u = local / width;
+      return Math.sin(Math.PI * u) * oscillator.amplitude;
+    }
+    case "twitch": {
+      const width = Math.max(0.001, (oscillator.duty ?? 0.12) * period);
+      if (local > width) {
+        return 0;
+      }
+      const u = local / width;
+      const decay = oscillator.decay ?? 4;
+      return (
+        Math.exp(-decay * u) *
+        Math.sin(2 * Math.PI * 2 * u) *
+        oscillator.amplitude
+      );
+    }
+  }
+}
+
+/**
+ * Evaluates a node's view-point-independent idle motion at a time in seconds.
+ * The result is identity when the node has no `data-anim` track.
+ */
+export function evaluateIdleNode(
+  node: ParallaxNode,
+  time: number,
+): IdleMotion {
+  const idle = node.idle;
+  if (!idle) {
+    return { tx: 0, ty: 0, scaleX: 1, scaleY: 1, rotate: 0 };
+  }
+
+  const tx = idle.translate?.x
+    ? evaluateOscillator(idle.translate.x, time)
+    : 0;
+  const ty = idle.translate?.y
+    ? evaluateOscillator(idle.translate.y, time)
+    : 0;
+  const sx = idle.scale?.x ? evaluateOscillator(idle.scale.x, time) : 0;
+  const sy = idle.scale?.y ? evaluateOscillator(idle.scale.y, time) : 0;
+  const rotate = idle.rotate ? evaluateOscillator(idle.rotate, time) : 0;
+
+  return {
+    tx,
+    ty,
+    scaleX: 1 + sx,
+    scaleY: 1 + sy,
+    rotate,
+  };
+}
+
+/**
+ * Adds the view-point-independent idle motion to the cursor-driven parallax
+ * motion. Translation and rotation add; scale multiplies.
+ */
+export function combineMotions(
+  parallax: ParallaxMotion,
+  idle: IdleMotion,
+): ParallaxMotion {
+  return {
+    tx: parallax.tx + idle.tx,
+    ty: parallax.ty + idle.ty,
+    scale: parallax.scale,
+    scaleX: parallax.scale * idle.scaleX,
+    scaleY: parallax.scale * idle.scaleY,
+    rotate: parallax.rotate + idle.rotate,
+  };
+}
+
+/** Builds the SVG transform string for one node at the given cursor and time. */
 export function transformForNode(
   node: ParallaxNode,
   cursor: ParallaxCursor,
   viewBox: [number, number, number, number],
   multipliers: ParallaxMultipliers = {},
   correction?: AnchorCorrection,
+  time = 0,
 ): string {
-  const motion = evaluateParallaxNode(node, cursor, viewBox, multipliers);
+  const parallax = evaluateParallaxNode(node, cursor, viewBox, multipliers);
+  const idle = evaluateIdleNode(node, time);
+  return transformForMotion(node, combineMotions(parallax, idle), correction);
+}
+
+/** Builds the SVG transform string for an already-composed motion. */
+export function transformForMotion(
+  node: ParallaxNode,
+  motion: ParallaxMotion,
+  correction?: AnchorCorrection,
+): string {
   const tx = motion.tx + (correction?.dx ?? 0);
   const ty = motion.ty + (correction?.dy ?? 0);
   const [pivotX, pivotY] = node.pivot;
+  const scaleX = motion.scaleX ?? motion.scale;
+  const scaleY = motion.scaleY ?? motion.scale;
+  const scale =
+    scaleX === scaleY
+      ? `scale(${formatNumber(scaleX)})`
+      : `scale(${formatNumber(scaleX)} ${formatNumber(scaleY)})`;
   return (
     `translate(${formatNumber(tx)} ${formatNumber(ty)}) ` +
     `translate(${formatNumber(pivotX)} ${formatNumber(pivotY)}) ` +
     `rotate(${formatNumber(motion.rotate)}) ` +
-    `scale(${formatNumber(motion.scale)}) ` +
+    `${scale} ` +
     `translate(${formatNumber(-pivotX)} ${formatNumber(-pivotY)})`
   );
 }
@@ -1045,9 +1546,13 @@ export function nodePoint(
   const [pivotX, pivotY] = node.pivot;
   const dx = point[0] - pivotX;
   const dy = point[1] - pivotY;
+  const scaleX = motion.scaleX ?? motion.scale;
+  const scaleY = motion.scaleY ?? motion.scale;
+  const scaledX = scaleX * dx;
+  const scaledY = scaleY * dy;
   return [
-    pivotX + motion.tx + (correction?.dx ?? 0) + motion.scale * (cos * dx - sin * dy),
-    pivotY + motion.ty + (correction?.dy ?? 0) + motion.scale * (sin * dx + cos * dy),
+    pivotX + motion.tx + (correction?.dx ?? 0) + cos * scaledX - sin * scaledY,
+    pivotY + motion.ty + (correction?.dy ?? 0) + sin * scaledX + cos * scaledY,
   ];
 }
 
@@ -1063,13 +1568,17 @@ export function resolveAnchorCorrections(
   cursor: ParallaxCursor,
   viewBox: [number, number, number, number],
   multipliers: ParallaxMultipliers = {},
+  time = 0,
 ): Map<string, AnchorCorrection> {
   const nodeById = new Map(rig.nodes.map((node) => [node.id, node]));
   const motionById = new Map<string, ParallaxMotion>();
   for (const node of rig.nodes) {
     motionById.set(
       node.id,
-      evaluateParallaxNode(node, cursor, viewBox, multipliers),
+      combineMotions(
+        evaluateParallaxNode(node, cursor, viewBox, multipliers),
+        evaluateIdleNode(node, time),
+      ),
     );
   }
 
@@ -1156,18 +1665,27 @@ export function resolveRigTransforms(
   rig: ParallaxRig,
   cursor: ParallaxCursor,
   multipliers: ParallaxMultipliers = {},
+  time = 0,
 ): Map<string, string> {
   const corrections = resolveAnchorCorrections(
     rig,
     cursor,
     rig.viewBox,
     multipliers,
+    time,
   );
   const transforms = new Map<string, string>();
   for (const node of rig.nodes) {
     transforms.set(
       node.id,
-      transformForNode(node, cursor, rig.viewBox, multipliers, corrections.get(node.id)),
+      transformForNode(
+        node,
+        cursor,
+        rig.viewBox,
+        multipliers,
+        corrections.get(node.id),
+        time,
+      ),
     );
   }
   return transforms;

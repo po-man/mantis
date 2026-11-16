@@ -281,6 +281,7 @@ export async function registerVectorizeRoute(
       reply.header("x-model", result.model);
       reply.header("x-prompt-version", result.promptVersion);
       reply.header("x-rig-nodes", String(result.stats.rigNodes));
+      reply.header("x-rig-idle", String(result.stats.idleNodes));
       reply.header("x-content-type-options", "nosniff");
       reply.header("cache-control", "no-store");
       reply.header("vary", "Accept");

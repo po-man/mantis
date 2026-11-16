@@ -80,10 +80,11 @@ The service fails fast at boot if required configuration is missing. It also fai
 
 Prompt files are versioned by filename: `v001-vectorize.md` is selected with
 `PROMPT_VERSION=v001`, `v002-rig-ready-flat-vectoriser.md` with `PROMPT_VERSION=v002`,
-and `v012-pose-faithful-eyes.md` with `PROMPT_VERSION=v012`. v012 builds on v011's
-depth-annotated Level-1 joint sockets/anchors and filled, tapered lash silhouettes,
-and adds pose-faithful eye construction: yaw/gaze reasoning, per-eye aperture
-contours, far-eye foreshortening, and perspective-aware iris placement.
+and `v013-idle-motion.md` with `PROMPT_VERSION=v013`. v013 builds on v012's
+depth-annotated Level-1 joint sockets/anchors, filled tapered lash silhouettes, and
+pose-faithful eye construction, and adds a closed idle-motion vocabulary
+(`data-anim`) plus the blink mask contract: each eye is a self-contained masked
+group that the rig can close by scaling vertically.
 
 ## API
 
@@ -188,7 +189,8 @@ rig itself is available in the JSON response, from the review API, and as a
 
 The SVG stays completely static. Depth is authored by the model through
 `data-z="0…1"` attributes, and `deriveParallaxRig()` converts those annotations into
-explicit cursor-driven functions for every animated element.
+explicit cursor-driven functions for every animated element. Optional `data-anim`
+metadata adds a second, time-driven idle motion that is independent of the cursor.
 
 | Attribute | Meaning |
 | --- | --- |
@@ -198,6 +200,10 @@ explicit cursor-driven functions for every animated element.
 | `data-sockets` | Host-side joint declarations: `"name:x,y name:x,y"` in root coordinates. |
 | `data-anchor` | Child-side weld: a space-separated list of socket names. |
 | `data-weld` | Optional weld strength `0…1` (default `1`); below `1` leaves a hint of independent slide. |
+| `data-anim` | Optional idle-motion preset: `breathe`, `bob`, `sway`, `blink`, `nod`, `twitch`, `wave`, or `hop`. |
+| `data-anim-period` | Optional idle period in seconds (default from the preset). |
+| `data-anim-amplitude` | Optional idle amplitude in the preset's unit (scale fraction, degrees, or viewBox units). |
+| `data-anim-delay` | Optional idle phase delay in seconds. |
 | `clip-path` | Put silhouette clips on the parent `<g>`, not on highlight primitives, so highlights can slide inside the mask. |
 
 The rig is read in a normalized cursor space, with `(0.5, 0.5)` at rest. For a node,
@@ -268,9 +274,72 @@ The derivation also:
 - emits warnings for out-of-range depths, duplicate ids, non-ascending paint order,
   a depth spread below `0.35`, unknown/duplicate sockets, anchor cycles, and anchor
   nodes that cross animated frames;
+- parses `data-anim` into idle tracks and warns about unknown presets, blink targets
+  without a clip, translating presets on anchored parts, and more than four idle
+  elements;
 - falls back to synthetic paint-order depth for older SVGs without `data-z`, so
   existing v005 conversions remain interactive. The fallback is marked with
   `"synthetic": true` and intentionally does not warn.
+
+#### Idle motion (view-point-independent)
+
+`data-anim` adds a second, time-driven motion that is independent of the cursor.
+The final transform is the composition of both motions:
+
+```text
+parallax = evaluateParallaxNode(node, cursor, viewBox, multipliers)
+idle     = evaluateIdleNode(node, time)
+motion   = {
+  tx: parallax.tx + idle.tx,
+  ty: parallax.ty + idle.ty,
+  scaleX: parallax.scale * idle.scaleX,
+  scaleY: parallax.scale * idle.scaleY,
+  rotate: parallax.rotate + idle.rotate,
+}
+```
+
+With the cursor centred, the parallax term is identity and the idle motion still
+runs. Moving the cursor adds the parallax on top. The rig stores the resolved
+oscillators in each node's `idle` field, so the animation is deterministic and
+self-contained. Rigs with idle tracks use `version: 3`.
+
+The preset vocabulary is closed:
+
+| Preset | Target | Channel | Default | Period | Waveform |
+| --- | --- | --- | --- | --- | --- |
+| `breathe` | torso / body | uniform scale | 2% | 4 s | sine |
+| `bob` | root / head / object | translate Y | 6 units | 3 s | sine |
+| `sway` | tail / hair / antenna | rotate | 3° | 3.5 s | sine |
+| `blink` | eye group | scale Y | 0.9 close | 4.5 s | pulse |
+| `nod` | head | rotate | 2.5° | 4 s | sine |
+| `twitch` | ear / whisker / brow | rotate | 3° | 5 s | damped pulse |
+| `wave` | arm / hand / paw | rotate | 8° | 2 s | sine |
+| `hop` | small subject root | translate Y + squash | 12 units | 3 s | bounce |
+
+```xml
+<g id="subject" data-z="0.5" data-pivot="512,512"
+   data-anim="bob" data-anim-amplitude="6">
+  <g id="body" data-z="0.35" data-pivot="500,500" data-anim="breathe">…</g>
+  <g id="head" data-z="0.55" data-anchor="neck" data-anim="nod">…</g>
+  <g id="left-eye" data-z="0.62" data-pivot="420,430"
+     data-anim="blink" clip-path="url(#clip-left-eye)">…</g>
+</g>
+```
+
+Blink is implemented by scaling the **masked eye group** vertically around its
+pivot. The prompt requires each eye to be a self-contained blink target whose
+aperture clip, iris/pupil, catchlights, and lash mass all live inside the group;
+no skin-coloured eyelid primitive is needed. The rig warns when a `blink` target
+has no clip in its subtree or does not look like an eye group.
+
+Anchored parts may only use rotation/scale presets (`breathe`, `sway`, `nod`,
+`twitch`, `wave`, `blink`). `bob` and `hop` translate, so the joint weld would
+cancel them; the rig emits a warning when that combination appears. Only the
+root or an unanchored part should translate.
+
+The review preview adds an **Idle** toggle. Idle is on by default unless the
+browser reports `prefers-reduced-motion: reduce`; **Reset** returns the clock to
+zero.
 
 ### Lash silhouettes
 
@@ -355,10 +424,12 @@ The parallax preview replaces the static SVG output in the detail view and uses 
 checkerboard background; a **Dark bg/Light bg** button toggles the checkerboard shade.
 It injects the SVG into a shadow root, tracks the pointer in normalized cursor space,
 and applies each rig node's transform on an animation frame. Motion is fixed at the
-strongest setting; **Play** runs a demo path and **Reset** returns the cursor to
-neutral. **Anchors** overlays each welded joint (green dot), the member's pre-weld
-position (red ring), and the correction the weld applies. Older conversions without a
-stored rig are normalized and given synthetic paint-order depth on demand.
+strongest setting; **Play** runs a demo path and **Reset** returns the cursor and the
+idle clock to neutral. **Idle** toggles the view-point-independent `data-anim` motion
+(on by default unless `prefers-reduced-motion: reduce` is set). **Anchors** overlays
+each welded joint (green dot), the member's pre-weld position (red ring), and the
+correction the weld applies. Older conversions without a stored rig are normalized
+and given synthetic paint-order depth on demand.
 
 Read-only review endpoints:
 
@@ -418,7 +489,9 @@ wrapper groups; the rig references those ids.
 │   ├── v002-rig-ready-flat-vectoriser.md
 │   ├── v006-parallax-depth-vectorizer.md
 │   ├── v010-rig-joints.md    # parallax depth + Level-1 joint welds
-│   └── v011-lash-silhouette.md # v010 + filled tapered lashes
+│   ├── v011-lash-silhouette.md # v010 + filled tapered lashes
+│   ├── v012-pose-faithful-eyes.md # v011 + pose-faithful eyes
+│   └── v013-idle-motion.md   # v012 + idle-motion presets + blink mask contract
 ├── public/
 │   └── review.html           # dependency-free review UI
 ├── samples/

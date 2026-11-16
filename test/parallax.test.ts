@@ -1,7 +1,9 @@
 import { load } from "cheerio";
 import { describe, expect, it } from "vitest";
 import {
+  combineMotions,
   deriveParallaxRig,
+  evaluateIdleNode,
   evaluateParallaxNode,
   nodePoint,
   resolveAnchorCorrections,
@@ -475,5 +477,227 @@ describe("parallax joint welds", () => {
     const { rig } = deriveParallaxRig(DEPTH_SVG);
     expect(rig.version).toBe(1);
     expect(rig.anchors).toEqual([]);
+  });
+});
+
+const IDLE_SVG = [
+  '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">',
+  '  <defs><clipPath id="clip-eye"><path d="M 0 0 L 100 0 L 100 100 Z"/></clipPath></defs>',
+  '  <g id="subject" data-z="0.5" data-pivot="512,512" data-anim="bob" data-anim-period="3" data-anim-amplitude="8">',
+  '    <g id="body" data-z="0.3" data-pivot="500,500" data-anim="breathe" data-anim-amplitude="0.02">',
+  '      <rect x="400" y="400" width="200" height="200" fill="#888"/>',
+  "    </g>",
+  '    <g id="head" data-z="0.65" data-pivot="600,400" data-anim="nod" data-anim-amplitude="3">',
+  '      <rect x="550" y="350" width="100" height="100" fill="#ccc"/>',
+  '      <g id="left-eye" data-z="0.7" data-pivot="600,400" data-anim="blink" data-anim-period="4" data-anim-amplitude="0.9" clip-path="url(#clip-eye)">',
+  '        <circle cx="600" cy="400" r="20" fill="#111"/>',
+  "      </g>",
+  "    </g>",
+  "  </g>",
+  "</svg>",
+].join("\n");
+
+const IDLE_ANCHOR_SVG = [
+  '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">',
+  '  <g id="subject" data-z="0.5" data-pivot="512,512">',
+  '    <g id="torso" data-z="0.3" data-pivot="500,500" data-sockets="neck:700,500" data-anim="breathe" data-anim-amplitude="0.05">',
+  '      <rect x="400" y="400" width="200" height="200" fill="#888"/>',
+  "    </g>",
+  '    <g id="head" data-z="0.7" data-anchor="neck" data-pivot="700,500" data-anim="nod" data-anim-amplitude="3">',
+  '      <rect x="650" y="400" width="100" height="100" fill="#ccc"/>',
+  "    </g>",
+  "  </g>",
+  "</svg>",
+].join("\n");
+
+describe("idle motion", () => {
+  it("derives idle tracks and bumps the rig version to 3", () => {
+    const { rig } = deriveParallaxRig(IDLE_SVG);
+
+    expect(rig.version).toBe(3);
+    expect(rig.warnings).toEqual([]);
+
+    const subject = nodeById(rig.nodes, "subject");
+    expect(subject.idle?.preset).toBe("bob");
+    expect(subject.idle?.translate?.y?.amplitude).toBe(8);
+
+    const body = nodeById(rig.nodes, "body");
+    expect(body.idle?.preset).toBe("breathe");
+    expect(body.idle?.scale?.x?.amplitude).toBeCloseTo(0.02, 10);
+    expect(body.idle?.scale?.y?.amplitude).toBeCloseTo(0.02, 10);
+
+    const eye = nodeById(rig.nodes, "left-eye");
+    expect(eye.idle?.preset).toBe("blink");
+    expect(eye.idle?.scale?.y?.amplitude).toBeCloseTo(-0.9, 10);
+  });
+
+  it("is identity at time zero", () => {
+    const { rig } = deriveParallaxRig(IDLE_SVG);
+
+    for (const node of rig.nodes) {
+      const idle = evaluateIdleNode(node, 0);
+      expect(idle.tx).toBeCloseTo(0, 10);
+      expect(idle.ty).toBeCloseTo(0, 10);
+      expect(idle.scaleX).toBeCloseTo(1, 10);
+      expect(idle.scaleY).toBeCloseTo(1, 10);
+      expect(idle.rotate).toBeCloseTo(0, 10);
+    }
+  });
+
+  it("blinks by scaling the masked eye group", () => {
+    const { rig } = deriveParallaxRig(IDLE_SVG);
+    const eye = nodeById(rig.nodes, "left-eye");
+
+    let minScaleY = 1;
+    for (let time = 0; time < 4; time += 0.005) {
+      minScaleY = Math.min(minScaleY, evaluateIdleNode(eye, time).scaleY);
+    }
+
+    expect(minScaleY).toBeLessThan(0.5);
+    expect(minScaleY).toBeGreaterThan(0);
+  });
+
+  it("emits a non-uniform scale for a blink", () => {
+    const { rig } = deriveParallaxRig(IDLE_SVG);
+    const eye = nodeById(rig.nodes, "left-eye");
+
+    let minScaleY = 1;
+    let peakTime = 0;
+    for (let time = 0; time < 4; time += 0.005) {
+      const scaleY = evaluateIdleNode(eye, time).scaleY;
+      if (scaleY < minScaleY) {
+        minScaleY = scaleY;
+        peakTime = time;
+      }
+    }
+
+    const transform = transformForNode(
+      eye,
+      { x: 0.5, y: 0.5 },
+      rig.viewBox,
+      {},
+      undefined,
+      peakTime,
+    );
+    expect(transform).toContain("scale(1 ");
+  });
+
+  it("composes idle motion with cursor parallax", () => {
+    const { rig } = deriveParallaxRig(IDLE_SVG);
+    const head = nodeById(rig.nodes, "head");
+    const idle = evaluateIdleNode(head, 1.2);
+
+    const centered = combineMotions(
+      evaluateParallaxNode(head, { x: 0.5, y: 0.5 }, rig.viewBox),
+      idle,
+    );
+    expect(centered.tx).toBeCloseTo(idle.tx, 10);
+    expect(centered.ty).toBeCloseTo(idle.ty, 10);
+    expect(centered.rotate).toBeCloseTo(idle.rotate, 10);
+
+    const moved = combineMotions(
+      evaluateParallaxNode(head, { x: 1, y: 0.5 }, rig.viewBox),
+      idle,
+    );
+    const parallax = evaluateParallaxNode(head, { x: 1, y: 0.5 }, rig.viewBox);
+    expect(moved.tx).toBeCloseTo(parallax.tx + idle.tx, 10);
+    expect(moved.rotate).toBeCloseTo(parallax.rotate + idle.rotate, 10);
+  });
+
+  it("keeps welds pinned while the host idles", () => {
+    const { rig } = deriveParallaxRig(IDLE_ANCHOR_SVG);
+    const cursor = { x: 0.5, y: 0.5 };
+    const time = 1.1;
+    const corrections = resolveAnchorCorrections(
+      rig,
+      cursor,
+      rig.viewBox,
+      {},
+      time,
+    );
+
+    const torso = nodeById(rig.nodes, "torso");
+    const head = nodeById(rig.nodes, "head");
+    const motion = (node: ParallaxNode) =>
+      combineMotions(
+        evaluateParallaxNode(node, cursor, rig.viewBox),
+        evaluateIdleNode(node, time),
+      );
+
+    const torsoJoint = nodePoint(
+      torso,
+      motion(torso),
+      [700, 500],
+      corrections.get("torso"),
+    );
+    const headJoint = nodePoint(
+      head,
+      motion(head),
+      [700, 500],
+      corrections.get("head"),
+    );
+
+    expect(headJoint[0]).toBeCloseTo(torsoJoint[0], 8);
+    expect(headJoint[1]).toBeCloseTo(torsoJoint[1], 8);
+  });
+
+  it("warns about unknown presets and blink targets without a clip", () => {
+    const svg = [
+      '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">',
+      '  <g id="subject" data-z="0.5" data-pivot="512,512">',
+      '    <g id="body" data-z="0.3" data-pivot="500,500" data-anim="dance">',
+      '      <rect x="400" y="400" width="200" height="200" fill="#888"/>',
+      "    </g>",
+      '    <g id="left-eye" data-z="0.6" data-pivot="600,400" data-anim="blink">',
+      '      <circle cx="600" cy="400" r="20" fill="#111"/>',
+      "    </g>",
+      "  </g>",
+      "</svg>",
+    ].join("\n");
+
+    const { rig } = deriveParallaxRig(svg);
+    const warnings = rig.warnings.join(" ");
+
+    expect(warnings).toContain("unknown data-anim preset");
+    expect(warnings).toContain("has no clip-path");
+  });
+
+  it("warns when data-anim is present without data-z", () => {
+    const svg = [
+      '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">',
+      '  <g id="subject" data-z="0.5" data-pivot="512,512">',
+      '    <g id="body" data-pivot="500,500" data-anim="breathe">',
+      '      <rect x="400" y="400" width="200" height="200" fill="#888"/>',
+      "    </g>",
+      "  </g>",
+      "</svg>",
+    ].join("\n");
+
+    const { rig } = deriveParallaxRig(svg);
+    expect(rig.warnings.join(" ")).toContain("has no data-z");
+  });
+
+  it("warns when an anchored part uses a translating preset", () => {
+    const svg = [
+      '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">',
+      '  <g id="subject" data-z="0.5" data-pivot="512,512">',
+      '    <g id="torso" data-z="0.3" data-pivot="500,500" data-sockets="neck:700,500">',
+      '      <rect x="400" y="400" width="200" height="200" fill="#888"/>',
+      "    </g>",
+      '    <g id="head" data-z="0.7" data-anchor="neck" data-pivot="700,500" data-anim="bob">',
+      '      <rect x="650" y="400" width="100" height="100" fill="#ccc"/>',
+      "    </g>",
+      "  </g>",
+      "</svg>",
+    ].join("\n");
+
+    const { rig } = deriveParallaxRig(svg);
+    expect(rig.warnings.join(" ")).toContain("translates an anchored part");
+  });
+
+  it("leaves rigs without data-anim free of idle tracks", () => {
+    const { rig } = deriveParallaxRig(DEPTH_SVG);
+    expect(rig.version).toBe(1);
+    expect(nodeById(rig.nodes, "head").idle).toBeUndefined();
   });
 });
