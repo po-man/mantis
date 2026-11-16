@@ -1,6 +1,6 @@
 # Mantis
 
-https://github.com/user-attachments/assets/62f69c9f-f39f-4cc9-8c39-caac3d353786
+https://github.com/user-attachments/assets/e8a14dfe-c7ce-40ef-97f0-abe1fa47ee2c
 
 A lightweight, stateless microservice that turns a photo of a centered object into a
 clean, layered SVG. The heavy lifting is delegated to a vision-capable model through
