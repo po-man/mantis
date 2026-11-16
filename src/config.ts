@@ -19,9 +19,7 @@ const optionalString = z.preprocess(
 // supported values depends on the model.
 const reasoningEffort = z.preprocess(
   (value) => (typeof value === "string" && value.trim() === "" ? undefined : value),
-  z
-    .enum(["none", "minimal", "low", "medium", "high", "max"])
-    .optional(),
+  z.enum(["none", "minimal", "low", "medium", "high", "max"]).default("low"),
 );
 
 export type ReasoningEffort = z.infer<typeof reasoningEffort>;
@@ -54,17 +52,17 @@ const EnvSchema = z.object({
     .default("info"),
 
   OPENROUTER_API_KEY: z.string().min(1, "OPENROUTER_API_KEY is required"),
-  OPENROUTER_MODEL: z.string().min(1, "OPENROUTER_MODEL is required"),
+  OPENROUTER_MODEL: z.string().min(1).default("deepseek/deepseek-v4.1-flash-1017"),
   OPENROUTER_BASE_URL: z.string().url().default("https://openrouter.ai/api/v1"),
   OPENROUTER_TEMPERATURE: z.coerce.number().min(0).max(2).default(0.2),
-  OPENROUTER_MAX_TOKENS: z.coerce.number().int().positive().default(16_384),
+  OPENROUTER_MAX_TOKENS: z.coerce.number().int().positive().default(65_536),
   OPENROUTER_REASONING_EFFORT: reasoningEffort,
-  OPENROUTER_TIMEOUT_MS: z.coerce.number().int().positive().default(120_000),
+  OPENROUTER_TIMEOUT_MS: z.coerce.number().int().positive().default(300_000),
   OPENROUTER_HTTP_REFERER: optionalString,
-  OPENROUTER_APP_TITLE: z.string().min(1).default("vector"),
+  OPENROUTER_APP_TITLE: z.string().min(1).default("mantis"),
   OPENROUTER_PROVIDER: optionalString,
 
-  PROMPT_VERSION: z.string().trim().min(1, "PROMPT_VERSION is required"),
+  PROMPT_VERSION: z.string().trim().min(1).default("v015"),
   PROMPT_DIR: z.string().min(1).default("prompts"),
   MAX_UPLOAD_BYTES: z.coerce.number().int().positive().default(10 * 1024 * 1024),
   MAX_IMAGE_DIMENSION: z.coerce.number().int().positive().default(1568),
@@ -90,7 +88,7 @@ export interface Config {
   openrouterBaseUrl: string;
   openrouterTemperature: number;
   openrouterMaxTokens: number;
-  /** OpenRouter `reasoning.effort`; unset keeps the model default. */
+  /** OpenRouter `reasoning.effort`; `low` by default. */
   openrouterReasoningEffort?: ReasoningEffort;
   openrouterTimeoutMs: number;
   openrouterHttpReferer?: string;
