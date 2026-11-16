@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="<!--DESCRIPTION-->" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'none'"
+    />
+    <title><!--TITLE--></title>
+    <link rel="stylesheet" href="./publish.css" />
+  </head>
+  <body>
+    <header class="site-head">
+      <p class="eyebrow">vector</p>
+      <h1><!--TITLE--></h1>
+      <div class="intro"><!--INTRO--></div>
+    </header>
+
+    <main id="results"><!--SECTIONS--></main>
+
+    <footer class="site-foot"><!--BUILD_META--></footer>
+
+    <dialog id="viewer" aria-labelledby="viewer-title">
+      <div class="viewer-shell">
+        <header class="viewer-head">
+          <div>
+            <span class="badge" id="viewer-rating"></span>
+            <h2 id="viewer-title">Result</h2>
+            <p class="viewer-meta muted" id="viewer-meta"></p>
+          </div>
+          <button class="icon-button" id="viewer-close" type="button" aria-label="Close">×</button>
+        </header>
+        <div class="viewer-body">
+          <div class="stage-wrap">
+            <div class="stage" id="viewer-stage"></div>
+            <div class="viewer-thumb">
+              <img id="viewer-input" alt="" />
+              <span>Input</span>
+            </div>
+            <div class="viewer-status" id="viewer-status" hidden></div>
+          </div>
+        </div>
+        <footer class="viewer-foot">
+          <button id="viewer-prev" type="button" aria-label="Previous result">←</button>
+          <span class="muted" id="viewer-count"></span>
+          <button id="viewer-next" type="button" aria-label="Next result">→</button>
+          <span class="spacer"></span>
+          <button id="viewer-tilt" type="button" hidden>Enable tilt</button>
+          <button id="viewer-bg" type="button">Dark bg</button>
+          <span class="hint" id="viewer-hint">Move the cursor</span>
+        </footer>
+      </div>
+    </dialog>
+
+    <script src="./parallax-player.js" defer></script>
+    <script src="./publish.js" defer></script>
+  </body>
+</html>

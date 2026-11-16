@@ -208,6 +208,74 @@
       .calls th, .calls td { padding: 6px 8px; }
       .error-box { color: var(--bad); background: rgba(248, 81, 73, 0.08); border: 1px solid rgba(248, 81, 73, 0.3); border-radius: 6px; padding: 10px 12px; margin-top: 12px; }
       .toolbar { display: flex; gap: 8px; flex-wrap: wrap; }
+      .rating-cell { white-space: nowrap; }
+      .rating-buttons { display: inline-flex; gap: 3px; }
+      .rating-btn {
+        padding: 2px 7px;
+        border-radius: 999px;
+        font-size: 11px;
+        line-height: 1.5;
+        background: transparent;
+        border: 1px solid var(--border);
+        color: var(--muted);
+      }
+      .rating-btn:hover { border-color: var(--accent); }
+      .rating-btn.selected.nice {
+        color: var(--good);
+        border-color: rgba(63, 185, 80, 0.65);
+        background: rgba(63, 185, 80, 0.14);
+      }
+      .rating-btn.selected.fair {
+        color: var(--warn);
+        border-color: rgba(210, 153, 34, 0.65);
+        background: rgba(210, 153, 34, 0.14);
+      }
+      .rating-btn.selected.bad {
+        color: var(--bad);
+        border-color: rgba(248, 81, 73, 0.65);
+        background: rgba(248, 81, 73, 0.14);
+      }
+      .rating-toolbar { display: flex; align-items: center; gap: 8px; margin: 0 0 14px; }
+      .rating-toolbar .rating-buttons { gap: 5px; }
+      .rating-toolbar .rating-btn { padding: 4px 12px; font-size: 12px; }
+      .publish-button { position: relative; }
+      .publish-button .count {
+        display: inline-block;
+        min-width: 18px;
+        margin-left: 6px;
+        padding: 0 5px;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.16);
+        font-size: 11px;
+      }
+      .publish-summary {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+        gap: 8px;
+        margin-bottom: 14px;
+      }
+      .publish-summary .metric .v { font-size: 20px; }
+      .publish-intro { width: 100%; min-height: 150px; resize: vertical; }
+      .word-count { color: var(--muted); font-size: 12px; margin-top: 4px; }
+      .word-count.over { color: var(--bad); }
+      .publish-out { margin-top: 12px; }
+      .publish-out pre { background: var(--panel-2); border: 1px solid var(--border); border-radius: 6px; padding: 10px 12px; }
+      .publish-note { color: var(--muted); font-size: 12px; margin: 6px 0 0; }
+      .toast {
+        position: fixed;
+        right: 20px;
+        bottom: 20px;
+        max-width: min(440px, calc(100vw - 40px));
+        padding: 10px 14px;
+        border-radius: 8px;
+        background: var(--panel-2);
+        border: 1px solid var(--border);
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
+        z-index: 30;
+        transition: opacity 180ms ease, transform 180ms ease;
+      }
+      .toast[hidden] { display: none; }
+      .toast.error { border-color: rgba(248, 81, 73, 0.55); color: var(--bad); }
       a { color: var(--accent); }
     </style>
   </head>
@@ -217,7 +285,10 @@
         <h1>vector · review</h1>
         <p class="sub">Inspect conversion inputs, SVG outputs, prompts, and LLM metrics.</p>
       </div>
-      <button id="refresh" class="primary">Refresh</button>
+      <div class="toolbar">
+        <button id="publish" class="publish-button">Publish<span class="count" id="publish-count">0</span></button>
+        <button id="refresh" class="primary">Refresh</button>
+      </div>
     </header>
 
     <main>
@@ -229,6 +300,13 @@
           <option value="">All statuses</option>
           <option value="success">Success</option>
           <option value="error">Error</option>
+        </select>
+        <select id="rating">
+          <option value="">All ratings</option>
+          <option value="unrated">Unrated</option>
+          <option value="nice">Nice</option>
+          <option value="fair">Fair</option>
+          <option value="bad">Bad</option>
         </select>
         <input id="model" placeholder="Model" />
         <input id="promptVersion" placeholder="Prompt version" />
@@ -243,6 +321,7 @@
             <tr>
               <th>ID / time</th>
               <th>Status</th>
+              <th>Rating</th>
               <th>Input</th>
               <th>Dimensions</th>
               <th>Model</th>
@@ -277,9 +356,31 @@
       </div>
     </div>
 
+    <div id="publish-overlay" class="overlay" hidden>
+      <div class="panel">
+        <div class="panel-head">
+          <h2 id="publish-title">Publish selected results</h2>
+          <button id="publish-close">Close</button>
+        </div>
+        <div class="panel-body" id="publish-body"></div>
+      </div>
+    </div>
+
+    <div id="toast" class="toast" hidden></div>
+
+    <script src="/review/parallax-player.js"></script>
     <script>
-      const state = { limit: 25, offset: 0, total: 0, filters: {}, items: [], currentId: null };
+      const state = {
+        limit: 25,
+        offset: 0,
+        total: 0,
+        filters: {},
+        items: [],
+        currentId: null,
+        publication: null,
+      };
       let detailRequest = 0;
+      let toastTimer = 0;
 
       const $ = (id) => document.getElementById(id);
 
@@ -396,6 +497,27 @@
           "</tbody></table></div>";
       }
 
+      function ratingButtons(item) {
+        if (item.status !== "success") {
+          return '<span class="muted">—</span>';
+        }
+        const labels = { nice: "Nice", fair: "Fair", bad: "Bad" };
+        const buttons = Object.entries(labels)
+          .map(([rating, label]) => {
+            const active = item.rating === rating;
+            return (
+              '<button type="button" class="rating-btn ' + rating +
+              (active ? " selected" : "") + '" data-rate="' + rating +
+              '" data-id="' + item.id + '" aria-pressed="' +
+              (active ? "true" : "false") + '" title="' +
+              (active ? "Clear rating" : "Mark as " + label) + '">' +
+              label + "</button>"
+            );
+          })
+          .join("");
+        return '<span class="rating-buttons">' + buttons + "</span>";
+      }
+
       function renderRows(items) {
         $("empty").hidden = items.length > 0;
         $("rows").innerHTML = items
@@ -421,6 +543,7 @@
               "<td><div class=\"mono\">#" + item.id + "</div><div class=\"muted\">" +
               escapeHtml(fmtDate(item.createdAt)) + "</div></td>" +
               "<td>" + statusBadge(item.status) + "</td>" +
+              '<td class="rating-cell">' + ratingButtons(item) + "</td>" +
               "<td>" + thumb + "</td>" +
               "<td><div>" + escapeHtml(dims) + ds + "</div><div class=\"muted\">from " +
               escapeHtml(original) + "</div></td>" +
@@ -436,10 +559,231 @@
             );
           })
           .join("");
+      }
 
-        for (const row of $("rows").querySelectorAll("tr")) {
-          row.addEventListener("click", () => openDetail(Number(row.dataset.id)));
+      $("rows").addEventListener("click", (event) => {
+        const ratingButton = event.target.closest("[data-rate]");
+        if (ratingButton) {
+          event.stopPropagation();
+          const id = Number(ratingButton.dataset.id);
+          const item = state.items.find((entry) => entry.id === id);
+          setRating(id, ratingButton.dataset.rate, item ? item.rating : null);
+          return;
         }
+        const row = event.target.closest("tr[data-id]");
+        if (row) {
+          openDetail(Number(row.dataset.id));
+        }
+      });
+
+      $("detail-body").addEventListener("click", (event) => {
+        const ratingButton = event.target.closest("[data-rate]");
+        if (!ratingButton) return;
+        const id = Number(ratingButton.dataset.id);
+        const item = state.items.find((entry) => entry.id === id);
+        setRating(id, ratingButton.dataset.rate, item ? item.rating : null);
+      });
+
+      function showToast(message, isError) {
+        const toast = $("toast");
+        toast.textContent = message;
+        toast.classList.toggle("error", Boolean(isError));
+        toast.hidden = false;
+        clearTimeout(toastTimer);
+        toastTimer = window.setTimeout(() => {
+          toast.hidden = true;
+        }, isError ? 6000 : 3200);
+      }
+
+      function syncDetailRating(id, rating) {
+        if (state.currentId !== id) return;
+        const container = $("detail-rating");
+        if (!container) return;
+        for (const button of container.querySelectorAll("[data-rate]")) {
+          const active = button.dataset.rate === rating;
+          button.classList.toggle("selected", active);
+          button.setAttribute("aria-pressed", active ? "true" : "false");
+          button.title = active ? "Clear rating" : "Mark as " + button.textContent;
+        }
+      }
+
+      async function setRating(id, rating, current) {
+        const next = current === rating ? null : rating;
+        try {
+          const response = await fetch(
+            "/review/api/conversions/" + id + "/selection",
+            {
+              method: "PUT",
+              headers: { "content-type": "application/json" },
+              body: JSON.stringify({ rating: next }),
+            },
+          );
+          if (!response.ok) {
+            let message = response.status + " " + response.statusText;
+            try {
+              const body = await response.json();
+              message = body?.error?.message || message;
+            } catch {}
+            throw new Error(message);
+          }
+          const body = await response.json();
+          const item = state.items.find((entry) => entry.id === id);
+          if (item) item.rating = body.rating;
+          if (state.filters.rating) {
+            loadList();
+          } else {
+            renderRows(state.items);
+          }
+          syncDetailRating(id, body.rating);
+          showToast(
+            body.rating
+              ? "Conversion #" + id + " marked " + body.rating
+              : "Conversion #" + id + " unrated",
+          );
+          loadPublicationMeta();
+        } catch (error) {
+          showToast("Could not update rating: " + error.message, true);
+        }
+      }
+
+      async function loadPublicationMeta() {
+        try {
+          const meta = await api("/review/api/publication");
+          state.publication = meta;
+          $("publish").disabled = false;
+          $("publish-count").textContent = String(meta.counts.total);
+          return meta;
+        } catch (error) {
+          state.publication = null;
+          $("publish").disabled = true;
+          $("publish").title = "Publication API is disabled";
+          $("publish-count").textContent = "—";
+          return null;
+        }
+      }
+
+      function suggestedTag() {
+        const now = new Date();
+        const pad = (value) => String(value).padStart(2, "0");
+        return (
+          "publish." + now.getFullYear() + "-" + pad(now.getMonth() + 1) +
+          "-" + pad(now.getDate())
+        );
+      }
+
+      function openPublish() {
+        $("publish-overlay").hidden = false;
+        $("publish-overlay").scrollTop = 0;
+        $("publish-body").innerHTML = '<p class="muted">Loading…</p>';
+        loadPublicationMeta().then((meta) => {
+          if (!meta) {
+            $("publish-body").innerHTML =
+              '<div class="error-box">The publication API is disabled. ' +
+              "Set PUBLISH_ENABLED=true and restart the service.</div>";
+            return;
+          }
+          renderPublishPanel(meta);
+        });
+      }
+
+      function wordCount(value) {
+        const trimmed = String(value || "").trim();
+        return trimmed ? trimmed.split(/\s+/).length : 0;
+      }
+
+      function renderPublishPanel(meta) {
+        const counts = meta.counts;
+        const tag = suggestedTag();
+        $("publish-body").innerHTML =
+          '<div class="publish-summary">' +
+          metric("Nice", fmtNum(counts.nice)) +
+          metric("Fair", fmtNum(counts.fair)) +
+          metric("Bad", fmtNum(counts.bad)) +
+          metric("Total", fmtNum(counts.total)) +
+          "</div>" +
+          '<p class="muted">The bundle is written to <span class="mono">' +
+          escapeHtml(meta.publishDir) + "</span>. It is ignored locally; the " +
+          "commit happens on a generated <span class=\"mono\">publish.*</span> branch.</p>" +
+          '<label class="preview-label" for="publish-intro">Intro (less than 100 words)</label>' +
+          '<textarea class="publish-intro" id="publish-intro">' +
+          escapeHtml(meta.intro || meta.defaultIntro) + "</textarea>" +
+          '<div class="word-count" id="publish-word-count"></div>' +
+          '<div class="filters" style="margin-top:14px">' +
+          '<input id="publish-tag" value="' + escapeHtml(tag) + '" ' +
+          'placeholder="publish.2026-11-16" style="min-width:220px" />' +
+          '<button id="publish-write" class="primary">Write bundle</button>' +
+          "</div>" +
+          '<div class="publish-out" id="publish-out"></div>';
+
+        const intro = $("publish-intro");
+        const counter = $("publish-word-count");
+        const updateCounter = () => {
+          const words = wordCount(intro.value);
+          counter.textContent = words + " / " + meta.maxIntroWords + " words";
+          counter.classList.toggle("over", words > meta.maxIntroWords);
+          $("publish-write").disabled =
+            words === 0 || words > meta.maxIntroWords || counts.total === 0;
+        };
+        intro.addEventListener("input", updateCounter);
+        updateCounter();
+
+        $("publish-write").addEventListener("click", async () => {
+          const button = $("publish-write");
+          button.disabled = true;
+          button.textContent = "Writing…";
+          try {
+            const response = await fetch("/review/api/publish", {
+              method: "POST",
+              headers: { "content-type": "application/json" },
+              body: JSON.stringify({ intro: intro.value }),
+            });
+            if (!response.ok) {
+              let message = response.status + " " + response.statusText;
+              try {
+                const body = await response.json();
+                message = body?.error?.message || message;
+              } catch {}
+              throw new Error(message);
+            }
+            const result = await response.json();
+            const branch = $("publish-tag").value.trim();
+            if (!/^publish\.[A-Za-z0-9._-]+$/.test(branch) || branch.includes("..")) {
+              throw new Error(
+                "Tag must start with publish. and contain only letters, digits, dots, underscores, or dashes",
+              );
+            }
+            const commands =
+              "npm run publish:branch -- --name " + branch + "\n" +
+              "git push origin refs/heads/" + branch + ":refs/heads/" + branch + "\n" +
+              "git push origin refs/tags/" + branch + ":refs/tags/" + branch;
+            $("publish-out").innerHTML =
+              '<div class="card"><div class="label">Bundle written</div>' +
+              '<div class="mono" style="margin-top:6px">' +
+              escapeHtml(result.manifestPath) + "</div>" +
+              '<div class="muted">' + fmtNum(result.itemCount) + " items · " +
+              fmtNum(result.introWords) + " intro words</div></div>" +
+              '<p class="publish-note">The working tree is not modified. ' +
+              "Create the publish branch from the current HEAD with:</p>" +
+              "<pre class=\"mono\">" + escapeHtml(commands) + "</pre>" +
+              '<div class="toolbar"><button type="button" id="copy-commands">Copy commands</button></div>';
+            $("copy-commands").addEventListener("click", async () => {
+              try {
+                await navigator.clipboard.writeText(commands);
+                showToast("Commands copied");
+              } catch {
+                showToast("Could not copy commands", true);
+              }
+            });
+            showToast("Publication bundle written");
+            loadPublicationMeta();
+          } catch (error) {
+            $("publish-out").innerHTML =
+              '<div class="error-box">' + escapeHtml(error.message) + "</div>";
+          } finally {
+            button.textContent = "Write bundle";
+            updateCounter();
+          }
+        });
       }
 
       function metric(label, value) {
@@ -478,297 +822,33 @@
       }
 
       // ---------------------------------------------------------------------
-      // Interactive parallax player
-      // Keep the evaluator in sync with src/services/parallax.ts.
+      // Interactive parallax player (shared with the published site)
       // ---------------------------------------------------------------------
 
       let parallaxPlayer = null;
+      let parallaxCleanup = null;
       let darkCheckerboard = false;
 
       function destroyParallax() {
+        if (parallaxCleanup) {
+          parallaxCleanup();
+          parallaxCleanup = null;
+        }
         if (parallaxPlayer) {
           parallaxPlayer.destroy();
           parallaxPlayer = null;
         }
       }
 
-      function clamp(value, min, max) {
-        return Math.min(max, Math.max(min, value));
-      }
-
-      function formatMotion(value) {
-        const rounded = Math.round(value * 10000) / 10000;
-        return Object.is(rounded, -0) ? "0" : String(rounded);
-      }
-
-      function evaluateParallaxMotion(node, cursor, viewBox, multipliers) {
-        const cx = (cursor.x - 0.5) * 2;
-        const cy = (cursor.y - 0.5) * 2;
-        const shift = multipliers.shift;
-        const scaleMultiplier = multipliers.scale;
-        const rotateMultiplier = multipliers.rotate;
-
-        const tx =
-          node.translate.x.const +
-          (node.translate.x.cx * cx + node.translate.x.cy * cy) * shift;
-        const ty =
-          node.translate.y.const +
-          (node.translate.y.cx * cx + node.translate.y.cy * cy) * shift;
-
-        const viewX = viewBox[0];
-        const viewY = viewBox[1];
-        const viewWidth = viewBox[2];
-        const viewHeight = viewBox[3];
-        const pivotX = (node.pivot[0] - viewX) / viewWidth;
-        const pivotY = (node.pivot[1] - viewY) / viewHeight;
-        const distance =
-          Math.hypot(cursor.x - pivotX, cursor.y - pivotY) / Math.SQRT2;
-        const radius = node.scale.radius || 0;
-        const proximity =
-          radius > 0
-            ? Math.exp(-((distance / radius) ** 2)) - (node.scale.neutral || 0)
-            : 0;
-        const scaleDelta =
-          node.scale.cx * cx +
-          node.scale.cy * cy +
-          node.scale.proximity * proximity;
-        const scale = node.scale.const + scaleDelta * scaleMultiplier;
-        const rotate =
-          node.rotate.const +
-          (node.rotate.cx * cx + node.rotate.cy * cy) * rotateMultiplier;
-
-        return { tx: tx, ty: ty, scale: scale, rotate: rotate };
-      }
-
-      // Keep in sync with evaluateOscillator() in src/services/parallax.ts.
-      function evaluateOscillator(oscillator, time) {
-        const period = Math.max(0.1, oscillator.period);
-        const shifted = time + oscillator.phase * period;
-        const local = ((shifted % period) + period) % period;
-
-        switch (oscillator.wave) {
-          case "sine": {
-            const value = Math.sin((2 * Math.PI * shifted) / period);
-            const initial = Math.sin(2 * Math.PI * oscillator.phase);
-            return (value - initial) * oscillator.amplitude;
-          }
-          case "pulse": {
-            const width = Math.max(0.001, (oscillator.duty || 0.1) * period);
-            if (local > width) return 0;
-            const u = local / width;
-            return Math.sin(Math.PI * u) ** 2 * oscillator.amplitude;
-          }
-          case "bounce": {
-            const width = Math.max(0.001, (oscillator.duty || 0.35) * period);
-            if (local > width) return 0;
-            const u = local / width;
-            return Math.sin(Math.PI * u) * oscillator.amplitude;
-          }
-          case "twitch": {
-            const width = Math.max(0.001, (oscillator.duty || 0.12) * period);
-            if (local > width) return 0;
-            const u = local / width;
-            const decay = oscillator.decay || 4;
-            return (
-              Math.exp(-decay * u) *
-              Math.sin(2 * Math.PI * 2 * u) *
-              oscillator.amplitude
-            );
-          }
-        }
-        return 0;
-      }
-
-      // Keep in sync with evaluateIdleNode() in src/services/parallax.ts.
-      function evaluateIdleMotion(node, time) {
-        const idle = node.idle;
-        if (!idle) {
-          return { tx: 0, ty: 0, scaleX: 1, scaleY: 1, rotate: 0 };
-        }
-        const tx = idle.translate && idle.translate.x
-          ? evaluateOscillator(idle.translate.x, time)
-          : 0;
-        const ty = idle.translate && idle.translate.y
-          ? evaluateOscillator(idle.translate.y, time)
-          : 0;
-        const sx = idle.scale && idle.scale.x
-          ? evaluateOscillator(idle.scale.x, time)
-          : 0;
-        const sy = idle.scale && idle.scale.y
-          ? evaluateOscillator(idle.scale.y, time)
-          : 0;
-        const rotate = idle.rotate ? evaluateOscillator(idle.rotate, time) : 0;
-        return {
-          tx: tx,
-          ty: ty,
-          scaleX: 1 + sx,
-          scaleY: 1 + sy,
-          rotate: rotate,
-        };
-      }
-
-      // Keep in sync with combineMotions() in src/services/parallax.ts.
-      function combineMotions(parallax, idle) {
-        return {
-          tx: parallax.tx + idle.tx,
-          ty: parallax.ty + idle.ty,
-          scale: parallax.scale,
-          scaleX: parallax.scale * idle.scaleX,
-          scaleY: parallax.scale * idle.scaleY,
-          rotate: parallax.rotate + idle.rotate,
-        };
-      }
-
-      function transformForMotion(node, motion, correction) {
-        const dx = correction ? correction.dx : 0;
-        const dy = correction ? correction.dy : 0;
-        const scaleX = motion.scaleX === undefined ? motion.scale : motion.scaleX;
-        const scaleY = motion.scaleY === undefined ? motion.scale : motion.scaleY;
-        const scale = scaleX === scaleY
-          ? "scale(" + formatMotion(scaleX) + ")"
-          : "scale(" + formatMotion(scaleX) + " " + formatMotion(scaleY) + ")";
+      function prefersReducedMotion() {
         return (
-          "translate(" + formatMotion(motion.tx + dx) + " " + formatMotion(motion.ty + dy) + ") " +
-          "translate(" + formatMotion(node.pivot[0]) + " " + formatMotion(node.pivot[1]) + ") " +
-          "rotate(" + formatMotion(motion.rotate) + ") " +
-          scale + " " +
-          "translate(" + formatMotion(-node.pivot[0]) + " " + formatMotion(-node.pivot[1]) + ")"
+          typeof window.matchMedia === "function" &&
+          window.matchMedia("(prefers-reduced-motion: reduce)").matches
         );
       }
 
-      // Keep in sync with nodePoint() in src/services/parallax.ts.
-      function nodePoint(node, motion, point, correction) {
-        const radians = (motion.rotate * Math.PI) / 180;
-        const cos = Math.cos(radians);
-        const sin = Math.sin(radians);
-        const pivotX = node.pivot[0];
-        const pivotY = node.pivot[1];
-        const dx = point[0] - pivotX;
-        const dy = point[1] - pivotY;
-        const scaleX = motion.scaleX === undefined ? motion.scale : motion.scaleX;
-        const scaleY = motion.scaleY === undefined ? motion.scale : motion.scaleY;
-        const scaledX = scaleX * dx;
-        const scaledY = scaleY * dy;
-        return [
-          pivotX + motion.tx + (correction ? correction.dx : 0) +
-            cos * scaledX - sin * scaledY,
-          pivotY + motion.ty + (correction ? correction.dy : 0) +
-            sin * scaledX + cos * scaledY,
-        ];
-      }
-
-      // Keep in sync with resolveAnchorCorrections() in src/services/parallax.ts.
-      function resolveAnchorCorrections(rig, motions) {
-        const corrections = new Map();
-        for (const node of rig.nodes) {
-          corrections.set(node.id, { dx: 0, dy: 0 });
-        }
-        const anchors = rig.anchors || [];
-        if (anchors.length === 0) return corrections;
-
-        const nodeById = new Map();
-        for (const node of rig.nodes) nodeById.set(node.id, node);
-
-        const byMember = new Map();
-        for (const anchor of anchors) {
-          for (const member of anchor.members) {
-            const list = byMember.get(member.node) || [];
-            list.push(anchor);
-            byMember.set(member.node, list);
-          }
-        }
-
-        const resolved = new Set();
-        const resolving = new Set();
-        function resolve(id) {
-          if (resolved.has(id) || resolving.has(id)) return;
-          resolving.add(id);
-          const node = nodeById.get(id);
-          const motion = motions.get(id);
-          if (node && motion) {
-            const nodeAnchors = byMember.get(id) || [];
-            let sumX = 0;
-            let sumY = 0;
-            let count = 0;
-            for (const anchor of nodeAnchors) {
-              resolve(anchor.host);
-              const host = nodeById.get(anchor.host);
-              const hostMotion = motions.get(anchor.host);
-              let membership = null;
-              for (const member of anchor.members) {
-                if (member.node === id) membership = member;
-              }
-              if (!host || !hostMotion || !membership) continue;
-              const joint = anchor.point;
-              const own = nodePoint(node, motion, joint);
-              let targetX = joint[0];
-              let targetY = joint[1];
-              if (membership.frame === "shared") {
-                const hostPoint = nodePoint(
-                  host,
-                  hostMotion,
-                  joint,
-                  corrections.get(anchor.host),
-                );
-                targetX = hostPoint[0];
-                targetY = hostPoint[1];
-              }
-              const weld = typeof node.weld === "number" ? node.weld : 1;
-              sumX += (targetX - own[0]) * weld;
-              sumY += (targetY - own[1]) * weld;
-              count += 1;
-            }
-            if (count > 0) {
-              corrections.set(id, { dx: sumX / count, dy: sumY / count });
-            }
-          }
-          resolving.delete(id);
-          resolved.add(id);
-        }
-
-        for (const node of rig.nodes) resolve(node.id);
-        return corrections;
-      }
-
-      function sanitizeSvg(root) {
-        const forbidden = new Set([
-          "script", "foreignobject", "iframe", "object", "embed", "audio",
-          "video", "canvas", "link", "base", "animate", "animatetransform",
-          "animatemotion", "set", "handler", "listener",
-        ]);
-        const elements = [root].concat(Array.from(root.querySelectorAll("*")));
-        for (const element of elements) {
-          if (forbidden.has(element.tagName.toLowerCase())) {
-            element.remove();
-            continue;
-          }
-          for (const attribute of Array.from(element.attributes)) {
-            const name = attribute.name.toLowerCase();
-            const value = attribute.value;
-            if (name.startsWith("on") || name === "src") {
-              element.removeAttribute(attribute.name);
-            } else if (
-              (name === "href" || name === "xlink:href") &&
-              value &&
-              !value.trim().startsWith("#")
-            ) {
-              element.removeAttribute(attribute.name);
-            } else if (
-              /javascript:|data:text\/html|expression\s*\(|behavior\s*:|-moz-binding/i.test(value)
-            ) {
-              element.removeAttribute(attribute.name);
-            }
-          }
-        }
-        for (const style of Array.from(root.querySelectorAll("style"))) {
-          if (
-            /@import|expression\s*\(|javascript:|url\s*\(\s*['"]?(?!#)/i.test(
-              style.textContent || "",
-            )
-          ) {
-            style.remove();
-          }
-        }
+      function clamp(value, min, max) {
+        return Math.min(max, Math.max(min, value));
       }
 
       function setupParallax(rig, svgText) {
@@ -777,24 +857,11 @@
 
         destroyParallax();
 
-        if (darkCheckerboard) {
-          stage.classList.add("checkerboard-dark");
-        }
-
-        let svgRoot;
         try {
-          const documentNode = new DOMParser().parseFromString(svgText, "image/svg+xml");
-          if (documentNode.querySelector("parsererror")) {
-            throw new Error("The SVG markup could not be parsed");
-          }
-          svgRoot = documentNode.documentElement;
-          if (!svgRoot || svgRoot.tagName.toLowerCase() !== "svg") {
-            svgRoot = documentNode.querySelector("svg");
-          }
-          if (!svgRoot) {
-            throw new Error("No <svg> root element");
-          }
-          sanitizeSvg(svgRoot);
+          parallaxPlayer = window.VectorParallax.create(stage, svgText, rig, {
+            idle: !prefersReducedMotion(),
+            dark: darkCheckerboard,
+          });
         } catch (error) {
           const placeholder = document.createElement("div");
           placeholder.className = "parallax-placeholder";
@@ -803,231 +870,39 @@
           return;
         }
 
-        // Shadow DOM keeps the generated SVG's styles from leaking into the
-        // review page and keeps the page's styles out of the illustration.
-        let shadow = stage.shadowRoot;
-        if (!shadow) {
-          shadow = stage.attachShadow({ mode: "open" });
-        }
-        shadow.replaceChildren();
-
-        const svg = document.importNode(svgRoot, true);
-        svg.setAttribute("width", "100%");
-        svg.setAttribute("height", "100%");
-        svg.setAttribute("preserveAspectRatio", "xMidYMid meet");
-        shadow.appendChild(svg);
-
-        const hasAnchors = Array.isArray(rig.anchors) && rig.anchors.length > 0;
-        const overlay = document.createElementNS(svg.namespaceURI, "g");
-        overlay.setAttribute("id", "parallax-anchor-overlay");
-        overlay.setAttribute("pointer-events", "none");
-        svg.appendChild(overlay);
-
-        const byId = new Map();
-        for (const element of shadow.querySelectorAll("[id]")) {
-          byId.set(element.id, element);
-        }
-
-        const nodeById = new Map();
-        for (const node of rig.nodes) {
-          nodeById.set(node.id, node);
-        }
-
-        const baseTransforms = new Map();
-        for (const node of rig.nodes) {
-          const element = byId.get(node.id);
-          if (element) {
-            baseTransforms.set(
-              node.id,
-              element.getAttribute("transform") || node.baseTransform || null,
-            );
-          }
-        }
-
-        const defaults = rig.defaults || {
-          shift: 40,
-          scale: 0.06,
-          rotate: 1.5,
-        };
-
-        const prefersReducedMotion =
-          typeof window.matchMedia === "function" &&
-          window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-
-        const state = {
-          playing: false,
-          playStart: 0,
-          target: { x: 0.5, y: 0.5 },
-          current: { x: 0.5, y: 0.5 },
-          multipliers: {
-            shift: defaults.shift ? 80 / defaults.shift : 1,
-            scale: defaults.scale ? 0.2 / defaults.scale : 1,
-            rotate: defaults.rotate ? 5 / defaults.rotate : 1,
-          },
-          raf: 0,
-          lastTime: 0,
-          time: 0,
-          idle: !prefersReducedMotion,
-          speed: 1,
-          destroyed: false,
-          anchorsVisible: false,
-        };
-
-        function renderAnchorOverlay(motions, corrections) {
-          if (!state.anchorsVisible || !hasAnchors) {
-            if (overlay.childNodes.length > 0) overlay.replaceChildren();
-            return;
-          }
-          const doc = svg.ownerDocument;
-          const fragment = doc.createDocumentFragment();
-
-          function mark(tag, attributes) {
-            const element = doc.createElementNS(svg.namespaceURI, tag);
-            for (const name of Object.keys(attributes)) {
-              element.setAttribute(name, String(attributes[name]));
-            }
-            fragment.appendChild(element);
-          }
-
-          for (const anchor of rig.anchors) {
-            const host = nodeById.get(anchor.host);
-            const hostMotion = motions.get(anchor.host);
-            if (!host || !hostMotion) continue;
-            const hostPoint = nodePoint(
-              host,
-              hostMotion,
-              anchor.point,
-              corrections.get(anchor.host),
-            );
-
-            for (const member of anchor.members) {
-              if (member.frame !== "shared") continue;
-              const memberNode = nodeById.get(member.node);
-              const motion = motions.get(member.node);
-              if (!memberNode || !motion) continue;
-              const before = nodePoint(memberNode, motion, anchor.point);
-              mark("line", {
-                x1: before[0],
-                y1: before[1],
-                x2: hostPoint[0],
-                y2: hostPoint[1],
-                stroke: "#ef4444",
-                "stroke-width": 3,
-                "stroke-dasharray": "10 8",
-                "stroke-linecap": "round",
-                opacity: 0.85,
-              });
-              mark("circle", {
-                cx: before[0],
-                cy: before[1],
-                r: 15,
-                fill: "none",
-                stroke: "#ef4444",
-                "stroke-width": 3,
-                opacity: 0.9,
-              });
-            }
-
-            mark("circle", {
-              cx: hostPoint[0],
-              cy: hostPoint[1],
-              r: 10,
-              fill: "#22c55e",
-              stroke: "#052e16",
-              "stroke-width": 2,
-            });
-          }
-
-          overlay.replaceChildren(fragment);
-        }
-
-        function apply(cursor, time) {
-          const motions = new Map();
-          for (const node of rig.nodes) {
-            const parallax = evaluateParallaxMotion(
-              node,
-              cursor,
-              rig.viewBox,
-              state.multipliers,
-            );
-            const idle = evaluateIdleMotion(node, time);
-            motions.set(node.id, combineMotions(parallax, idle));
-          }
-          const corrections = resolveAnchorCorrections(rig, motions);
-          for (const node of rig.nodes) {
-            const element = byId.get(node.id);
-            if (!element) continue;
-            const transform = transformForMotion(
-              node,
-              motions.get(node.id),
-              corrections.get(node.id),
-            );
-            const base = baseTransforms.get(node.id);
-            element.setAttribute(
-              "transform",
-              base ? transform + " " + base : transform,
-            );
-          }
-          renderAnchorOverlay(motions, corrections);
-        }
-
-        function frame(now) {
-          if (state.destroyed) return;
-          const dt = state.lastTime ? Math.min(now - state.lastTime, 64) : 16;
-          state.lastTime = now;
-          if (state.idle) {
-            state.time += (dt / 1000) * state.speed;
-          }
-          if (state.playing) {
-            const time = (now - state.playStart) / 1000;
-            state.target.x = 0.5 + 0.32 * Math.sin(time * 0.9);
-            state.target.y = 0.5 + 0.32 * Math.sin(time * 1.3 + 1.7);
-          }
-          const easing = 1 - Math.exp(-dt / 90);
-          state.current.x += (state.target.x - state.current.x) * easing;
-          state.current.y += (state.target.y - state.current.y) * easing;
-          apply(state.current, state.time);
-          state.raf = requestAnimationFrame(frame);
-        }
-
         const hint = $("parallax-hint");
+        const listenerList = [];
+        let playing = false;
+        let playStart = 0;
+        let playRaf = 0;
+
+        function listen(element, type, handler) {
+          if (!element) return;
+          element.addEventListener(type, handler);
+          listenerList.push([element, type, handler]);
+        }
+
         const onMove = (event) => {
-          if (state.playing) return;
+          if (playing) return;
           const rect = stage.getBoundingClientRect();
           if (rect.width <= 0 || rect.height <= 0) return;
-          state.target.x = clamp(
-            (event.clientX - rect.left) / rect.width,
-            0,
-            1,
-          );
-          state.target.y = clamp(
-            (event.clientY - rect.top) / rect.height,
-            0,
-            1,
+          parallaxPlayer.setCursor(
+            clamp((event.clientX - rect.left) / rect.width, 0, 1),
+            clamp((event.clientY - rect.top) / rect.height, 0, 1),
           );
           if (hint) hint.classList.add("hidden");
         };
         const onLeave = () => {
-          if (!state.playing) {
-            state.target.x = 0.5;
-            state.target.y = 0.5;
-          }
+          if (!playing) parallaxPlayer.setNeutral();
         };
-        stage.addEventListener("pointermove", onMove);
-        stage.addEventListener("pointerleave", onLeave);
+        listen(stage, "pointermove", onMove);
+        listen(stage, "pointerleave", onLeave);
 
         const checkerboardButton = $("p-checkerboard");
         const anchorsButton = $("p-anchors");
         const idleButton = $("p-idle");
-        const play = $("p-play");
-        const reset = $("p-reset");
-
-        const listeners = [];
-        function listen(element, type, handler) {
-          if (!element) return;
-          element.addEventListener(type, handler);
-          listeners.push([element, type, handler]);
-        }
+        const playButton = $("p-play");
+        const resetButton = $("p-reset");
 
         function syncCheckerboardButton() {
           if (!checkerboardButton) return;
@@ -1040,87 +915,90 @@
         syncCheckerboardButton();
         listen(checkerboardButton, "click", () => {
           darkCheckerboard = !darkCheckerboard;
-          stage.classList.toggle("checkerboard-dark", darkCheckerboard);
+          parallaxPlayer.setDark(darkCheckerboard);
           syncCheckerboardButton();
         });
 
         function syncAnchorsButton() {
           if (!anchorsButton) return;
-          if (!hasAnchors) {
+          if (!parallaxPlayer.hasAnchors()) {
             anchorsButton.disabled = true;
             anchorsButton.title = "This rig has no joint welds";
             anchorsButton.textContent = "No anchors";
             return;
           }
-          anchorsButton.textContent = state.anchorsVisible ? "Hide anchors" : "Anchors";
-          anchorsButton.setAttribute(
-            "aria-pressed",
-            state.anchorsVisible ? "true" : "false",
-          );
+          anchorsButton.textContent = "Anchors";
+          anchorsButton.setAttribute("aria-pressed", "false");
         }
         syncAnchorsButton();
+        let anchorsVisible = false;
         listen(anchorsButton, "click", () => {
-          state.anchorsVisible = !state.anchorsVisible;
-          syncAnchorsButton();
-          apply(state.current, state.time);
+          anchorsVisible = !anchorsVisible;
+          parallaxPlayer.setAnchors(anchorsVisible);
+          if (anchorsButton) {
+            anchorsButton.textContent = anchorsVisible ? "Hide anchors" : "Anchors";
+            anchorsButton.setAttribute(
+              "aria-pressed",
+              anchorsVisible ? "true" : "false",
+            );
+          }
         });
 
+        let idleOn = !prefersReducedMotion();
         function syncIdleButton() {
           if (!idleButton) return;
-          idleButton.textContent = state.idle ? "Idle on" : "Idle off";
-          idleButton.setAttribute(
-            "aria-pressed",
-            state.idle ? "true" : "false",
-          );
+          idleButton.textContent = idleOn ? "Idle on" : "Idle off";
+          idleButton.setAttribute("aria-pressed", idleOn ? "true" : "false");
         }
         syncIdleButton();
         listen(idleButton, "click", () => {
-          state.idle = !state.idle;
-          if (!state.idle) state.time = 0;
+          idleOn = !idleOn;
+          parallaxPlayer.setIdle(idleOn);
           syncIdleButton();
-          apply(state.current, state.time);
         });
 
-        listen(play, "click", () => {
-          state.playing = !state.playing;
-          if (state.playing) {
-            state.playStart = performance.now();
-            if (play) play.textContent = "Pause";
-          } else if (play) {
-            play.textContent = "Play";
+        function stopPlay() {
+          playing = false;
+          cancelAnimationFrame(playRaf);
+          if (playButton) playButton.textContent = "Play";
+        }
+
+        function demoTick(now) {
+          if (!playing || !parallaxPlayer) return;
+          const time = (now - playStart) / 1000;
+          parallaxPlayer.setCursor(
+            0.5 + 0.32 * Math.sin(time * 0.9),
+            0.5 + 0.32 * Math.sin(time * 1.3 + 1.7),
+          );
+          playRaf = requestAnimationFrame(demoTick);
+        }
+
+        listen(playButton, "click", () => {
+          if (playing) {
+            stopPlay();
+            return;
           }
+          playing = true;
+          playStart = performance.now();
+          if (playButton) playButton.textContent = "Pause";
+          playRaf = requestAnimationFrame(demoTick);
         });
-        listen(reset, "click", () => {
-          state.playing = false;
-          state.target.x = 0.5;
-          state.target.y = 0.5;
-          state.current.x = 0.5;
-          state.current.y = 0.5;
-          state.time = 0;
-          if (play) play.textContent = "Play";
+
+        listen(resetButton, "click", () => {
+          stopPlay();
+          parallaxPlayer.reset();
           if (hint) hint.classList.remove("hidden");
-          apply(state.current, state.time);
         });
 
-        apply(state.current, state.time);
-        state.raf = requestAnimationFrame(frame);
-
-        parallaxPlayer = {
-          destroy() {
-            state.destroyed = true;
-            cancelAnimationFrame(state.raf);
-            stage.removeEventListener("pointermove", onMove);
-            stage.removeEventListener("pointerleave", onLeave);
-            for (const [element, type, handler] of listeners) {
-              element.removeEventListener(type, handler);
-            }
-            listeners.length = 0;
-            if (stage.shadowRoot) {
-              stage.shadowRoot.replaceChildren();
-            }
-          },
+        parallaxCleanup = () => {
+          stopPlay();
+          for (const [element, type, handler] of listenerList) {
+            element.removeEventListener(type, handler);
+          }
+          listenerList.length = 0;
         };
       }
+
 
       async function openDetail(id) {
         const request = ++detailRequest;
@@ -1207,6 +1085,10 @@
           "<span>Prompt <span class=\"mono\">" + escapeHtml(detail.promptVersion) + "</span></span>" +
           "<span>" + escapeHtml(fmtDate(detail.createdAt)) + "</span>" +
           "</div>" +
+          (detail.status === "success"
+            ? '<div class="rating-toolbar" id="detail-rating"><span class="muted">Publication rating</span>' +
+              ratingButtons(detail) + "</div>"
+            : "") +
           '<div class="previews">' +
           '<div><div class="preview-head"><p class="preview-label">Input sent to model</p></div>' +
           '<div class="preview">' + inputPane + "</div></div>" +
@@ -1374,6 +1256,7 @@
       function readFilters() {
         state.filters = {
           status: $("status").value,
+          rating: $("rating").value,
           model: $("model").value.trim(),
           promptVersion: $("promptVersion").value.trim(),
           q: $("q").value.trim(),
@@ -1388,6 +1271,7 @@
 
       $("reset").addEventListener("click", () => {
         $("status").value = "";
+        $("rating").value = "";
         $("model").value = "";
         $("promptVersion").value = "";
         $("q").value = "";
@@ -1399,6 +1283,12 @@
       $("refresh").addEventListener("click", () => {
         loadStats();
         loadList();
+        loadPublicationMeta();
+      });
+
+      $("publish").addEventListener("click", openPublish);
+      $("publish-close").addEventListener("click", () => {
+        $("publish-overlay").hidden = true;
       });
 
       $("prev").addEventListener("click", () => {
@@ -1423,8 +1313,18 @@
         }
       });
 
+      $("publish-overlay").addEventListener("click", (event) => {
+        if (event.target === $("publish-overlay")) {
+          $("publish-overlay").hidden = true;
+        }
+      });
+
       document.addEventListener("keydown", (event) => {
         if (event.key === "Escape") {
+          if (!$("publish-overlay").hidden) {
+            $("publish-overlay").hidden = true;
+            return;
+          }
           $("overlay").hidden = true;
           destroyParallax();
           return;
@@ -1448,6 +1348,7 @@
 
       loadStats();
       loadList();
+      loadPublicationMeta();
     </script>
   </body>
 </html>

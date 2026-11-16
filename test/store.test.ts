@@ -242,6 +242,48 @@ describe("ConversionStore", () => {
     rmSync(dir, { recursive: true, force: true });
   });
 
+  it("stores publication ratings and filters selections", () => {
+    const store = makeStore();
+    const promptId = store.upsertPrompt(PROMPT);
+    const niceId = store.record(makeEntry(promptId, { requestId: "req-nice" }));
+    const fairId = store.record(makeEntry(promptId, { requestId: "req-fair" }));
+    const badId = store.record(makeEntry(promptId, { requestId: "req-bad" }));
+    const unratedId = store.record(
+      makeEntry(promptId, { requestId: "req-unrated" }),
+    );
+
+    expect(store.setSelection(niceId, "nice")).toBe("nice");
+    expect(store.setSelection(fairId, "fair")).toBe("fair");
+    expect(store.setSelection(badId, "bad")).toBe("bad");
+
+    expect(store.selectionCounts()).toEqual({
+      nice: 1,
+      fair: 1,
+      bad: 1,
+      total: 3,
+    });
+    expect(store.list().items.find((item) => item.id === fairId)?.rating).toBe(
+      "fair",
+    );
+    expect(store.get(badId)?.rating).toBe("bad");
+    expect(store.list({ rating: "nice" }).items.map((item) => item.id)).toEqual([
+      niceId,
+    ]);
+    expect(
+      store.list({ rating: "unrated" }).items.map((item) => item.id),
+    ).toEqual([unratedId]);
+    expect(store.listSelected().map((item) => item.rating)).toEqual([
+      "nice",
+      "fair",
+      "bad",
+    ]);
+
+    expect(store.setSelection(niceId, null)).toBeNull();
+    expect(store.get(niceId)?.rating).toBeNull();
+    expect(store.selectionCounts().total).toBe(2);
+    store.close();
+  });
+
   it("computes aggregate statistics", () => {
     const store = makeStore();
     const promptId = store.upsertPrompt(PROMPT);

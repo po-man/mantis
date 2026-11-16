@@ -193,7 +193,11 @@ export async function buildApp(
   });
 
   if (config.reviewUiEnabled) {
-    await registerReviewRoutes(app, { store });
+    await registerReviewRoutes(app, {
+      store,
+      publishDir: config.publishDir,
+      publishEnabled: config.publishEnabled,
+    });
   }
 
   return app;

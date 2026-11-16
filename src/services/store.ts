@@ -2,6 +2,7 @@ import { mkdirSync } from "node:fs";
 import path from "node:path";
 import { DatabaseSync } from "node:sqlite";
 import type { ParallaxRig } from "./parallax.js";
+import type { PublishRating } from "./publication-manifest.js";
 import type { LlmCallMetric } from "./vectorize.js";
 
 export interface PromptRecord {
@@ -90,6 +91,7 @@ export interface ConversionListItem {
   warningCount: number;
   errorCode: string | null;
   hasInput: boolean;
+  rating: PublishRating | null;
 }
 
 export interface ConversionDetail extends ConversionListItem {
@@ -108,6 +110,14 @@ export interface ConversionListParams {
   model?: string;
   promptVersion?: string;
   q?: string;
+  rating?: PublishRating | "unrated";
+}
+
+export interface SelectionCounts {
+  nice: number;
+  fair: number;
+  bad: number;
+  total: number;
 }
 
 export interface ConversionListResult {
@@ -186,6 +196,7 @@ interface ConversionRow {
   error_code: string | null;
   error_message: string | null;
   has_input: number;
+  publish_rating: PublishRating | null;
   prompt_id: number;
   prompt_text: string;
   prompt_path: string;
@@ -257,6 +268,7 @@ function toListItem(row: ConversionRow): ConversionListItem {
     warningCount: parseJsonArray<string>(row.warnings).length,
     errorCode: row.error_code,
     hasInput: row.has_input === 1,
+    rating: row.publish_rating,
   };
 }
 
@@ -290,7 +302,8 @@ const LIST_COLUMNS = `
   c.reasoning_tokens,
   c.cost_usd,
   c.error_code,
-  CASE WHEN c.input_image IS NULL THEN 0 ELSE 1 END AS has_input
+  CASE WHEN c.input_image IS NULL THEN 0 ELSE 1 END AS has_input,
+  s.rating AS publish_rating
 `;
 
 export class ConversionStore {
@@ -357,6 +370,16 @@ export class ConversionStore {
         ON conversions(model);
       CREATE INDEX IF NOT EXISTS idx_conversions_prompt
         ON conversions(prompt_id);
+
+      CREATE TABLE IF NOT EXISTS publication_selections (
+        conversion_id INTEGER PRIMARY KEY
+          REFERENCES conversions(id) ON DELETE CASCADE,
+        rating TEXT NOT NULL CHECK (rating IN ('nice', 'fair', 'bad')),
+        updated_at INTEGER NOT NULL
+      );
+
+      CREATE INDEX IF NOT EXISTS idx_publication_selections_rating
+        ON publication_selections(rating);
     `);
 
     // Existing databases predate the parallax columns.
@@ -494,6 +517,12 @@ export class ConversionStore {
       const pattern = `%${params.q}%`;
       values.push(pattern, pattern, pattern);
     }
+    if (params.rating === "unrated") {
+      clauses.push("s.rating IS NULL");
+    } else if (params.rating) {
+      clauses.push("s.rating = ?");
+      values.push(params.rating);
+    }
 
     const where = clauses.length > 0 ? `WHERE ${clauses.join(" AND ")}` : "";
 
@@ -502,6 +531,7 @@ export class ConversionStore {
         `SELECT COUNT(*) AS total
          FROM conversions c
          JOIN prompts p ON p.id = c.prompt_id
+         LEFT JOIN publication_selections s ON s.conversion_id = c.id
          ${where}`,
       )
       .get(...values) as { total: number } | undefined;
@@ -511,6 +541,7 @@ export class ConversionStore {
         `SELECT ${LIST_COLUMNS}
          FROM conversions c
          JOIN prompts p ON p.id = c.prompt_id
+         LEFT JOIN publication_selections s ON s.conversion_id = c.id
          ${where}
          ORDER BY c.created_at DESC, c.id DESC
          LIMIT ? OFFSET ?`,
@@ -538,6 +569,7 @@ export class ConversionStore {
            p.created_at AS prompt_created_at
          FROM conversions c
          JOIN prompts p ON p.id = c.prompt_id
+         LEFT JOIN publication_selections s ON s.conversion_id = c.id
          WHERE c.id = ?`,
       )
       .get(id) as unknown as ConversionRow | undefined;
@@ -596,6 +628,59 @@ export class ConversionStore {
       .prepare("SELECT output_rig FROM conversions WHERE id = ?")
       .get(id) as { output_rig: string | null } | undefined;
     return parseJsonObject<ParallaxRig>(row?.output_rig ?? null);
+  }
+
+  setSelection(id: number, rating: PublishRating | null): PublishRating | null {
+    if (rating === null) {
+      this.db
+        .prepare("DELETE FROM publication_selections WHERE conversion_id = ?")
+        .run(id);
+      return null;
+    }
+
+    this.db
+      .prepare(
+        `INSERT INTO publication_selections (conversion_id, rating, updated_at)
+         VALUES (?, ?, ?)
+         ON CONFLICT(conversion_id) DO UPDATE SET
+           rating = excluded.rating,
+           updated_at = excluded.updated_at`,
+      )
+      .run(id, rating, Date.now());
+    return rating;
+  }
+
+  listSelected(): ConversionListItem[] {
+    const rows = this.db
+      .prepare(
+        `SELECT ${LIST_COLUMNS}
+         FROM conversions c
+         JOIN prompts p ON p.id = c.prompt_id
+         JOIN publication_selections s ON s.conversion_id = c.id
+         ORDER BY
+           CASE s.rating WHEN 'nice' THEN 1 WHEN 'fair' THEN 2 ELSE 3 END,
+           s.updated_at ASC,
+           c.id ASC`,
+      )
+      .all() as unknown as ConversionRow[];
+    return rows.map(toListItem);
+  }
+
+  selectionCounts(): SelectionCounts {
+    const rows = this.db
+      .prepare(
+        `SELECT rating, COUNT(*) AS total
+         FROM publication_selections
+         GROUP BY rating`,
+      )
+      .all() as unknown as Array<{ rating: PublishRating; total: number }>;
+
+    const counts: SelectionCounts = { nice: 0, fair: 0, bad: 0, total: 0 };
+    for (const row of rows) {
+      counts[row.rating] = row.total;
+      counts.total += row.total;
+    }
+    return counts;
   }
 
   stats(): ConversionStats {

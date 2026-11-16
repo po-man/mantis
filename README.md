@@ -74,7 +74,9 @@ real environment variables take precedence.
 | `RETRY_ON_INVALID_SVG` | `1` | Repair retries after an invalid SVG |
 | `REQUEST_TIMEOUT_MS` | `150000` | Fastify request timeout |
 | `DATABASE_PATH` | `data/vector.db` | SQLite file for review data; use `:memory:` to disable persistence |
-| `REVIEW_UI_ENABLED` | `true` | Enable the developer review UI and read-only API |
+| `REVIEW_UI_ENABLED` | `true` | Enable the developer review UI and review API |
+| `PUBLISH_ENABLED` | `true` | Allow the review UI to write local publication bundles; disable in public deployments |
+| `PUBLISH_DIR` | `.publish` | Gitignored local staging directory for publication manifests and assets |
 
 The service fails fast at boot if required configuration is missing. It also fails if
 `PROMPT_VERSION` matches no prompt file or more than one prompt file in `PROMPT_DIR`.
@@ -394,6 +396,7 @@ All errors use one envelope:
 | `400` | `bad_request` | Missing/invalid input |
 | `413` | `payload_too_large` | Upload exceeds `MAX_UPLOAD_BYTES` |
 | `415` | `unsupported_media_type` | Not PNG/JPEG/WebP |
+| `403` | `forbidden` | Cross-origin publication write rejected |
 | `422` | `invalid_svg` | No valid SVG after repair attempts |
 | `429` | `rate_limited` | Queue full or upstream rate limit |
 | `502` | `upstream_error` | OpenRouter failure |
@@ -428,8 +431,11 @@ conversions keep pointing at the exact prompt they used.
 The review UI at `http://localhost:8080/review` provides:
 
 - summary cards and per-prompt-version statistics;
-- filtering by status, model, prompt version, and request ID;
+- filtering by status, publication rating, model, prompt version, and request ID;
+- **Nice / Fair / Bad** publication ratings on each successful conversion, both in
+  the table and in the detail view;
 - a paginated conversion table with input thumbnails;
+- a publication export dialog that writes a curated bundle to `.publish/`;
 - a detail view with the input image, rendered SVG, an interactive parallax preview,
   the derived rig JSON, prompt text, warnings, raw SVG, and per-attempt LLM metrics.
 
@@ -442,7 +448,8 @@ idle clock to neutral. **Idle** toggles the view-point-independent `data-anim` m
 (on by default unless `prefers-reduced-motion: reduce` is set). **Anchors** overlays
 each welded joint (green dot), the member's pre-weld position (red ring), and the
 correction the weld applies. Older conversions without a stored rig are normalized
-and given synthetic paint-order depth on demand.
+and given synthetic paint-order depth on demand. The published site uses the same
+`public/parallax-player.js` module, so review and publication share one evaluator.
 
 ### Cost telemetry
 
@@ -464,16 +471,19 @@ are excluded from the averages rather than counted as free, which is why
 `costedConversions` is reported separately. Cost is whatever OpenRouter returns; it
 is `null` when the upstream provider does not report usage accounting.
 
-Read-only review endpoints:
+Review endpoints:
 
 | Route | Description |
 | --- | --- |
-| `GET /review/api/conversions` | Paginated list (`limit`, `offset`, `status`, `model`, `promptVersion`, `q`) |
-| `GET /review/api/conversions/:id` | Metadata, prompt text, warnings, LLM calls, and the parallax rig |
+| `GET /review/api/conversions` | Paginated list (`limit`, `offset`, `status`, `rating`, `model`, `promptVersion`, `q`) |
+| `GET /review/api/conversions/:id` | Metadata, prompt text, warnings, LLM calls, rating, and the parallax rig |
+| `PUT /review/api/conversions/:id/selection` | Set or clear a `nice`/`fair`/`bad` publication rating |
 | `GET /review/api/conversions/:id/input` | Stored input image |
 | `GET /review/api/conversions/:id/output.svg` | Stored SVG output |
 | `GET /review/api/conversions/:id/parallax.svg` | SVG normalized for the rig (ids + clip wrappers) |
 | `GET /review/api/conversions/:id/rig.json` | Stored or on-demand parallax rig |
+| `GET /review/api/publication` | Local staging metadata and selection counts |
+| `POST /review/api/publish` | Write the local `.publish/` manifest and assets |
 | `GET /review/api/stats` | Aggregate and per-prompt statistics |
 
 > The review UI and API are unauthenticated. Use it on a trusted network, bind the
@@ -483,6 +493,146 @@ Read-only review endpoints:
 SQLite storage is synchronous and runs in-process. A failed write is logged but does
 not fail the conversion request. The database grows with stored images and SVGs; add
 external retention/cleanup if you keep the service running for a long time.
+
+## Publishing selected results
+
+The local review UI curates results into a static GitHub Pages site. Assets are never
+committed to the current branch: the export writes a gitignored staging bundle, and a
+separate `publish.*` branch carries the committed files.
+
+### 1. Curate and write the staging bundle
+
+1. Open `http://localhost:8080/review`.
+2. Mark successful conversions **Nice**, **Fair**, or **Bad**. A rating is the
+   selection; clicking the active rating clears it.
+3. Click **Publish**, review the counts and edit the intro (must be under 100 words),
+   then click **Write bundle**.
+
+The service writes:
+
+```
+.publish/
+├── selections.json
+└── assets/
+    ├── 0001-<id>-input.png
+    ├── 0001-<id>.svg
+    └── 0001-<id>.rig.json
+```
+
+`.publish/` is gitignored and can be regenerated at any time. The manifest has this
+shape:
+
+```json
+{
+  "format": "vector.publication",
+  "version": 1,
+  "title": "vector · selected results",
+  "intro": "vector is a small image-to-SVG service...",
+  "generatedAt": "2026-11-16T...",
+  "items": [
+    {
+      "id": 42,
+      "rating": "nice",
+      "title": "Conversion #42",
+      "model": "google/gemini-2.5-flash",
+      "promptVersion": "v015",
+      "createdAt": 1760000000000,
+      "assets": {
+        "input": "assets/0001-42-input.png",
+        "svg": "assets/0001-42.svg",
+        "rig": "assets/0001-42.rig.json"
+      }
+    }
+  ]
+}
+```
+
+Ratings are stored as `nice`, `fair`, and `bad`; the published page labels the Nice
+tier **Good**. Historical conversions without a stored rig are normalized and given a
+rig on export. The export fails rather than publishing a partial item when an input,
+SVG, or rig is missing.
+
+### 2. Create the publish branch
+
+```bash
+npm run publish:branch -- --name publish.2026-11-16
+```
+
+The script:
+
+- validates `.publish/selections.json` and every asset;
+- refuses to run on a detached HEAD or with tracked uncommitted changes;
+- creates `publish.2026-11-16` from the **current branch's HEAD** in a temporary
+  worktree;
+- copies `.publish/` to `publish/` on that branch and commits it;
+- creates tag `publish.2026-11-16` on the same commit;
+- removes the temporary worktree.
+
+The current branch, index, and working tree are untouched. The generated branch
+contains the bundle commit; the tag is the durable deploy reference. If you only want
+a branch trigger, pass `--no-tag`.
+
+Manual equivalent:
+
+```bash
+git switch -c publish.2026-11-16
+mkdir -p publish && cp -R .publish/. publish/
+git add publish
+git commit -m "publish: publish.2026-11-16"
+git tag publish.2026-11-16
+git switch -
+```
+
+Do not merge `publish.*` into the source branch.
+
+### 3. Push the release
+
+```bash
+git push origin refs/heads/publish.2026-11-16:refs/heads/publish.2026-11-16
+git push origin refs/tags/publish.2026-11-16:refs/tags/publish.2026-11-16
+```
+
+The tag push triggers `.github/workflows/publish.yml`, which runs
+`npm run publish:build` against the tag commit and deploys `site/` to GitHub Pages.
+Because the branch and tag share a name, the explicit `refs/...` forms avoid
+ambiguity.
+
+After a successful deployment the branch can be deleted; the tag still preserves the
+exact bundle:
+
+```bash
+git push origin --delete publish.2026-11-16
+git branch -D publish.2026-11-16
+```
+
+### 4. Preview locally
+
+```bash
+npm run publish:build -- --manifest .publish/selections.json --out site
+python3 -m http.server 4173 -d site
+```
+
+Open `http://localhost:4173`. The published page has a short intro and three stacked
+**Good / Fair / Bad** galleries. Each card shows the input image and static SVG side by
+side on desktop and stacked on mobile. Clicking or tapping a card opens a modal:
+
+- idle motion is always on;
+- the SVG moves in 2.5D from the cursor on desktop;
+- mobile uses the gyroscope, with an **Enable tilt** gesture for iOS, or drag fallback;
+- arrow keys navigate on desktop; swipe navigates on mobile (from the screen edge when
+  drag fallback is active);
+- a light/dark checkerboard toggle is available;
+- the input image stays visible as a small thumbnail.
+
+### GitHub Pages setup
+
+Set **Settings → Pages → Build and deployment → Source** to **GitHub Actions** once.
+For this repository the site is `https://po-man.github.io/mantis/`. All asset URLs are
+relative, so a custom domain or project subpath works without rebuilding.
+
+> The publish endpoint writes files and is protected only by the same local-only trust
+> model as the review UI. Keep `REVIEW_UI_ENABLED`/`PUBLISH_ENABLED` off on public
+> deployments. The endpoint accepts JSON and rejects cross-origin writes.
 
 ## How the SVG parser works
 
@@ -518,6 +668,9 @@ wrapper groups; the rig references those ids.
 
 ```
 .
+├── .github/
+│   └── workflows/
+│       └── publish.yml       # tag-triggered GitHub Pages deployment
 ├── prompts/
 │   ├── v001-vectorize.md     # default geometric-fidelity prompt
 │   ├── v002-rig-ready-flat-vectoriser.md
@@ -529,24 +682,32 @@ wrapper groups; the rig references those ids.
 │   ├── v014-lean-idle-motion.md # v013 contract, deduplicated and shortened
 │   └── v015-clipped-catchlight.md # v014 + occlusion-derived z + clipped catchlights
 ├── public/
-│   └── review.html           # dependency-free review UI
+│   ├── review.html           # dependency-free review UI
+│   ├── parallax-player.js    # shared review/published-site player
+│   ├── publish-site.html     # static publication template
+│   ├── publish.css           # publication page styles
+│   └── publish.js            # publication modal, navigation, tilt/drag/swipe
 ├── samples/
 │   ├── inputs/               # committed sample images, grouped by subject
 │   └── outputs/              # generated runs (gitignored)
 ├── scripts/
-│   └── batch-vectorize.ts    # concurrent batch driver for POST /v1/vectorize
+│   ├── batch-vectorize.ts    # concurrent batch driver for POST /v1/vectorize
+│   ├── build-site.ts         # validate bundle + generate site/
+│   └── publish-branch.ts     # create a publish.* branch in a temp worktree
 ├── src/
 │   ├── index.ts              # bootstrap + graceful shutdown
 │   ├── app.ts                # Fastify factory (injectable for tests)
 │   ├── config.ts             # env schema + typed config
 │   ├── routes/
 │   │   ├── vectorize.ts      # HTTP contract + persistence
-│   │   └── review.ts         # review UI + read-only API
+│   │   └── review.ts         # review UI + review/publication API
 │   ├── services/
 │   │   ├── openrouter.ts     # upstream client
 │   │   ├── prompt.ts         # prompt loading + version hash
 │   │   ├── image.ts          # magic-byte validation + normalization
 │   │   ├── parallax.ts       # data-z → cursor-driven motion rig
+│   │   ├── publication-manifest.ts # manifest schema + defaults
+│   │   ├── publication.ts    # local bundle writer
 │   │   ├── svg-parser.ts     # extraction, validation, sanitization
 │   │   ├── store.ts          # SQLite persistence + queries
 │   │   └── vectorize.ts      # orchestration + repair retry
@@ -619,18 +780,23 @@ docker run --rm -p 8080:8080 \
   -e OPENROUTER_MODEL=google/gemini-2.5-flash \
   -e PROMPT_VERSION=v001 \
   -v vector-data:/app/data \
+  -v "$PWD/.publish:/app/.publish" \
   vector
 ```
 
 The image stores SQLite data in `/app/data` by default. Mount a volume there to keep
-review data across container restarts.
+review data across container restarts. Mount `./.publish` when you want the review UI
+inside the container to write publication bundles into the host repository.
 
 ## Notes and limitations
 
 - Stateful review data is stored in local SQLite; there is still no caching or job
   queue for conversions.
+- Publication assets live only on generated `publish.*` branches/tags, never on the
+  source branch. Each publication adds a commit and tag; prune old publication
+  branches if you do not need to inspect them.
 - No authentication; deploy behind a trusted network boundary or add a gateway, and
-  disable or protect the review UI in public deployments.
+  disable or protect the review UI and publication endpoint in public deployments.
 - `node:sqlite` is still marked experimental in Node 22 and emits a warning at startup.
   It avoids native dependencies; switch to `better-sqlite3` if you need a stable driver
   API.
