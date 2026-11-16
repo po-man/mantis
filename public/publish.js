@@ -5,6 +5,9 @@
   const RATING_CLASSES = { nice: "good", fair: "fair", bad: "bad" };
   const EDGE_SWIPE = 30;
   const SWIPE_THRESHOLD = 55;
+  // Degrees of tilt that move the cursor across the full half-range. Lower is
+  // more sensitive; 20° gives roughly twice the response of the original 40°.
+  const GYRO_FULL_RANGE_DEGREES = 20;
 
   const $ = (id) => document.getElementById(id);
   const dialog = $("viewer");
@@ -217,8 +220,8 @@
         baseGamma = gamma;
       }
       player.setCursor(
-        clamp(0.5 + (gamma - baseGamma) / 40, 0, 1),
-        clamp(0.5 + (beta - baseBeta) / 40, 0, 1),
+        clamp(0.5 + (gamma - baseGamma) / GYRO_FULL_RANGE_DEGREES, 0, 1),
+        clamp(0.5 + (beta - baseBeta) / GYRO_FULL_RANGE_DEGREES, 0, 1),
       );
       if (tiltState !== "gyro") {
         tiltState = "gyro";
