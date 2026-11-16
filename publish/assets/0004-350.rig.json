@@ -1,0 +1,1721 @@
+{
+  "format": "vector.parallax",
+  "version": 3,
+  "viewBox": [
+    0,
+    0,
+    1024,
+    1024
+  ],
+  "cursor": {
+    "space": "normalized",
+    "neutral": [
+      0.5,
+      0.5
+    ]
+  },
+  "defaults": {
+    "shift": 40,
+    "scale": 0.06,
+    "rotate": 1.5,
+    "proximity": 0.55,
+    "direction": "inverse",
+    "neutralZ": 0.5
+  },
+  "nodes": [
+    {
+      "id": "subject",
+      "tag": "g",
+      "z": 0.5,
+      "parentZ": 0.5,
+      "depth": 0,
+      "pivot": [
+        512,
+        512
+      ],
+      "gain": 1,
+      "weld": 1,
+      "baseTransform": null,
+      "translate": {
+        "x": {
+          "const": 0,
+          "cx": 0,
+          "cy": 0
+        },
+        "y": {
+          "const": 0,
+          "cx": 0,
+          "cy": 0
+        }
+      },
+      "scale": {
+        "const": 1,
+        "cx": 0,
+        "cy": 0,
+        "proximity": 0,
+        "radius": 0.55,
+        "neutral": 1
+      },
+      "rotate": {
+        "const": 0,
+        "cx": 0,
+        "cy": 0
+      },
+      "idle": {
+        "preset": "breathe",
+        "period": 4,
+        "delay": 0,
+        "amplitude": 0.05,
+        "scale": {
+          "x": {
+            "wave": "sine",
+            "amplitude": 0.05,
+            "period": 4,
+            "phase": 0.34757893765345216
+          },
+          "y": {
+            "wave": "sine",
+            "amplitude": 0.05,
+            "period": 4,
+            "phase": 0.34757893765345216
+          }
+        }
+      }
+    },
+    {
+      "id": "bunch-core",
+      "tag": "g",
+      "z": 0.1,
+      "parentZ": 0.5,
+      "depth": -0.4,
+      "pivot": [
+        512,
+        512
+      ],
+      "gain": 1,
+      "weld": 1,
+      "baseTransform": null,
+      "translate": {
+        "x": {
+          "const": 0,
+          "cx": 16,
+          "cy": 0
+        },
+        "y": {
+          "const": 0,
+          "cx": 0,
+          "cy": 16
+        }
+      },
+      "scale": {
+        "const": 1,
+        "cx": 0,
+        "cy": 0,
+        "proximity": -0.048,
+        "radius": 0.55,
+        "neutral": 1
+      },
+      "rotate": {
+        "const": 0,
+        "cx": -1.2000000000000002,
+        "cy": 1.2000000000000002
+      }
+    },
+    {
+      "id": "bunch-core-surface",
+      "tag": "g",
+      "z": 0.1,
+      "parentZ": 0.1,
+      "depth": 0,
+      "pivot": [
+        512,
+        512
+      ],
+      "gain": 1,
+      "weld": 1,
+      "baseTransform": null,
+      "translate": {
+        "x": {
+          "const": 0,
+          "cx": 0,
+          "cy": 0
+        },
+        "y": {
+          "const": 0,
+          "cx": 0,
+          "cy": 0
+        }
+      },
+      "scale": {
+        "const": 1,
+        "cx": 0,
+        "cy": 0,
+        "proximity": 0,
+        "radius": 0.55,
+        "neutral": 1
+      },
+      "rotate": {
+        "const": 0,
+        "cx": 0,
+        "cy": 0
+      }
+    },
+    {
+      "id": "bunch-core-shadow",
+      "tag": "path",
+      "z": 0.13,
+      "parentZ": 0.1,
+      "depth": 0.03,
+      "pivot": [
+        512,
+        600
+      ],
+      "gain": 1,
+      "weld": 1,
+      "baseTransform": null,
+      "translate": {
+        "x": {
+          "const": 0,
+          "cx": -1.2,
+          "cy": 0
+        },
+        "y": {
+          "const": 0,
+          "cx": 0,
+          "cy": -1.2
+        }
+      },
+      "scale": {
+        "const": 1,
+        "cx": 0,
+        "cy": 0,
+        "proximity": 0.0036,
+        "radius": 0.55,
+        "neutral": 0.9878671723140003
+      },
+      "rotate": {
+        "const": 0,
+        "cx": 0.09,
+        "cy": -0.09
+      }
+    },
+    {
+      "id": "banana-a",
+      "tag": "g",
+      "z": 0.14,
+      "parentZ": 0.5,
+      "depth": -0.36,
+      "pivot": [
+        342,
+        275
+      ],
+      "gain": 1,
+      "weld": 1,
+      "baseTransform": null,
+      "translate": {
+        "x": {
+          "const": 0,
+          "cx": 14.399999999999999,
+          "cy": 0
+        },
+        "y": {
+          "const": 0,
+          "cx": 0,
+          "cy": 14.399999999999999
+        }
+      },
+      "scale": {
+        "const": 1,
+        "cx": 0,
+        "cy": 0,
+        "proximity": -0.043199999999999995,
+        "radius": 0.55,
+        "neutral": 0.8745060495580192
+      },
+      "rotate": {
+        "const": 0,
+        "cx": -1.08,
+        "cy": 1.08
+      }
+    },
+    {
+      "id": "banana-a-surface",
+      "tag": "g",
+      "z": 0.14,
+      "parentZ": 0.14,
+      "depth": 0,
+      "pivot": [
+        600,
+        320
+      ],
+      "gain": 1,
+      "weld": 1,
+      "baseTransform": null,
+      "translate": {
+        "x": {
+          "const": 0,
+          "cx": 0,
+          "cy": 0
+        },
+        "y": {
+          "const": 0,
+          "cx": 0,
+          "cy": 0
+        }
+      },
+      "scale": {
+        "const": 1,
+        "cx": 0,
+        "cy": 0,
+        "proximity": 0,
+        "radius": 0.55,
+        "neutral": 0.9320987309772814
+      },
+      "rotate": {
+        "const": 0,
+        "cx": 0,
+        "cy": 0
+      }
+    },
+    {
+      "id": "banana-a-shadow",
+      "tag": "path",
+      "z": 0.17,
+      "parentZ": 0.14,
+      "depth": 0.03,
+      "pivot": [
+        600,
+        360
+      ],
+      "gain": 1,
+      "weld": 1,
+      "baseTransform": null,
+      "translate": {
+        "x": {
+          "const": 0,
+          "cx": -1.2,
+          "cy": 0
+        },
+        "y": {
+          "const": 0,
+          "cx": 0,
+          "cy": -1.2
+        }
+      },
+      "scale": {
+        "const": 1,
+        "cx": 0,
+        "cy": 0,
+        "proximity": 0.0036,
+        "radius": 0.55,
+        "neutral": 0.9525369730460108
+      },
+      "rotate": {
+        "const": 0,
+        "cx": 0.09,
+        "cy": -0.09
+      }
+    },
+    {
+      "id": "banana-a-highlight",
+      "tag": "path",
+      "z": 0.22,
+      "parentZ": 0.14,
+      "depth": 0.07999999999999999,
+      "pivot": [
+        600,
+        300
+      ],
+      "gain": 1,
+      "weld": 1,
+      "baseTransform": null,
+      "translate": {
+        "x": {
+          "const": 0,
+          "cx": -3.1999999999999993,
+          "cy": 0
+        },
+        "y": {
+          "const": 0,
+          "cx": 0,
+          "cy": -3.1999999999999993
+        }
+      },
+      "scale": {
+        "const": 1,
+        "cx": 0,
+        "cy": 0,
+        "proximity": 0.009599999999999997,
+        "radius": 0.55,
+        "neutral": 0.9203021761321938
+      },
+      "rotate": {
+        "const": 0,
+        "cx": 0.23999999999999996,
+        "cy": -0.23999999999999996
+      }
+    },
+    {
+      "id": "banana-a-neck-wrap",
+      "tag": "g",
+      "z": 0.24,
+      "parentZ": 0.14,
+      "depth": 0.09999999999999998,
+      "pivot": [
+        360,
+        290
+      ],
+      "gain": 1,
+      "weld": 1,
+      "baseTransform": null,
+      "translate": {
+        "x": {
+          "const": 0,
+          "cx": -3.999999999999999,
+          "cy": 0
+        },
+        "y": {
+          "const": 0,
+          "cx": 0,
+          "cy": -3.999999999999999
+        }
+      },
+      "scale": {
+        "const": 1,
+        "cx": 0,
+        "cy": 0,
+        "proximity": 0.011999999999999997,
+        "radius": 0.55,
+        "neutral": 0.8921627232443813
+      },
+      "rotate": {
+        "const": 0,
+        "cx": 0.29999999999999993,
+        "cy": -0.29999999999999993
+      }
+    },
+    {
+      "id": "banana-a-tip-wrap",
+      "tag": "g",
+      "z": 0.26,
+      "parentZ": 0.14,
+      "depth": 0.12,
+      "pivot": [
+        858,
+        392
+      ],
+      "gain": 1,
+      "weld": 1,
+      "baseTransform": null,
+      "translate": {
+        "x": {
+          "const": 0,
+          "cx": -4.8,
+          "cy": 0
+        },
+        "y": {
+          "const": 0,
+          "cx": 0,
+          "cy": -4.8
+        }
+      },
+      "scale": {
+        "const": 1,
+        "cx": 0,
+        "cy": 0,
+        "proximity": 0.0144,
+        "radius": 0.55,
+        "neutral": 0.8094422150404857
+      },
+      "rotate": {
+        "const": 0,
+        "cx": 0.36,
+        "cy": -0.36
+      }
+    },
+    {
+      "id": "banana-b",
+      "tag": "g",
+      "z": 0.2,
+      "parentZ": 0.5,
+      "depth": -0.3,
+      "pivot": [
+        334,
+        282
+      ],
+      "gain": 1,
+      "weld": 1,
+      "baseTransform": null,
+      "translate": {
+        "x": {
+          "const": 0,
+          "cx": 12,
+          "cy": 0
+        },
+        "y": {
+          "const": 0,
+          "cx": 0,
+          "cy": 12
+        }
+      },
+      "scale": {
+        "const": 1,
+        "cx": 0,
+        "cy": 0,
+        "proximity": -0.036,
+        "radius": 0.55,
+        "neutral": 0.8751748788603345
+      },
+      "rotate": {
+        "const": 0,
+        "cx": -0.8999999999999999,
+        "cy": 0.8999999999999999
+      }
+    },
+    {
+      "id": "banana-b-surface",
+      "tag": "g",
+      "z": 0.2,
+      "parentZ": 0.2,
+      "depth": 0,
+      "pivot": [
+        580,
+        360
+      ],
+      "gain": 1,
+      "weld": 1,
+      "baseTransform": null,
+      "translate": {
+        "x": {
+          "const": 0,
+          "cx": 0,
+          "cy": 0
+        },
+        "y": {
+          "const": 0,
+          "cx": 0,
+          "cy": 0
+        }
+      },
+      "scale": {
+        "const": 1,
+        "cx": 0,
+        "cy": 0,
+        "proximity": 0,
+        "radius": 0.55,
+        "neutral": 0.957233205034146
+      },
+      "rotate": {
+        "const": 0,
+        "cx": 0,
+        "cy": 0
+      }
+    },
+    {
+      "id": "banana-b-shadow",
+      "tag": "path",
+      "z": 0.23,
+      "parentZ": 0.2,
+      "depth": 0.03,
+      "pivot": [
+        580,
+        410
+      ],
+      "gain": 1,
+      "weld": 1,
+      "baseTransform": null,
+      "translate": {
+        "x": {
+          "const": 0,
+          "cx": -1.2,
+          "cy": 0
+        },
+        "y": {
+          "const": 0,
+          "cx": 0,
+          "cy": -1.2
+        }
+      },
+      "scale": {
+        "const": 1,
+        "cx": 0,
+        "cy": 0,
+        "proximity": 0.0036,
+        "radius": 0.55,
+        "neutral": 0.976589426017704
+      },
+      "rotate": {
+        "const": 0,
+        "cx": 0.09,
+        "cy": -0.09
+      }
+    },
+    {
+      "id": "banana-b-highlight",
+      "tag": "path",
+      "z": 0.28,
+      "parentZ": 0.2,
+      "depth": 0.08000000000000002,
+      "pivot": [
+        580,
+        340
+      ],
+      "gain": 1,
+      "weld": 1,
+      "baseTransform": null,
+      "translate": {
+        "x": {
+          "const": 0,
+          "cx": -3.2000000000000006,
+          "cy": 0
+        },
+        "y": {
+          "const": 0,
+          "cx": 0,
+          "cy": -3.2000000000000006
+        }
+      },
+      "scale": {
+        "const": 1,
+        "cx": 0,
+        "cy": 0,
+        "proximity": 0.009600000000000001,
+        "radius": 0.55,
+        "neutral": 0.9475052557576673
+      },
+      "rotate": {
+        "const": 0,
+        "cx": 0.24000000000000005,
+        "cy": -0.24000000000000005
+      }
+    },
+    {
+      "id": "banana-b-neck-wrap",
+      "tag": "g",
+      "z": 0.3,
+      "parentZ": 0.2,
+      "depth": 0.09999999999999998,
+      "pivot": [
+        356,
+        300
+      ],
+      "gain": 1,
+      "weld": 1,
+      "baseTransform": null,
+      "translate": {
+        "x": {
+          "const": 0,
+          "cx": -3.999999999999999,
+          "cy": 0
+        },
+        "y": {
+          "const": 0,
+          "cx": 0,
+          "cy": -3.999999999999999
+        }
+      },
+      "scale": {
+        "const": 1,
+        "cx": 0,
+        "cy": 0,
+        "proximity": 0.011999999999999997,
+        "radius": 0.55,
+        "neutral": 0.8965443368758647
+      },
+      "rotate": {
+        "const": 0,
+        "cx": 0.29999999999999993,
+        "cy": -0.29999999999999993
+      }
+    },
+    {
+      "id": "banana-b-tip-wrap",
+      "tag": "g",
+      "z": 0.32,
+      "parentZ": 0.2,
+      "depth": 0.12,
+      "pivot": [
+        790,
+        452
+      ],
+      "gain": 1,
+      "weld": 1,
+      "baseTransform": null,
+      "translate": {
+        "x": {
+          "const": 0,
+          "cx": -4.8,
+          "cy": 0
+        },
+        "y": {
+          "const": 0,
+          "cx": 0,
+          "cy": -4.8
+        }
+      },
+      "scale": {
+        "const": 1,
+        "cx": 0,
+        "cy": 0,
+        "proximity": 0.0144,
+        "radius": 0.55,
+        "neutral": 0.8802941529410145
+      },
+      "rotate": {
+        "const": 0,
+        "cx": 0.36,
+        "cy": -0.36
+      }
+    },
+    {
+      "id": "banana-c",
+      "tag": "g",
+      "z": 0.26,
+      "parentZ": 0.5,
+      "depth": -0.24,
+      "pivot": [
+        332,
+        292
+      ],
+      "gain": 1,
+      "weld": 1,
+      "baseTransform": null,
+      "translate": {
+        "x": {
+          "const": 0,
+          "cx": 9.6,
+          "cy": 0
+        },
+        "y": {
+          "const": 0,
+          "cx": 0,
+          "cy": 9.6
+        }
+      },
+      "scale": {
+        "const": 1,
+        "cx": 0,
+        "cy": 0,
+        "proximity": -0.0288,
+        "radius": 0.55,
+        "neutral": 0.8804107212693183
+      },
+      "rotate": {
+        "const": 0,
+        "cx": -0.72,
+        "cy": 0.72
+      }
+    },
+    {
+      "id": "banana-c-surface",
+      "tag": "g",
+      "z": 0.26,
+      "parentZ": 0.26,
+      "depth": 0,
+      "pivot": [
+        540,
+        400
+      ],
+      "gain": 1,
+      "weld": 1,
+      "baseTransform": null,
+      "translate": {
+        "x": {
+          "const": 0,
+          "cx": 0,
+          "cy": 0
+        },
+        "y": {
+          "const": 0,
+          "cx": 0,
+          "cy": 0
+        }
+      },
+      "scale": {
+        "const": 1,
+        "cx": 0,
+        "cy": 0,
+        "proximity": 0,
+        "radius": 0.55,
+        "neutral": 0.9792099472359257
+      },
+      "rotate": {
+        "const": 0,
+        "cx": 0,
+        "cy": 0
+      }
+    },
+    {
+      "id": "banana-c-shadow",
+      "tag": "path",
+      "z": 0.29,
+      "parentZ": 0.26,
+      "depth": 0.02999999999999997,
+      "pivot": [
+        540,
+        450
+      ],
+      "gain": 1,
+      "weld": 1,
+      "baseTransform": null,
+      "translate": {
+        "x": {
+          "const": 0,
+          "cx": -1.1999999999999988,
+          "cy": 0
+        },
+        "y": {
+          "const": 0,
+          "cx": 0,
+          "cy": -1.1999999999999988
+        }
+      },
+      "scale": {
+        "const": 1,
+        "cx": 0,
+        "cy": 0,
+        "proximity": 0.0035999999999999964,
+        "radius": 0.55,
+        "neutral": 0.9927313310457576
+      },
+      "rotate": {
+        "const": 0,
+        "cx": 0.08999999999999991,
+        "cy": -0.08999999999999991
+      }
+    },
+    {
+      "id": "banana-c-highlight",
+      "tag": "path",
+      "z": 0.34,
+      "parentZ": 0.26,
+      "depth": 0.08000000000000002,
+      "pivot": [
+        540,
+        380
+      ],
+      "gain": 1,
+      "weld": 1,
+      "baseTransform": null,
+      "translate": {
+        "x": {
+          "const": 0,
+          "cx": -3.2000000000000006,
+          "cy": 0
+        },
+        "y": {
+          "const": 0,
+          "cx": 0,
+          "cy": -3.2000000000000006
+        }
+      },
+      "scale": {
+        "const": 1,
+        "cx": 0,
+        "cy": 0,
+        "proximity": 0.009600000000000001,
+        "radius": 0.55,
+        "neutral": 0.9717063238596045
+      },
+      "rotate": {
+        "const": 0,
+        "cx": 0.24000000000000005,
+        "cy": -0.24000000000000005
+      }
+    },
+    {
+      "id": "banana-c-neck-wrap",
+      "tag": "g",
+      "z": 0.36,
+      "parentZ": 0.26,
+      "depth": 0.09999999999999998,
+      "pivot": [
+        354,
+        310
+      ],
+      "gain": 1,
+      "weld": 1,
+      "baseTransform": null,
+      "translate": {
+        "x": {
+          "const": 0,
+          "cx": -3.999999999999999,
+          "cy": 0
+        },
+        "y": {
+          "const": 0,
+          "cx": 0,
+          "cy": -3.999999999999999
+        }
+      },
+      "scale": {
+        "const": 1,
+        "cx": 0,
+        "cy": 0,
+        "proximity": 0.011999999999999997,
+        "radius": 0.55,
+        "neutral": 0.9015214061012592
+      },
+      "rotate": {
+        "const": 0,
+        "cx": 0.29999999999999993,
+        "cy": -0.29999999999999993
+      }
+    },
+    {
+      "id": "banana-c-tip-wrap",
+      "tag": "g",
+      "z": 0.38,
+      "parentZ": 0.26,
+      "depth": 0.12,
+      "pivot": [
+        730,
+        518
+      ],
+      "gain": 1,
+      "weld": 1,
+      "baseTransform": null,
+      "translate": {
+        "x": {
+          "const": 0,
+          "cx": -4.8,
+          "cy": 0
+        },
+        "y": {
+          "const": 0,
+          "cx": 0,
+          "cy": -4.8
+        }
+      },
+      "scale": {
+        "const": 1,
+        "cx": 0,
+        "cy": 0,
+        "proximity": 0.0144,
+        "radius": 0.55,
+        "neutral": 0.927771471652493
+      },
+      "rotate": {
+        "const": 0,
+        "cx": 0.36,
+        "cy": -0.36
+      }
+    },
+    {
+      "id": "banana-d",
+      "tag": "g",
+      "z": 0.32,
+      "parentZ": 0.5,
+      "depth": -0.18,
+      "pivot": [
+        338,
+        288
+      ],
+      "gain": 1,
+      "weld": 1,
+      "baseTransform": null,
+      "translate": {
+        "x": {
+          "const": 0,
+          "cx": 7.199999999999999,
+          "cy": 0
+        },
+        "y": {
+          "const": 0,
+          "cx": 0,
+          "cy": 7.199999999999999
+        }
+      },
+      "scale": {
+        "const": 1,
+        "cx": 0,
+        "cy": 0,
+        "proximity": -0.021599999999999998,
+        "radius": 0.55,
+        "neutral": 0.8808938116637801
+      },
+      "rotate": {
+        "const": 0,
+        "cx": -0.54,
+        "cy": 0.54
+      }
+    },
+    {
+      "id": "banana-d-surface",
+      "tag": "g",
+      "z": 0.32,
+      "parentZ": 0.32,
+      "depth": 0,
+      "pivot": [
+        450,
+        500
+      ],
+      "gain": 1,
+      "weld": 1,
+      "baseTransform": null,
+      "translate": {
+        "x": {
+          "const": 0,
+          "cx": 0,
+          "cy": 0
+        },
+        "y": {
+          "const": 0,
+          "cx": 0,
+          "cy": 0
+        }
+      },
+      "scale": {
+        "const": 1,
+        "cx": 0,
+        "cy": 0,
+        "proximity": 0,
+        "radius": 0.55,
+        "neutral": 0.993733348994916
+      },
+      "rotate": {
+        "const": 0,
+        "cx": 0,
+        "cy": 0
+      }
+    },
+    {
+      "id": "banana-d-shadow",
+      "tag": "path",
+      "z": 0.35,
+      "parentZ": 0.32,
+      "depth": 0.02999999999999997,
+      "pivot": [
+        520,
+        660
+      ],
+      "gain": 1,
+      "weld": 1,
+      "baseTransform": null,
+      "translate": {
+        "x": {
+          "const": 0,
+          "cx": -1.1999999999999988,
+          "cy": 0
+        },
+        "y": {
+          "const": 0,
+          "cx": 0,
+          "cy": -1.1999999999999988
+        }
+      },
+      "scale": {
+        "const": 1,
+        "cx": 0,
+        "cy": 0,
+        "proximity": 0.0035999999999999964,
+        "radius": 0.55,
+        "neutral": 0.9659640857501307
+      },
+      "rotate": {
+        "const": 0,
+        "cx": 0.08999999999999991,
+        "cy": -0.08999999999999991
+      }
+    },
+    {
+      "id": "banana-d-highlight",
+      "tag": "path",
+      "z": 0.4,
+      "parentZ": 0.32,
+      "depth": 0.08000000000000002,
+      "pivot": [
+        380,
+        480
+      ],
+      "gain": 1,
+      "weld": 1,
+      "baseTransform": null,
+      "translate": {
+        "x": {
+          "const": 0,
+          "cx": -3.2000000000000006,
+          "cy": 0
+        },
+        "y": {
+          "const": 0,
+          "cx": 0,
+          "cy": -3.2000000000000006
+        }
+      },
+      "scale": {
+        "const": 1,
+        "cx": 0,
+        "cy": 0,
+        "proximity": 0.009600000000000001,
+        "radius": 0.55,
+        "neutral": 0.9713387802848593
+      },
+      "rotate": {
+        "const": 0,
+        "cx": 0.24000000000000005,
+        "cy": -0.24000000000000005
+      }
+    },
+    {
+      "id": "banana-d-neck-wrap",
+      "tag": "g",
+      "z": 0.42,
+      "parentZ": 0.32,
+      "depth": 0.09999999999999998,
+      "pivot": [
+        368,
+        310
+      ],
+      "gain": 1,
+      "weld": 1,
+      "baseTransform": null,
+      "translate": {
+        "x": {
+          "const": 0,
+          "cx": -3.999999999999999,
+          "cy": 0
+        },
+        "y": {
+          "const": 0,
+          "cx": 0,
+          "cy": -3.999999999999999
+        }
+      },
+      "scale": {
+        "const": 1,
+        "cx": 0,
+        "cy": 0,
+        "proximity": 0.011999999999999997,
+        "radius": 0.55,
+        "neutral": 0.90754982962567
+      },
+      "rotate": {
+        "const": 0,
+        "cx": 0.29999999999999993,
+        "cy": -0.29999999999999993
+      }
+    },
+    {
+      "id": "banana-d-tip-wrap",
+      "tag": "g",
+      "z": 0.44,
+      "parentZ": 0.32,
+      "depth": 0.12,
+      "pivot": [
+        616,
+        638
+      ],
+      "gain": 1,
+      "weld": 1,
+      "baseTransform": null,
+      "translate": {
+        "x": {
+          "const": 0,
+          "cx": -4.8,
+          "cy": 0
+        },
+        "y": {
+          "const": 0,
+          "cx": 0,
+          "cy": -4.8
+        }
+      },
+      "scale": {
+        "const": 1,
+        "cx": 0,
+        "cy": 0,
+        "proximity": 0.0144,
+        "radius": 0.55,
+        "neutral": 0.958797709788869
+      },
+      "rotate": {
+        "const": 0,
+        "cx": 0.36,
+        "cy": -0.36
+      }
+    },
+    {
+      "id": "banana-e",
+      "tag": "g",
+      "z": 0.38,
+      "parentZ": 0.5,
+      "depth": -0.12,
+      "pivot": [
+        330,
+        282
+      ],
+      "gain": 1,
+      "weld": 1,
+      "baseTransform": null,
+      "translate": {
+        "x": {
+          "const": 0,
+          "cx": 4.8,
+          "cy": 0
+        },
+        "y": {
+          "const": 0,
+          "cx": 0,
+          "cy": 4.8
+        }
+      },
+      "scale": {
+        "const": 1,
+        "cx": 0,
+        "cy": 0,
+        "proximity": -0.0144,
+        "radius": 0.55,
+        "neutral": 0.8731905701560065
+      },
+      "rotate": {
+        "const": 0,
+        "cx": -0.36,
+        "cy": 0.36
+      },
+      "idle": {
+        "preset": "sway",
+        "period": 4.5,
+        "delay": 0,
+        "amplitude": 1.5,
+        "rotate": {
+          "wave": "sine",
+          "amplitude": 1.5,
+          "period": 4.5,
+          "phase": 0.3422002422157675
+        }
+      }
+    },
+    {
+      "id": "banana-e-surface",
+      "tag": "g",
+      "z": 0.38,
+      "parentZ": 0.38,
+      "depth": 0,
+      "pivot": [
+        380,
+        520
+      ],
+      "gain": 1,
+      "weld": 1,
+      "baseTransform": null,
+      "translate": {
+        "x": {
+          "const": 0,
+          "cx": 0,
+          "cy": 0
+        },
+        "y": {
+          "const": 0,
+          "cx": 0,
+          "cy": 0
+        }
+      },
+      "scale": {
+        "const": 1,
+        "cx": 0,
+        "cy": 0,
+        "proximity": 0,
+        "radius": 0.55,
+        "neutral": 0.9728097892402704
+      },
+      "rotate": {
+        "const": 0,
+        "cx": 0,
+        "cy": 0
+      }
+    },
+    {
+      "id": "banana-e-shadow",
+      "tag": "path",
+      "z": 0.41,
+      "parentZ": 0.38,
+      "depth": 0.02999999999999997,
+      "pivot": [
+        360,
+        600
+      ],
+      "gain": 1,
+      "weld": 1,
+      "baseTransform": null,
+      "translate": {
+        "x": {
+          "const": 0,
+          "cx": -1.1999999999999988,
+          "cy": 0
+        },
+        "y": {
+          "const": 0,
+          "cx": 0,
+          "cy": -1.1999999999999988
+        }
+      },
+      "scale": {
+        "const": 1,
+        "cx": 0,
+        "cy": 0,
+        "proximity": 0.0035999999999999964,
+        "radius": 0.55,
+        "neutral": 0.9525369730460108
+      },
+      "rotate": {
+        "const": 0,
+        "cx": 0.08999999999999991,
+        "cy": -0.08999999999999991
+      }
+    },
+    {
+      "id": "banana-e-highlight",
+      "tag": "path",
+      "z": 0.46,
+      "parentZ": 0.38,
+      "depth": 0.08000000000000002,
+      "pivot": [
+        290,
+        480
+      ],
+      "gain": 1,
+      "weld": 1,
+      "baseTransform": null,
+      "translate": {
+        "x": {
+          "const": 0,
+          "cx": -3.2000000000000006,
+          "cy": 0
+        },
+        "y": {
+          "const": 0,
+          "cx": 0,
+          "cy": -3.2000000000000006
+        }
+      },
+      "scale": {
+        "const": 1,
+        "cx": 0,
+        "cy": 0,
+        "proximity": 0.009600000000000001,
+        "radius": 0.55,
+        "neutral": 0.9237613073122595
+      },
+      "rotate": {
+        "const": 0,
+        "cx": 0.24000000000000005,
+        "cy": -0.24000000000000005
+      }
+    },
+    {
+      "id": "banana-e-neck-wrap",
+      "tag": "g",
+      "z": 0.48,
+      "parentZ": 0.38,
+      "depth": 0.09999999999999998,
+      "pivot": [
+        350,
+        300
+      ],
+      "gain": 1,
+      "weld": 1,
+      "baseTransform": null,
+      "translate": {
+        "x": {
+          "const": 0,
+          "cx": -3.999999999999999,
+          "cy": 0
+        },
+        "y": {
+          "const": 0,
+          "cx": 0,
+          "cy": -3.999999999999999
+        }
+      },
+      "scale": {
+        "const": 1,
+        "cx": 0,
+        "cy": 0,
+        "proximity": 0.011999999999999997,
+        "radius": 0.55,
+        "neutral": 0.8938519223733506
+      },
+      "rotate": {
+        "const": 0,
+        "cx": 0.29999999999999993,
+        "cy": -0.29999999999999993
+      }
+    },
+    {
+      "id": "banana-e-tip-wrap",
+      "tag": "g",
+      "z": 0.5,
+      "parentZ": 0.38,
+      "depth": 0.12,
+      "pivot": [
+        528,
+        652
+      ],
+      "gain": 1,
+      "weld": 1,
+      "baseTransform": null,
+      "translate": {
+        "x": {
+          "const": 0,
+          "cx": -4.8,
+          "cy": 0
+        },
+        "y": {
+          "const": 0,
+          "cx": 0,
+          "cy": -4.8
+        }
+      },
+      "scale": {
+        "const": 1,
+        "cx": 0,
+        "cy": 0,
+        "proximity": 0.0144,
+        "radius": 0.55,
+        "neutral": 0.9691853231350518
+      },
+      "rotate": {
+        "const": 0,
+        "cx": 0.36,
+        "cy": -0.36
+      }
+    },
+    {
+      "id": "stem-crown",
+      "tag": "g",
+      "z": 0.52,
+      "parentZ": 0.5,
+      "depth": 0.020000000000000018,
+      "pivot": [
+        305,
+        300
+      ],
+      "gain": 1,
+      "weld": 1,
+      "baseTransform": null,
+      "translate": {
+        "x": {
+          "const": 0,
+          "cx": -0.8000000000000007,
+          "cy": 0
+        },
+        "y": {
+          "const": 0,
+          "cx": 0,
+          "cy": -0.8000000000000007
+        }
+      },
+      "scale": {
+        "const": 1,
+        "cx": 0,
+        "cy": 0,
+        "proximity": 0.002400000000000002,
+        "radius": 0.55,
+        "neutral": 0.8707590593445799
+      },
+      "rotate": {
+        "const": 0,
+        "cx": 0.06000000000000005,
+        "cy": -0.06000000000000005
+      },
+      "idle": {
+        "preset": "sway",
+        "period": 3.5,
+        "delay": 0,
+        "amplitude": 3,
+        "rotate": {
+          "wave": "sine",
+          "amplitude": 3,
+          "period": 3.5,
+          "phase": 0.7109456092584878
+        }
+      }
+    },
+    {
+      "id": "stem-crown-surface",
+      "tag": "g",
+      "z": 0.52,
+      "parentZ": 0.52,
+      "depth": 0,
+      "pivot": [
+        305,
+        250
+      ],
+      "gain": 1,
+      "weld": 1,
+      "baseTransform": null,
+      "translate": {
+        "x": {
+          "const": 0,
+          "cx": 0,
+          "cy": 0
+        },
+        "y": {
+          "const": 0,
+          "cx": 0,
+          "cy": 0
+        }
+      },
+      "scale": {
+        "const": 1,
+        "cx": 0,
+        "cy": 0,
+        "proximity": 0,
+        "radius": 0.55,
+        "neutral": 0.838828689271453
+      },
+      "rotate": {
+        "const": 0,
+        "cx": 0,
+        "cy": 0
+      }
+    },
+    {
+      "id": "stem-crown-shadow",
+      "tag": "path",
+      "z": 0.55,
+      "parentZ": 0.52,
+      "depth": 0.030000000000000027,
+      "pivot": [
+        340,
+        250
+      ],
+      "gain": 1,
+      "weld": 1,
+      "baseTransform": null,
+      "translate": {
+        "x": {
+          "const": 0,
+          "cx": -1.200000000000001,
+          "cy": 0
+        },
+        "y": {
+          "const": 0,
+          "cx": 0,
+          "cy": -1.200000000000001
+        }
+      },
+      "scale": {
+        "const": 1,
+        "cx": 0,
+        "cy": 0,
+        "proximity": 0.003600000000000003,
+        "radius": 0.55,
+        "neutral": 0.8565531765470167
+      },
+      "rotate": {
+        "const": 0,
+        "cx": 0.09000000000000008,
+        "cy": -0.09000000000000008
+      }
+    },
+    {
+      "id": "stem-crown-highlight",
+      "tag": "path",
+      "z": 0.58,
+      "parentZ": 0.52,
+      "depth": 0.05999999999999994,
+      "pivot": [
+        280,
+        240
+      ],
+      "gain": 1,
+      "weld": 1,
+      "baseTransform": null,
+      "translate": {
+        "x": {
+          "const": 0,
+          "cx": -2.3999999999999977,
+          "cy": 0
+        },
+        "y": {
+          "const": 0,
+          "cx": 0,
+          "cy": -2.3999999999999977
+        }
+      },
+      "scale": {
+        "const": 1,
+        "cx": 0,
+        "cy": 0,
+        "proximity": 0.007199999999999993,
+        "radius": 0.55,
+        "neutral": 0.8175309988043634
+      },
+      "rotate": {
+        "const": 0,
+        "cx": 0.17999999999999983,
+        "cy": -0.17999999999999983
+      }
+    },
+    {
+      "id": "stem-dried-wrap",
+      "tag": "g",
+      "z": 0.6,
+      "parentZ": 0.52,
+      "depth": 0.07999999999999996,
+      "pivot": [
+        282,
+        222
+      ],
+      "gain": 1,
+      "weld": 1,
+      "baseTransform": null,
+      "translate": {
+        "x": {
+          "const": 0,
+          "cx": -3.1999999999999984,
+          "cy": 0
+        },
+        "y": {
+          "const": 0,
+          "cx": 0,
+          "cy": -3.1999999999999984
+        }
+      },
+      "scale": {
+        "const": 1,
+        "cx": 0,
+        "cy": 0,
+        "proximity": 0.009599999999999996,
+        "radius": 0.55,
+        "neutral": 0.8057707532118459
+      },
+      "rotate": {
+        "const": 0,
+        "cx": 0.23999999999999988,
+        "cy": -0.23999999999999988
+      }
+    },
+    {
+      "id": "stem-dried-dark-wrap",
+      "tag": "g",
+      "z": 0.62,
+      "parentZ": 0.52,
+      "depth": 0.09999999999999998,
+      "pivot": [
+        282,
+        224
+      ],
+      "gain": 1,
+      "weld": 1,
+      "baseTransform": null,
+      "translate": {
+        "x": {
+          "const": 0,
+          "cx": -3.999999999999999,
+          "cy": 0
+        },
+        "y": {
+          "const": 0,
+          "cx": 0,
+          "cy": -3.999999999999999
+        }
+      },
+      "scale": {
+        "const": 1,
+        "cx": 0,
+        "cy": 0,
+        "proximity": 0.011999999999999997,
+        "radius": 0.55,
+        "neutral": 0.8072403892657201
+      },
+      "rotate": {
+        "const": 0,
+        "cx": 0.29999999999999993,
+        "cy": -0.29999999999999993
+      }
+    }
+  ],
+  "anchors": [
+    {
+      "id": "banana-a-joint",
+      "host": "bunch-core",
+      "point": [
+        342,
+        275
+      ],
+      "members": [
+        {
+          "node": "banana-a",
+          "frame": "shared"
+        }
+      ]
+    },
+    {
+      "id": "banana-b-joint",
+      "host": "bunch-core",
+      "point": [
+        334,
+        282
+      ],
+      "members": [
+        {
+          "node": "banana-b",
+          "frame": "shared"
+        }
+      ]
+    },
+    {
+      "id": "banana-c-joint",
+      "host": "bunch-core",
+      "point": [
+        332,
+        292
+      ],
+      "members": [
+        {
+          "node": "banana-c",
+          "frame": "shared"
+        }
+      ]
+    },
+    {
+      "id": "banana-d-joint",
+      "host": "bunch-core",
+      "point": [
+        338,
+        288
+      ],
+      "members": [
+        {
+          "node": "banana-d",
+          "frame": "shared"
+        }
+      ]
+    },
+    {
+      "id": "banana-e-joint",
+      "host": "bunch-core",
+      "point": [
+        330,
+        282
+      ],
+      "members": [
+        {
+          "node": "banana-e",
+          "frame": "shared"
+        }
+      ]
+    },
+    {
+      "id": "stem-joint",
+      "host": "bunch-core",
+      "point": [
+        305,
+        300
+      ],
+      "members": [
+        {
+          "node": "stem-crown",
+          "frame": "shared"
+        }
+      ]
+    }
+  ],
+  "synthetic": false,
+  "warnings": [
+    "clamped data-anim-amplitude on <g id=\"subject\"> 2 to [0, 0.05]"
+  ]
+}

@@ -1,0 +1,153 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="100%" height="100%">
+  <defs>
+    <clipPath id="clip-torso">
+      <path d="M 300,350 C 296,315 330,294 375,288 L 465,280 C 512,278 534,300 540,338 C 556,412 572,482 588,548 L 448,578 C 436,516 412,448 366,400 C 336,370 304,368 300,350 Z"/>
+    </clipPath>
+    <clipPath id="clip-head">
+      <path d="M 400,138 C 442,136 476,158 488,192 C 494,212 496,232 494,250 C 502,250 514,256 516,268 C 518,280 508,290 496,290 C 492,302 482,314 466,320 C 448,332 428,340 418,344 C 420,356 418,366 410,368 C 400,370 392,362 392,350 C 392,344 390,340 386,338 C 370,330 356,318 348,304 C 340,290 336,272 336,254 C 330,258 322,262 318,258 C 312,252 314,242 322,236 C 328,232 334,232 338,236 C 336,214 338,190 348,172 C 360,150 378,140 400,138 Z"/>
+    </clipPath>
+    <clipPath id="clip-hair">
+      <path d="M 330,232 C 316,196 322,158 348,136 C 356,120 368,112 382,110 C 388,100 400,96 410,100 C 418,92 432,92 440,100 C 452,96 466,102 472,112 C 488,116 500,132 506,152 C 514,174 514,198 508,220 C 504,234 498,242 492,246 C 488,226 478,210 462,200 C 436,186 400,186 374,198 C 356,206 344,218 338,236 C 336,236 332,234 330,232 Z"/>
+    </clipPath>
+    <clipPath id="clip-right-arm">
+      <path d="M 475,296 C 540,292 600,296 660,303 C 715,310 770,320 806,330 C 826,336 842,344 852,354 C 860,362 858,372 848,376 C 836,380 820,376 806,368 C 790,360 760,356 720,352 C 660,346 580,346 475,358 Z"/>
+    </clipPath>
+    <clipPath id="clip-left-arm">
+      <path d="M 268,318 C 264,370 278,420 300,460 C 322,500 348,538 370,566 C 380,580 390,592 398,602 C 408,616 426,618 434,606 C 442,594 436,578 424,566 C 408,550 394,532 384,514 C 366,484 348,452 338,420 C 330,392 330,360 334,330 Z"/>
+    </clipPath>
+    <clipPath id="clip-shorts">
+      <path d="M 445,570 L 590,545 C 608,582 620,618 626,650 C 628,664 620,674 606,674 C 586,674 566,658 552,636 L 528,594 L 504,638 C 490,660 468,674 448,670 C 434,666 430,654 434,640 C 438,616 442,592 445,570 Z"/>
+    </clipPath>
+    <clipPath id="clip-left-leg">
+      <path d="M 420,630 C 415,678 442,720 478,746 C 514,772 548,798 572,822 L 596,846 C 606,860 622,864 632,856 C 642,848 642,834 634,820 C 616,788 586,758 556,734 C 522,706 494,676 486,638 Z"/>
+    </clipPath>
+    <clipPath id="clip-right-leg">
+      <path d="M 550,610 C 545,650 570,685 605,710 C 640,735 670,765 690,795 L 710,820 C 720,834 736,838 746,830 C 756,822 756,808 748,796 C 730,766 700,738 670,715 C 635,688 610,660 605,625 Z"/>
+    </clipPath>
+    <clipPath id="clip-left-eye">
+      <path d="M 358,238 C 362,226 372,220 384,223 C 392,225 396,232 395,240 C 393,249 384,254 374,252 C 364,250 357,245 358,238 Z"/>
+    </clipPath>
+    <clipPath id="clip-right-eye">
+      <path d="M 420,232 C 426,216 444,208 462,212 C 476,215 482,225 480,236 C 477,248 462,256 446,254 C 430,252 421,244 420,232 Z"/>
+    </clipPath>
+  </defs>
+
+  <g id="subject" data-z="0.5" data-pivot="512,512">
+
+    
+    <g id="right-arm" data-z="0.28" data-pivot="505,330" data-anchor="shoulder-right">
+      <g id="right-arm-surface" clip-path="url(#clip-right-arm)">
+        <path id="right-arm-base" data-z="0.28" data-pivot="680,330" fill="#A9714B" stroke="none" d="M 475,296 C 540,292 600,296 660,303 C 715,310 770,320 806,330 C 826,336 842,344 852,354 C 860,362 858,372 848,376 C 836,380 820,376 806,368 C 790,360 760,356 720,352 C 660,346 580,346 475,358 Z"/>
+        <path id="right-arm-shadow" data-z="0.30" data-pivot="680,352" fill="#8A5636" stroke="none" d="M 475,340 C 540,336 600,338 660,344 C 715,350 770,358 806,366 L 806,372 C 770,364 715,356 660,350 C 600,344 540,344 475,348 Z"/>
+        <path id="right-arm-highlight" data-z="0.32" data-pivot="680,310" fill="#C68F63" stroke="none" d="M 475,300 C 540,296 600,300 660,307 C 715,314 770,324 806,334 L 806,340 C 770,330 715,320 660,313 C 600,306 540,302 475,306 Z"/>
+      </g>
+      <path id="right-arm-sleeve" data-z="0.34" data-pivot="570,325" fill="#1A1A1E" stroke="none" d="M 475,296 C 520,292 570,294 620,300 L 622,352 C 572,348 522,348 475,358 Z"/>
+    </g>
+
+    
+    <g id="torso" data-z="0.35" data-pivot="440,430" data-sockets="neck:405,305 shoulder-left:300,350 shoulder-right:505,330 waist:500,555" data-anim="breathe" data-anim-period="4" data-anim-amplitude="0.02">
+      <g id="torso-surface" clip-path="url(#clip-torso)">
+        <path id="torso-base" data-z="0.35" data-pivot="440,430" fill="#F2C300" stroke="none" d="M 300,350 C 296,315 330,294 375,288 L 465,280 C 512,278 534,300 540,338 C 556,412 572,482 588,548 L 448,578 C 436,516 412,448 366,400 C 336,370 304,368 300,350 Z"/>
+        <path id="torso-shadow" data-z="0.37" data-pivot="380,430" fill="#D9A800" stroke="none" d="M 300,350 C 296,315 330,294 375,288 L 400,286 C 380,340 370,420 400,500 L 448,578 C 436,516 412,448 366,400 C 336,370 304,368 300,350 Z"/>
+        <path id="torso-highlight" data-z="0.39" data-pivot="520,400" fill="#FFE066" stroke="none" d="M 465,280 C 512,278 534,300 540,338 C 556,412 572,482 588,548 L 560,552 C 545,480 530,410 515,340 C 510,310 490,292 465,280 Z"/>
+        <path id="torso-logo" data-z="0.42" data-pivot="470,350" fill="#1A1A1E" stroke="none" d="M 462,342 C 470,338 478,340 480,346 C 482,352 476,358 468,356 C 462,354 458,346 462,342 Z"/>
+      </g>
+      <path id="torso-collar" data-z="0.41" data-pivot="415,340" fill="#1A1A1E" stroke="none" d="M 368,338 C 386,326 440,322 462,332 C 458,348 440,358 416,358 C 392,358 374,350 368,338 Z"/>
+    </g>
+
+    
+    <g id="left-leg" data-z="0.36" data-pivot="455,645" data-anchor="hip-left">
+      <g id="left-leg-surface" clip-path="url(#clip-left-leg)">
+        <path id="left-leg-base" data-z="0.36" data-pivot="530,740" fill="#A9714B" stroke="none" d="M 420,630 C 415,678 442,720 478,746 C 514,772 548,798 572,822 L 596,846 C 606,860 622,864 632,856 C 642,848 642,834 634,820 C 616,788 586,758 556,734 C 522,706 494,676 486,638 Z"/>
+        <path id="left-leg-shadow" data-z="0.38" data-pivot="500,760" fill="#8A5636" stroke="none" d="M 420,630 C 415,678 442,720 478,746 C 514,772 548,798 572,822 L 596,846 C 606,860 622,864 632,856 L 620,850 C 610,840 600,826 590,812 C 566,784 534,758 500,734 C 466,710 440,676 436,636 Z"/>
+        <g id="left-leg-sock-group" data-z="0.40" data-pivot="560,790">
+          <path id="left-leg-sock" data-z="0.40" data-pivot="560,790" fill="#F2C300" stroke="none" d="M 466,726 C 498,750 532,778 556,804 L 578,830 C 588,844 604,850 616,844 C 628,838 630,824 622,810 C 604,778 574,748 544,724 C 522,706 496,694 476,690 Z"/>
+          <path id="left-leg-stripes" data-z="0.41" data-pivot="530,756" fill="#1A1A1E" stroke="none" d="M 478,722 L 496,704 L 512,720 L 494,738 Z M 514,758 L 532,740 L 548,756 L 530,774 Z M 550,794 L 568,776 L 584,792 L 566,810 Z"/>
+        </g>
+      </g>
+      <path id="left-leg-boot" data-z="0.43" data-pivot="640,860" fill="#2B5FD9" stroke="none" d="M 588,838 C 608,828 638,830 658,840 C 678,850 690,864 688,876 C 686,886 674,890 658,888 C 638,886 613,878 598,866 C 588,858 583,844 588,838 Z"/>
+    </g>
+
+    
+    <g id="right-leg" data-z="0.38" data-pivot="580,620" data-anchor="hip-right">
+      <g id="right-leg-surface" clip-path="url(#clip-right-leg)">
+        <path id="right-leg-base" data-z="0.38" data-pivot="650,720" fill="#A9714B" stroke="none" d="M 550,610 C 545,650 570,685 605,710 C 640,735 670,765 690,795 L 710,820 C 720,834 736,838 746,830 C 756,822 756,808 748,796 C 730,766 700,738 670,715 C 635,688 610,660 605,625 Z"/>
+        <path id="right-leg-shadow" data-z="0.40" data-pivot="620,730" fill="#8A5636" stroke="none" d="M 550,610 C 545,650 570,685 605,710 C 640,735 670,765 690,795 L 710,820 C 720,834 736,838 746,830 L 734,824 C 724,814 714,800 704,786 C 680,758 648,732 614,708 C 580,684 556,650 552,616 Z"/>
+        <g id="right-leg-sock-group" data-z="0.42" data-pivot="670,750">
+          <path id="right-leg-sock" data-z="0.42" data-pivot="670,750" fill="#F2C300" stroke="none" d="M 596,700 C 626,722 656,750 676,776 L 696,802 C 706,816 722,820 732,812 C 742,804 742,790 734,778 C 716,748 686,720 656,696 C 636,680 612,668 596,664 Z"/>
+          <path id="right-leg-stripes" data-z="0.43" data-pivot="660,724" fill="#1A1A1E" stroke="none" d="M 606,690 L 624,672 L 640,688 L 622,706 Z M 642,726 L 660,708 L 676,724 L 658,742 Z M 678,762 L 696,744 L 712,760 L 694,778 Z"/>
+        </g>
+      </g>
+      <path id="right-leg-boot" data-z="0.45" data-pivot="750,835" fill="#2B5FD9" stroke="none" d="M 700,812 C 720,804 750,806 770,816 C 790,826 800,840 798,852 C 796,862 784,866 768,864 C 748,862 723,854 708,842 C 698,834 694,820 700,812 Z"/>
+    </g>
+
+    
+    <g id="shorts" data-z="0.40" data-pivot="500,555" data-anchor="waist" data-sockets="hip-left:455,645 hip-right:580,620">
+      <g id="shorts-surface" clip-path="url(#clip-shorts)">
+        <path id="shorts-base" data-z="0.40" data-pivot="520,610" fill="#1A1A1E" stroke="none" d="M 445,570 L 590,545 C 608,582 620,618 626,650 C 628,664 620,674 606,674 C 586,674 566,658 552,636 L 528,594 L 504,638 C 490,660 468,674 448,670 C 434,666 430,654 434,640 C 438,616 442,592 445,570 Z"/>
+        <path id="shorts-shadow" data-z="0.42" data-pivot="460,620" fill="#0E0E12" stroke="none" d="M 445,570 C 442,592 438,616 434,640 C 430,654 434,666 448,670 L 460,668 C 448,660 446,646 450,630 C 454,606 458,584 460,568 Z"/>
+        <path id="shorts-highlight" data-z="0.44" data-pivot="600,600" fill="#33333A" stroke="none" d="M 590,545 C 608,582 620,618 626,650 C 628,664 620,674 606,674 L 596,672 C 604,660 602,646 598,628 C 592,600 586,572 582,548 Z"/>
+      </g>
+      <path id="shorts-waistband" data-z="0.45" data-pivot="515,558" fill="#33333A" stroke="none" d="M 445,570 L 590,545 L 592,556 L 447,581 Z"/>
+    </g>
+
+    
+    <g id="head" data-z="0.50" data-pivot="405,305" data-anchor="neck" data-sockets="head-top:405,160" data-anim="nod" data-anim-period="5" data-anim-amplitude="2">
+      <g id="head-surface" clip-path="url(#clip-head)">
+        <path id="head-base" data-z="0.50" data-pivot="410,240" fill="#A9714B" stroke="none" d="M 400,138 C 442,136 476,158 488,192 C 494,212 496,232 494,250 C 502,250 514,256 516,268 C 518,280 508,290 496,290 C 492,302 482,314 466,320 C 448,332 428,340 418,344 C 420,356 418,366 410,368 C 400,370 392,362 392,350 C 392,344 390,340 386,338 C 370,330 356,318 348,304 C 340,290 336,272 336,254 C 330,258 322,262 318,258 C 312,252 314,242 322,236 C 328,232 334,232 338,236 C 336,214 338,190 348,172 C 360,150 378,140 400,138 Z"/>
+        <path id="head-shadow" data-z="0.52" data-pivot="370,260" fill="#8A5636" stroke="none" d="M 336,254 C 330,258 322,262 318,258 C 312,252 314,242 322,236 C 328,232 334,232 338,236 C 336,214 338,190 348,172 C 360,150 378,140 400,138 L 400,200 C 372,210 356,240 356,275 C 356,305 372,330 400,340 L 400,368 C 392,362 392,350 386,338 C 370,330 356,318 348,304 C 340,290 336,272 336,254 Z"/>
+        <path id="head-highlight" data-z="0.54" data-pivot="450,200" fill="#C68F63" stroke="none" d="M 400,138 C 442,136 476,158 488,192 C 494,212 496,232 494,250 L 480,248 C 482,220 476,190 460,170 C 446,152 424,142 400,142 Z"/>
+      </g>
+
+      <path id="head-nostril" data-z="0.55" data-pivot="330,262" fill="#6B3F26" stroke="none" d="M 326,258 C 330,256 334,258 334,262 C 334,266 330,268 326,266 C 323,264 323,260 326,258 Z"/>
+
+      <g id="mouth" data-z="0.56" data-pivot="390,302">
+        <path id="mouth-interior" data-z="0.56" data-pivot="390,302" fill="#3A1F1A" stroke="none" d="M 370,294 C 380,289 398,289 410,295 C 408,306 396,314 382,312 C 372,310 367,302 370,294 Z"/>
+        <path id="mouth-teeth" data-z="0.58" data-pivot="390,297" fill="#F4F6FA" stroke="none" d="M 374,296 C 382,292 396,292 406,296 L 404,301 C 394,297 382,297 376,301 Z"/>
+      </g>
+
+      
+      <g id="left-eye" data-z="0.62" data-pivot="376,236" data-anim="blink" data-anim-period="4.5">
+        <g id="left-eye-interior" clip-path="url(#clip-left-eye)">
+          <path id="left-eye-sclera" data-z="0.54" data-pivot="376,236" fill="#F4F6FA" stroke="none" d="M 358,238 C 362,226 372,220 384,223 C 392,225 396,232 395,240 C 393,249 384,254 374,252 C 364,250 357,245 358,238 Z"/>
+          <ellipse id="left-eye-iris" data-z="0.56" data-pivot="374,239" cx="374" cy="239" rx="9" ry="9" fill="#4A2E1E" stroke="none"/>
+          <circle id="left-eye-pupil" data-z="0.58" data-pivot="371,241" cx="371" cy="241" r="4.5" fill="#161421" stroke="none"/>
+          <path id="left-eye-lid-shadow" data-z="0.60" data-pivot="376,228" fill="#6B3F26" opacity="0.45" stroke="none" d="M 358,238 C 362,226 372,220 384,223 C 392,225 396,232 395,240 L 388,238 C 386,230 378,226 370,228 C 364,230 360,234 360,240 Z"/>
+        </g>
+        <circle id="left-eye-catchlight" data-z="0.64" data-pivot="368,235" cx="368" cy="235" r="2.5" fill="#FFFFFF" stroke="none"/>
+        <path id="left-lash" data-z="0.62" data-pivot="376,230" fill="#161421" stroke="none" d="M 359,238 C 362,226 372,220 383,223 C 390,225 394,231 395,238 L 404,242 C 400,230 391,220 381,217 C 369,214 358,224 359,238 Z"/>
+      </g>
+
+      
+      <g id="right-eye" data-z="0.62" data-pivot="448,232" data-anim="blink" data-anim-period="4.5" data-anim-delay="0.05">
+        <g id="right-eye-interior" clip-path="url(#clip-right-eye)">
+          <path id="right-eye-sclera" data-z="0.54" data-pivot="448,232" fill="#F4F6FA" stroke="none" d="M 420,232 C 426,216 444,208 462,212 C 476,215 482,225 480,236 C 477,248 462,256 446,254 C 430,252 421,244 420,232 Z"/>
+          <ellipse id="right-eye-iris" data-z="0.56" data-pivot="446,234" cx="446" cy="234" rx="13" ry="13" fill="#4A2E1E" stroke="none"/>
+          <circle id="right-eye-pupil" data-z="0.58" data-pivot="442,237" cx="442" cy="237" r="6.5" fill="#161421" stroke="none"/>
+          <path id="right-eye-lid-shadow" data-z="0.60" data-pivot="448,224" fill="#6B3F26" opacity="0.45" stroke="none" d="M 420,232 C 426,216 444,208 462,212 C 476,215 482,225 480,236 L 472,234 C 470,224 458,218 444,220 C 432,222 424,228 422,238 Z"/>
+        </g>
+        <circle id="right-eye-catchlight" data-z="0.64" data-pivot="438,229" cx="438" cy="229" r="4" fill="#FFFFFF" stroke="none"/>
+        <path id="right-lash" data-z="0.62" data-pivot="448,226" fill="#161421" stroke="none" d="M 421,230 C 425,214 444,205 463,209 C 474,211 481,217 484,225 L 494,226 C 488,214 476,206 464,203 C 442,199 424,211 421,230 Z"/>
+      </g>
+    </g>
+
+    
+    <g id="hair" data-z="0.56" data-pivot="405,160" data-anchor="head-top">
+      <g id="hair-surface" clip-path="url(#clip-hair)">
+        <path id="hair-base" data-z="0.56" data-pivot="410,170" fill="#1E1A1C" stroke="none" d="M 330,232 C 316,196 322,158 348,136 C 356,120 368,112 382,110 C 388,100 400,96 410,100 C 418,92 432,92 440,100 C 452,96 466,102 472,112 C 488,116 500,132 506,152 C 514,174 514,198 508,220 C 504,234 498,242 492,246 C 488,226 478,210 462,200 C 436,186 400,186 374,198 C 356,206 344,218 338,236 C 336,236 332,234 330,232 Z"/>
+        <path id="hair-highlight" data-z="0.58" data-pivot="430,140" fill="#3A3238" stroke="none" d="M 348,136 C 356,120 368,112 382,110 C 388,100 400,96 410,100 C 418,92 432,92 440,100 C 452,96 466,102 472,112 L 460,130 C 448,118 430,112 412,114 C 392,116 372,126 360,142 Z"/>
+      </g>
+    </g>
+
+    
+    <g id="left-arm" data-z="0.68" data-pivot="300,350" data-anchor="shoulder-left">
+      <g id="left-arm-surface" clip-path="url(#clip-left-arm)">
+        <path id="left-arm-base" data-z="0.68" data-pivot="350,470" fill="#A9714B" stroke="none" d="M 268,318 C 264,370 278,420 300,460 C 322,500 348,538 370,566 C 380,580 390,592 398,602 C 408,616 426,618 434,606 C 442,594 436,578 424,566 C 408,550 394,532 384,514 C 366,484 348,452 338,420 C 330,392 330,360 334,330 Z"/>
+        <path id="left-arm-shadow" data-z="0.70" data-pivot="350,480" fill="#8A5636" stroke="none" d="M 300,460 C 322,500 348,538 370,566 C 380,580 390,592 398,602 L 410,596 C 400,584 390,570 380,556 C 358,528 334,492 314,456 Z"/>
+        <path id="left-arm-highlight" data-z="0.72" data-pivot="320,420" fill="#C68F63" stroke="none" d="M 272,330 C 270,378 282,424 302,462 L 314,456 C 296,420 286,378 288,334 Z"/>
+      </g>
+      <path id="left-arm-sleeve" data-z="0.74" data-pivot="300,400" fill="#1A1A1E" stroke="none" d="M 268,318 C 264,370 278,420 300,460 L 348,442 C 336,410 330,376 334,330 Z"/>
+    </g>
+
+  </g>
+</svg>

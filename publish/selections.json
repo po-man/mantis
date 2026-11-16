@@ -1,0 +1,111 @@
+{
+  "format": "vector.publication",
+  "version": 1,
+  "title": "vector · selected results",
+  "intro": "Mantis is a small image-to-SVG service. You give it one photo of a centered object; a vision model traces the subject into clean, layered vector shapes, annotates depth, and the service derives a tiny parallax rig. The result is a static SVG that also responds to a cursor or a phone's tilt. These are selected outputs from our local evaluation runs, grouped by our own quality ratings.",
+  "generatedAt": "2026-11-16T09:28:46.654Z",
+  "items": [
+    {
+      "id": 353,
+      "rating": "nice",
+      "title": "Conversion #353",
+      "model": "deepseek/deepseek-v4.1-flash-1017",
+      "promptVersion": "edf246a4c1cf",
+      "createdAt": 1794812139942,
+      "inputWidth": 996,
+      "inputHeight": 958,
+      "assets": {
+        "input": "assets/0001-353-input.png",
+        "svg": "assets/0001-353.svg",
+        "rig": "assets/0001-353.rig.json"
+      }
+    },
+    {
+      "id": 352,
+      "rating": "nice",
+      "title": "Conversion #352",
+      "model": "deepseek/deepseek-v4.1-flash-1017",
+      "promptVersion": "edf246a4c1cf",
+      "createdAt": 1794812136256,
+      "inputWidth": 990,
+      "inputHeight": 1040,
+      "assets": {
+        "input": "assets/0002-352-input.png",
+        "svg": "assets/0002-352.svg",
+        "rig": "assets/0002-352.rig.json"
+      }
+    },
+    {
+      "id": 351,
+      "rating": "fair",
+      "title": "Conversion #351",
+      "model": "deepseek/deepseek-v4.1-flash-1017",
+      "promptVersion": "0acf835a30d8",
+      "createdAt": 1794810264094,
+      "inputWidth": 834,
+      "inputHeight": 1106,
+      "assets": {
+        "input": "assets/0003-351-input.png",
+        "svg": "assets/0003-351.svg",
+        "rig": "assets/0003-351.rig.json"
+      }
+    },
+    {
+      "id": 350,
+      "rating": "fair",
+      "title": "Conversion #350",
+      "model": "deepseek/deepseek-v4.1-flash-1017",
+      "promptVersion": "0acf835a30d8",
+      "createdAt": 1794809495939,
+      "inputWidth": 1568,
+      "inputHeight": 980,
+      "assets": {
+        "input": "assets/0004-350-input.png",
+        "svg": "assets/0004-350.svg",
+        "rig": "assets/0004-350.rig.json"
+      }
+    },
+    {
+      "id": 349,
+      "rating": "bad",
+      "title": "Conversion #349",
+      "model": "deepseek/deepseek-v4.1-flash-1017",
+      "promptVersion": "0acf835a30d8",
+      "createdAt": 1794809487057,
+      "inputWidth": 802,
+      "inputHeight": 586,
+      "assets": {
+        "input": "assets/0005-349-input.png",
+        "svg": "assets/0005-349.svg",
+        "rig": "assets/0005-349.rig.json"
+      }
+    },
+    {
+      "id": 348,
+      "rating": "bad",
+      "title": "Conversion #348",
+      "model": "deepseek/deepseek-v4.1-flash-1017",
+      "promptVersion": "0acf835a30d8",
+      "createdAt": 1794809434490,
+      "inputWidth": 870,
+      "inputHeight": 794,
+      "assets": {
+        "input": "assets/0006-348-input.png",
+        "svg": "assets/0006-348.svg",
+        "rig": "assets/0006-348.rig.json"
+      }
+    }
+  ],
+  "featured": {
+    "id": 347,
+    "rating": null,
+    "title": "Conversion #347",
+    "model": "deepseek/deepseek-v4.1-flash-1017",
+    "promptVersion": "0acf835a30d8",
+    "createdAt": 1794809418390,
+    "assets": {
+      "svg": "assets/featured-347.svg",
+      "rig": "assets/featured-347.rig.json"
+    }
+  }
+}

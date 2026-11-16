@@ -1,0 +1,113 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="100%" height="100%">
+  <defs>
+    <clipPath id="clip-pod-back">
+      <path d="M 72,270 C 280,180 600,280 846,716 C 550,670 250,440 72,270 Z"/>
+    </clipPath>
+    <clipPath id="clip-pod-hull">
+      <path d="M 72,270 C 250,440 550,670 846,716 C 490,800 130,530 72,270 Z"/>
+    </clipPath>
+    <clipPath id="clip-calyx">
+      <path d="M 838,722 C 880,692 930,672 978,674 C 940,698 892,722 848,736 C 890,726 942,734 990,748 C 942,756 890,754 846,742 C 872,752 902,780 930,808 C 892,794 858,768 828,742 C 812,752 786,772 762,792 C 786,762 810,738 830,728 C 812,700 792,682 778,668 C 804,686 826,706 842,720 Z"/>
+    </clipPath>
+    <clipPath id="clip-pea-1"><circle cx="159" cy="310" r="49"/></clipPath>
+    <clipPath id="clip-pea-2"><circle cx="293" cy="299" r="52"/></clipPath>
+    <clipPath id="clip-pea-3"><circle cx="298" cy="411" r="49"/></clipPath>
+    <clipPath id="clip-pea-4"><circle cx="392" cy="494" r="46"/></clipPath>
+    <clipPath id="clip-pea-5"><circle cx="532" cy="478" r="49"/></clipPath>
+    <clipPath id="clip-pea-6"><circle cx="571" cy="590" r="43"/></clipPath>
+  </defs>
+
+  <g id="subject" data-z="0.5" data-pivot="512,512" data-anim="bob" data-anim-period="4" data-anim-amplitude="6">
+
+    
+    <g id="pod-back" data-z="0.15" data-pivot="72,270" data-anchor="pod-hinge">
+      <path id="pod-back-base" d="M 72,270 C 280,180 600,280 846,716 C 550,670 250,440 72,270 Z" fill="#B4D64A" stroke="none"/>
+      <g id="pod-back-surface" clip-path="url(#clip-pod-back)">
+        <path id="pod-back-mid" data-z="0.17" data-pivot="450,450" d="M 72,270 C 250,440 550,670 846,716 C 750,620 600,500 450,420 C 300,340 160,300 72,270 Z" fill="#A8CC42" stroke="none"/>
+        <path id="pod-back-shadow" data-z="0.19" data-pivot="450,480" d="M 72,270 C 250,440 550,670 846,716 L 900,640 C 600,600 300,380 110,200 Z" fill="#98BE38" stroke="none"/>
+        <path id="pod-back-highlight" data-z="0.23" data-pivot="450,380" d="M 72,270 C 280,180 600,280 846,716 L 821,759 C 575,323 255,223 47,313 Z" fill="#DCF08C" stroke="none"/>
+      </g>
+    </g>
+
+    
+    <g id="pod-hull" data-z="0.30" data-pivot="450,480" data-sockets="pod-hinge:72,270 pea-bed:415,540 calyx-joint:846,716">
+      <path id="pod-hull-base" d="M 72,270 C 250,440 550,670 846,716 C 490,800 130,530 72,270 Z" fill="#7FA82E" stroke="none"/>
+      <path id="pod-tip" data-z="0.31" data-pivot="60,250" d="M 72,270 C 58,248 44,232 32,222 C 56,234 76,250 88,266 Z" fill="#6B9526" stroke="none"/>
+      <g id="pod-hull-surface" clip-path="url(#clip-pod-hull)">
+        <path id="pod-hull-mid" data-z="0.33" data-pivot="450,500" d="M 72,270 C 250,440 550,670 846,716 C 730,630 550,510 410,450 C 270,390 150,320 72,270 Z" fill="#8CB534" stroke="none"/>
+        <path id="pod-hull-shadow" data-z="0.35" data-pivot="450,600" d="M 72,270 C 130,530 490,800 846,716 L 873,668 C 517,752 157,482 99,222 Z" fill="#5E8520" stroke="none"/>
+        <path id="pod-hull-highlight" data-z="0.38" data-pivot="450,450" d="M 72,270 C 250,440 550,670 846,716 L 835,735 C 539,689 239,459 61,289 Z" fill="#CBE86E" stroke="none"/>
+      </g>
+      <path id="pod-rim-line" data-z="0.40" data-pivot="450,480" d="M 72,270 C 250,440 550,670 846,716" fill="none" stroke="#E4F0A8" stroke-width="6" stroke-linecap="round" opacity="0.65"/>
+    </g>
+
+    
+    <g id="peas" data-z="0.45" data-pivot="415,540" data-anchor="pea-bed" data-anim="sway" data-anim-period="4.5" data-anim-amplitude="1.5">
+
+      <g id="peas-left" data-z="0.46" data-pivot="250,340">
+        <g id="pea-1" data-z="0.462" data-pivot="159,310">
+          <circle cx="159" cy="310" r="49" fill="#93C13A" stroke="none"/>
+          <g clip-path="url(#clip-pea-1)">
+            <circle cx="146.75" cy="297.75" r="49" fill="#6E9A28" stroke="none"/>
+            <circle cx="117.35" cy="268.35" r="17.15" fill="#C8E468" stroke="none"/>
+          </g>
+          <circle cx="137" cy="285.5" r="7.8" fill="#F4F6FA" stroke="none"/>
+        </g>
+        <g id="pea-2" data-z="0.466" data-pivot="293,299">
+          <circle cx="293" cy="299" r="52" fill="#93C13A" stroke="none"/>
+          <g clip-path="url(#clip-pea-2)">
+            <circle cx="280" cy="286" r="52" fill="#6E9A28" stroke="none"/>
+            <circle cx="248.8" cy="254.8" r="18.2" fill="#C8E468" stroke="none"/>
+          </g>
+          <circle cx="269.6" cy="273" r="8.3" fill="#F4F6FA" stroke="none"/>
+        </g>
+        <g id="pea-3" data-z="0.470" data-pivot="298,411">
+          <circle cx="298" cy="411" r="49" fill="#93C13A" stroke="none"/>
+          <g clip-path="url(#clip-pea-3)">
+            <circle cx="285.75" cy="398.75" r="49" fill="#6E9A28" stroke="none"/>
+            <circle cx="256.35" cy="369.35" r="17.15" fill="#C8E468" stroke="none"/>
+          </g>
+          <circle cx="276" cy="386.5" r="7.8" fill="#F4F6FA" stroke="none"/>
+        </g>
+      </g>
+
+      <g id="peas-right" data-z="0.48" data-pivot="500,520">
+        <g id="pea-4" data-z="0.482" data-pivot="392,494">
+          <circle cx="392" cy="494" r="46" fill="#93C13A" stroke="none"/>
+          <g clip-path="url(#clip-pea-4)">
+            <circle cx="380.5" cy="482.5" r="46" fill="#6E9A28" stroke="none"/>
+            <circle cx="352.9" cy="454.9" r="16.1" fill="#C8E468" stroke="none"/>
+          </g>
+          <circle cx="371.3" cy="471" r="7.4" fill="#F4F6FA" stroke="none"/>
+        </g>
+        <g id="pea-5" data-z="0.486" data-pivot="532,478">
+          <circle cx="532" cy="478" r="49" fill="#93C13A" stroke="none"/>
+          <g clip-path="url(#clip-pea-5)">
+            <circle cx="519.75" cy="465.75" r="49" fill="#6E9A28" stroke="none"/>
+            <circle cx="490.35" cy="436.35" r="17.15" fill="#C8E468" stroke="none"/>
+          </g>
+          <circle cx="510" cy="453.5" r="7.8" fill="#F4F6FA" stroke="none"/>
+        </g>
+        <g id="pea-6" data-z="0.490" data-pivot="571,590">
+          <circle cx="571" cy="590" r="43" fill="#93C13A" stroke="none"/>
+          <g clip-path="url(#clip-pea-6)">
+            <circle cx="560.25" cy="579.25" r="43" fill="#6E9A28" stroke="none"/>
+            <circle cx="534.45" cy="553.45" r="15.05" fill="#C8E468" stroke="none"/>
+          </g>
+          <circle cx="551.7" cy="568.5" r="6.9" fill="#F4F6FA" stroke="none"/>
+        </g>
+      </g>
+
+    </g>
+
+    
+    <g id="calyx" data-z="0.70" data-pivot="846,716" data-anchor="calyx-joint" data-anim="sway" data-anim-period="3.2" data-anim-amplitude="5">
+      <path id="calyx-base" d="M 838,722 C 880,692 930,672 978,674 C 940,698 892,722 848,736 C 890,726 942,734 990,748 C 942,756 890,754 846,742 C 872,752 902,780 930,808 C 892,794 858,768 828,742 C 812,752 786,772 762,792 C 786,762 810,738 830,728 C 812,700 792,682 778,668 C 804,686 826,706 842,720 Z" fill="#D8E8B4" stroke="none"/>
+      <g id="calyx-surface" clip-path="url(#clip-calyx)">
+        <path id="calyx-shadow" data-z="0.72" data-pivot="880,760" d="M 838,722 C 890,726 942,734 990,748 C 942,756 890,754 846,742 C 872,752 902,780 930,808 C 892,794 858,768 828,742 Z" fill="#B8D080" stroke="none"/>
+        <path id="calyx-highlight" data-z="0.74" data-pivot="820,690" d="M 838,722 C 880,692 930,672 978,674 C 940,698 892,722 848,736 C 812,700 792,682 778,668 C 804,686 826,706 842,720 Z" fill="#EEF6D0" stroke="none"/>
+      </g>
+    </g>
+
+  </g>
+</svg>
