@@ -87,7 +87,9 @@ pose-faithful eye construction, and adds a closed idle-motion vocabulary
 (`data-anim`) plus the blink mask contract: each eye is a self-contained masked
 group that the rig can close by scaling vertically. v014 is the same contract written
 lean: deduplicated rules, no mandatory `<reasoning>` plan, and about 61% fewer prompt
-characters (33 KB → 12.8 KB, roughly 8.8k → 3.9k prompt tokens).
+characters (33 KB → 12.8 KB, roughly 8.8k → 3.9k prompt tokens). v015 keeps v014's
+lean contract but derives `data-z` from observed occlusion instead of a part-type
+table, and clips eye catchlights inside the eyeball mask.
 
 ## API
 
@@ -524,7 +526,8 @@ wrapper groups; the rig references those ids.
 │   ├── v011-lash-silhouette.md # v010 + filled tapered lashes
 │   ├── v012-pose-faithful-eyes.md # v011 + pose-faithful eyes
 │   ├── v013-idle-motion.md   # v012 + idle-motion presets + blink mask contract
-│   └── v014-lean-idle-motion.md # v013 contract, deduplicated and shortened
+│   ├── v014-lean-idle-motion.md # v013 contract, deduplicated and shortened
+│   └── v015-clipped-catchlight.md # v014 + occlusion-derived z + clipped catchlights
 ├── public/
 │   └── review.html           # dependency-free review UI
 ├── samples/
