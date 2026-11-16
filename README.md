@@ -176,7 +176,14 @@ response (`?format=json`) to read the `warnings` array.
     "warnings": []
   },
   "model": "google/gemini-2.5-flash",
-  "usage": { "promptTokens": 1234, "completionTokens": 5678, "totalTokens": 6912 },
+  "usage": {
+    "promptTokens": 1234,
+    "completionTokens": 5678,
+    "totalTokens": 6912,
+    "cachedTokens": 1024,
+    "reasoningTokens": 0,
+    "costUsd": 0.003112
+  },
   "warnings": [],
   "requestId": "f47ac10b-58cc-4372-a567-0e02b2c3d479",
   "attempts": 1,
@@ -408,6 +415,7 @@ stores:
 - the successful SVG output, its size, element/path counts, and parser warnings;
 - total request latency, upstream latency, attempts, token usage, and per-attempt LLM
   metrics;
+- billed cost, prompt-cache hits and reasoning tokens per attempt;
 - failed conversions with their error code/message.
 
 Prompt text is stored once in a separate `prompts` table keyed by the prompt content
@@ -433,6 +441,26 @@ idle clock to neutral. **Idle** toggles the view-point-independent `data-anim` m
 each welded joint (green dot), the member's pre-weld position (red ring), and the
 correction the weld applies. Older conversions without a stored rig are normalized
 and given synthetic paint-order depth on demand.
+
+### Cost telemetry
+
+Requests carry `usage: { "include": true }`, so OpenRouter reports the billed cost in
+USD and the prompt-cache statistics for every call. The service stores
+`cost_usd`, `cached_tokens` and `reasoning_tokens` next to the token counts, and
+`GET /review/api/stats` exposes:
+
+| Field | Meaning |
+| --- | --- |
+| `totalCostUsd` / `avgCostUsd` | Billed cost overall and per conversion |
+| `costedConversions` | Rows that reported a cost; older rows predate the feature |
+| `totalCachedTokens` / `cacheHitRate` | Prompt tokens served from the provider cache, and their share of all prompt tokens |
+| `totalReasoningTokens` | Reasoning tokens, a subset of completion tokens |
+
+Per-prompt-version statistics also carry `totalCostUsd` and `avgCostUsd`, so prompt
+variants can be compared on cost, not just tokens. Historical rows have no cost and
+are excluded from the averages rather than counted as free, which is why
+`costedConversions` is reported separately. Cost is whatever OpenRouter returns; it
+is `null` when the upstream provider does not report usage accounting.
 
 Read-only review endpoints:
 

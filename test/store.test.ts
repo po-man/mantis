@@ -200,6 +200,7 @@ describe("ConversionStore", () => {
     expect(stats.cacheHitRate).toBeCloseTo(0.75, 10);
     expect(stats.totalReasoningTokens).toBe(200);
     expect(stats.prompts[0]?.totalCostUsd).toBeCloseTo(0.0012, 10);
+    expect(stats.prompts[0]?.costedConversions).toBe(1);
     store.close();
   });
 

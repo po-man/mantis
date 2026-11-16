@@ -250,6 +250,7 @@
               <th>Attempts</th>
               <th>Latency</th>
               <th>Tokens</th>
+              <th>Cost</th>
               <th>SVG</th>
               <th>Warnings</th>
             </tr>
@@ -300,6 +301,16 @@
         return ms >= 1000 ? (ms / 1000).toFixed(2) + " s" : Math.round(ms) + " ms";
       }
 
+      function fmtCost(value) {
+        if (value === null || value === undefined) return "—";
+        const usd = Number(value);
+        if (!Number.isFinite(usd)) return "—";
+        if (usd === 0) return "$0";
+        if (usd < 0.01) return "$" + usd.toFixed(6);
+        if (usd < 1) return "$" + usd.toFixed(4);
+        return "$" + usd.toFixed(2);
+      }
+
       function fmtBytes(value) {
         const bytes = Number(value ?? 0);
         if (!bytes) return "—";
@@ -337,6 +348,11 @@
           ["Avg latency", fmtMs(stats.avgLatencyMs)],
           ["Total tokens", fmtNum(stats.totalTokens)],
           ["Avg tokens", fmtNum(Math.round(stats.avgTokens ?? 0))],
+          ["Total cost", stats.costedConversions > 0 ? fmtCost(stats.totalCostUsd) : "—"],
+          ["Avg cost", stats.costedConversions > 0 ? fmtCost(stats.avgCostUsd) : "—"],
+          ["Cost coverage", fmtNum(stats.costedConversions) + "/" + fmtNum(stats.total)],
+          ["Cache hit", (Number(stats.cacheHitRate ?? 0) * 100).toFixed(0) + "%"],
+          ["Reasoning tokens", fmtNum(stats.totalReasoningTokens)],
           ["Downsampled", fmtNum(stats.downsampled)],
         ];
         $("stats").innerHTML = cards
@@ -355,7 +371,8 @@
         $("prompt-stats").innerHTML =
           '<div class="table-wrap"><table><thead><tr>' +
           "<th>Prompt version</th><th>Total</th><th>Success</th><th>Errors</th>" +
-          "<th>Avg latency</th><th>Avg tokens</th></tr></thead><tbody>" +
+          "<th>Avg latency</th><th>Avg tokens</th><th>Total cost</th>" +
+          "<th>Avg cost</th></tr></thead><tbody>" +
           prompts
             .map(
               (prompt) =>
@@ -365,6 +382,14 @@
                 "</td><td>" + fmtNum(prompt.errors) +
                 "</td><td>" + escapeHtml(fmtMs(prompt.avgLatencyMs)) +
                 "</td><td>" + fmtNum(Math.round(prompt.avgTokens ?? 0)) +
+                "</td><td>" +
+                escapeHtml(
+                  prompt.costedConversions > 0 ? fmtCost(prompt.totalCostUsd) : "—",
+                ) +
+                "</td><td>" +
+                escapeHtml(
+                  prompt.costedConversions > 0 ? fmtCost(prompt.avgCostUsd) : "—",
+                ) +
                 "</td></tr>",
             )
             .join("") +
@@ -404,6 +429,7 @@
               "<td>" + fmtNum(item.attempts) + "</td>" +
               "<td>" + escapeHtml(fmtMs(item.latencyMs)) + "</td>" +
               "<td>" + fmtNum(item.totalTokens) + "</td>" +
+              "<td>" + escapeHtml(fmtCost(item.costUsd)) + "</td>" +
               "<td>" + escapeHtml(svg) + "</td>" +
               "<td>" + fmtNum(item.warningCount) + "</td>" +
               "</tr>"
@@ -430,7 +456,7 @@
         return (
           '<div class="calls"><table><thead><tr>' +
           "<th>Attempt</th><th>Model</th><th>Latency</th><th>Prompt</th>" +
-          "<th>Completion</th><th>Total</th><th>Finish</th><th>Chars</th>" +
+          "<th>Completion</th><th>Total</th><th>Cost</th><th>Finish</th><th>Chars</th>" +
           "</tr></thead><tbody>" +
           calls
             .map(
@@ -441,6 +467,7 @@
                 "</td><td>" + fmtNum(call.promptTokens) +
                 "</td><td>" + fmtNum(call.completionTokens) +
                 "</td><td>" + fmtNum(call.totalTokens) +
+                "</td><td>" + escapeHtml(fmtCost(call.costUsd)) +
                 "</td><td>" + escapeHtml(call.finishReason || "—") +
                 "</td><td>" + fmtNum(call.contentLength) +
                 "</td></tr>",
@@ -1194,6 +1221,17 @@
           metric("Total tokens", fmtNum(detail.totalTokens)) +
           metric("Prompt tokens", fmtNum(detail.promptTokens)) +
           metric("Completion tokens", fmtNum(detail.completionTokens)) +
+          metric("Cost", fmtCost(detail.costUsd)) +
+          metric(
+            "Cached tokens",
+            detail.promptTokens > 0
+              ? fmtNum(detail.cachedTokens) +
+                " (" +
+                Math.round((detail.cachedTokens / detail.promptTokens) * 100) +
+                "%)"
+              : fmtNum(detail.cachedTokens),
+          ) +
+          metric("Reasoning tokens", fmtNum(detail.reasoningTokens)) +
           metric("Input", detail.inputWidth ? detail.inputWidth + "×" + detail.inputHeight : "—") +
           metric("Original", detail.originalWidth ? detail.originalWidth + "×" + detail.originalHeight : "—") +
           metric("Input bytes", fmtBytes(detail.inputBytes)) +

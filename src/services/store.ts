@@ -125,6 +125,7 @@ export interface PromptStats {
   avgTokens: number;
   totalCostUsd: number;
   avgCostUsd: number;
+  costedConversions: number;
 }
 
 export interface ConversionStats {
@@ -611,6 +612,10 @@ export class ConversionStore {
            COALESCE(SUM(prompt_tokens), 0) AS prompt_tokens,
            COALESCE(SUM(completion_tokens), 0) AS completion_tokens,
            COALESCE(SUM(cached_tokens), 0) AS cached_tokens,
+           COALESCE(SUM(CASE WHEN cost_usd IS NOT NULL THEN prompt_tokens ELSE 0 END), 0)
+             AS measured_prompt_tokens,
+           COALESCE(SUM(CASE WHEN cost_usd IS NOT NULL THEN cached_tokens ELSE 0 END), 0)
+             AS measured_cached_tokens,
            COALESCE(SUM(reasoning_tokens), 0) AS reasoning_tokens,
            COALESCE(SUM(cost_usd), 0) AS total_cost_usd,
            COALESCE(AVG(cost_usd), 0) AS avg_cost_usd,
@@ -629,6 +634,8 @@ export class ConversionStore {
           prompt_tokens: number;
           completion_tokens: number;
           cached_tokens: number;
+          measured_prompt_tokens: number;
+          measured_cached_tokens: number;
           reasoning_tokens: number;
           total_cost_usd: number;
           avg_cost_usd: number;
@@ -647,7 +654,8 @@ export class ConversionStore {
            COALESCE(AVG(c.latency_ms), 0) AS avg_latency_ms,
            COALESCE(AVG(c.total_tokens), 0) AS avg_tokens,
            COALESCE(SUM(c.cost_usd), 0) AS total_cost_usd,
-           COALESCE(AVG(c.cost_usd), 0) AS avg_cost_usd
+           COALESCE(AVG(c.cost_usd), 0) AS avg_cost_usd,
+           COALESCE(SUM(c.cost_usd IS NOT NULL), 0) AS costed
          FROM conversions c
          JOIN prompts p ON p.id = c.prompt_id
          GROUP BY p.id
@@ -663,12 +671,13 @@ export class ConversionStore {
       avg_tokens: number;
       total_cost_usd: number;
       avg_cost_usd: number;
+      costed: number;
     }>;
 
     const total = row?.total ?? 0;
     const successes = row?.successes ?? 0;
-    const promptTokens = row?.prompt_tokens ?? 0;
-    const cachedTokens = row?.cached_tokens ?? 0;
+    const measuredPromptTokens = row?.measured_prompt_tokens ?? 0;
+    const measuredCachedTokens = row?.measured_cached_tokens ?? 0;
 
     return {
       total,
@@ -679,13 +688,14 @@ export class ConversionStore {
       avgLatencyMs: row?.avg_latency_ms ?? 0,
       avgTokens: row?.avg_tokens ?? 0,
       totalTokens: row?.total_tokens ?? 0,
-      promptTokens,
+      promptTokens: row?.prompt_tokens ?? 0,
       completionTokens: row?.completion_tokens ?? 0,
       totalCostUsd: row?.total_cost_usd ?? 0,
       avgCostUsd: row?.avg_cost_usd ?? 0,
       costedConversions: row?.costed ?? 0,
-      totalCachedTokens: cachedTokens,
-      cacheHitRate: promptTokens > 0 ? cachedTokens / promptTokens : 0,
+      totalCachedTokens: row?.cached_tokens ?? 0,
+      cacheHitRate:
+        measuredPromptTokens > 0 ? measuredCachedTokens / measuredPromptTokens : 0,
       totalReasoningTokens: row?.reasoning_tokens ?? 0,
       prompts: promptRows.map((prompt) => ({
         promptId: prompt.prompt_id,
@@ -697,6 +707,7 @@ export class ConversionStore {
         avgTokens: prompt.avg_tokens,
         totalCostUsd: prompt.total_cost_usd,
         avgCostUsd: prompt.avg_cost_usd,
+        costedConversions: prompt.costed,
       })),
     };
   }
