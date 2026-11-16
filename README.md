@@ -60,7 +60,7 @@ real environment variables take precedence.
 | `OPENROUTER_BASE_URL` | `https://openrouter.ai/api/v1` | Upstream base URL |
 | `OPENROUTER_TEMPERATURE` | `0.2` | Sampling temperature |
 | `OPENROUTER_MAX_TOKENS` | `16384` | Completion budget (SVGs are token-heavy) |
-| `OPENROUTER_REASONING_EFFORT` | — | `none`/`minimal`/`low`/`medium`/`high`/`max`; unset keeps the model default (often `high`) |
+| `OPENROUTER_REASONING_EFFORT` | — | `none`/`minimal`/`low`/`medium`/`high`/`max`; unset keeps the model default (often `high`, which can spend most of the completion budget on hidden reasoning) |
 | `OPENROUTER_TIMEOUT_MS` | `120000` | Upstream request timeout |
 | `OPENROUTER_HTTP_REFERER` | — | Optional OpenRouter attribution header |
 | `OPENROUTER_APP_TITLE` | `vector` | OpenRouter `X-Title` header |
@@ -85,7 +85,9 @@ and `v013-idle-motion.md` with `PROMPT_VERSION=v013`. v013 builds on v012's
 depth-annotated Level-1 joint sockets/anchors, filled tapered lash silhouettes, and
 pose-faithful eye construction, and adds a closed idle-motion vocabulary
 (`data-anim`) plus the blink mask contract: each eye is a self-contained masked
-group that the rig can close by scaling vertically.
+group that the rig can close by scaling vertically. v014 is the same contract written
+lean: deduplicated rules, no mandatory `<reasoning>` plan, and about 61% fewer prompt
+characters (33 KB → 12.8 KB, roughly 8.8k → 3.9k prompt tokens).
 
 ## API
 
@@ -454,8 +456,9 @@ external retention/cleanup if you keep the service running for a long time.
 
 ## How the SVG parser works
 
-The prompt asks the model to emit `<reasoning>…</reasoning>` followed by a fenced
-`xml` block. The parser does not trust that contract:
+The prompt asks the model for the complete SVG in a fenced `xml` block (some prompt
+versions also encourage a short `<reasoning>` preamble). The parser does not trust
+that contract:
 
 1. Normalize the response (BOM, line endings, whitespace).
 2. Collect fenced blocks containing `<svg>`; fall back to the raw slice from the
@@ -492,7 +495,8 @@ wrapper groups; the rig references those ids.
 │   ├── v010-rig-joints.md    # parallax depth + Level-1 joint welds
 │   ├── v011-lash-silhouette.md # v010 + filled tapered lashes
 │   ├── v012-pose-faithful-eyes.md # v011 + pose-faithful eyes
-│   └── v013-idle-motion.md   # v012 + idle-motion presets + blink mask contract
+│   ├── v013-idle-motion.md   # v012 + idle-motion presets + blink mask contract
+│   └── v014-lean-idle-motion.md # v013 contract, deduplicated and shortened
 ├── public/
 │   └── review.html           # dependency-free review UI
 ├── samples/
