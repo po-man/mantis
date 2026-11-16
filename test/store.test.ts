@@ -1,3 +1,7 @@
+import { mkdtempSync, rmSync } from "node:fs";
+import { tmpdir } from "node:os";
+import path from "node:path";
+import { DatabaseSync } from "node:sqlite";
 import { describe, expect, it } from "vitest";
 import type { ParallaxRig } from "../src/services/parallax.js";
 import {
@@ -69,6 +73,9 @@ function makeEntry(
       promptTokens: 10,
       completionTokens: 20,
       totalTokens: 30,
+      cachedTokens: 0,
+      reasoningTokens: 0,
+      costUsd: null,
       calls: [
         {
           attempt: 1,
@@ -77,6 +84,9 @@ function makeEntry(
           promptTokens: 10,
           completionTokens: 20,
           totalTokens: 30,
+          cachedTokens: 0,
+          reasoningTokens: 0,
+          costUsd: null,
           finishReason: "stop",
           contentLength: 60,
         },
@@ -158,6 +168,80 @@ describe("ConversionStore", () => {
     store.close();
   });
 
+  it("records billed cost and prompt-cache tokens", () => {
+    const store = makeStore();
+    const promptId = store.upsertPrompt(PROMPT);
+    const id = store.record(
+      makeEntry(promptId, {
+        metrics: {
+          latencyMs: 100,
+          upstreamLatencyMs: 90,
+          promptTokens: 4000,
+          completionTokens: 2000,
+          totalTokens: 6000,
+          cachedTokens: 3000,
+          reasoningTokens: 200,
+          costUsd: 0.0012,
+          calls: [],
+        },
+      }),
+    );
+
+    const item = store.list().items[0];
+    expect(item?.costUsd).toBe(0.0012);
+    expect(item?.cachedTokens).toBe(3000);
+    expect(item?.reasoningTokens).toBe(200);
+    expect(store.get(id)?.costUsd).toBe(0.0012);
+
+    const stats = store.stats();
+    expect(stats.totalCostUsd).toBeCloseTo(0.0012, 10);
+    expect(stats.avgCostUsd).toBeCloseTo(0.0012, 10);
+    expect(stats.costedConversions).toBe(1);
+    expect(stats.cacheHitRate).toBeCloseTo(0.75, 10);
+    expect(stats.totalReasoningTokens).toBe(200);
+    expect(stats.prompts[0]?.totalCostUsd).toBeCloseTo(0.0012, 10);
+    expect(stats.prompts[0]?.costedConversions).toBe(1);
+    store.close();
+  });
+
+  it("adds cost columns to a database created before cost telemetry", () => {
+    const dir = mkdtempSync(path.join(tmpdir(), "vector-store-"));
+    const file = path.join(dir, "vector.db");
+    new ConversionStore(file).close();
+
+    const raw = new DatabaseSync(file);
+    raw.exec(
+      "ALTER TABLE conversions DROP COLUMN cached_tokens;" +
+        "ALTER TABLE conversions DROP COLUMN reasoning_tokens;" +
+        "ALTER TABLE conversions DROP COLUMN cost_usd;",
+    );
+    raw.close();
+
+    const store = new ConversionStore(file);
+    const promptId = store.upsertPrompt(PROMPT);
+    const id = store.record(
+      makeEntry(promptId, {
+        metrics: {
+          latencyMs: 10,
+          upstreamLatencyMs: 10,
+          promptTokens: 100,
+          completionTokens: 50,
+          totalTokens: 150,
+          cachedTokens: 40,
+          reasoningTokens: 10,
+          costUsd: 0.5,
+          calls: [],
+        },
+      }),
+    );
+
+    expect(store.get(id)?.costUsd).toBe(0.5);
+    expect(store.get(id)?.cachedTokens).toBe(40);
+    expect(store.list().items[0]?.reasoningTokens).toBe(10);
+    store.close();
+    rmSync(dir, { recursive: true, force: true });
+  });
+
   it("computes aggregate statistics", () => {
     const store = makeStore();
     const promptId = store.upsertPrompt(PROMPT);
@@ -172,6 +256,9 @@ describe("ConversionStore", () => {
           promptTokens: 5,
           completionTokens: 0,
           totalTokens: 5,
+          cachedTokens: 0,
+          reasoningTokens: 0,
+          costUsd: null,
           calls: [],
         },
         error: { code: "upstream_error", message: "boom" },

@@ -39,6 +39,10 @@ export interface ConversionMetrics {
   promptTokens: number;
   completionTokens: number;
   totalTokens: number;
+  cachedTokens: number;
+  reasoningTokens: number;
+  /** Billed cost in USD; null when the provider did not report one. */
+  costUsd: number | null;
   calls: LlmCallMetric[];
 }
 
@@ -75,6 +79,9 @@ export interface ConversionListItem {
   promptTokens: number;
   completionTokens: number;
   totalTokens: number;
+  cachedTokens: number;
+  reasoningTokens: number;
+  costUsd: number | null;
   outputBytes: number | null;
   svgElements: number | null;
   svgPaths: number | null;
@@ -116,6 +123,9 @@ export interface PromptStats {
   errors: number;
   avgLatencyMs: number;
   avgTokens: number;
+  totalCostUsd: number;
+  avgCostUsd: number;
+  costedConversions: number;
 }
 
 export interface ConversionStats {
@@ -129,6 +139,15 @@ export interface ConversionStats {
   totalTokens: number;
   promptTokens: number;
   completionTokens: number;
+  /** Sum of billed cost over conversions that reported one. */
+  totalCostUsd: number;
+  /** Average billed cost over conversions that reported one. */
+  avgCostUsd: number;
+  /** Rows carrying a cost; older conversions predate cost accounting. */
+  costedConversions: number;
+  totalCachedTokens: number;
+  cacheHitRate: number;
+  totalReasoningTokens: number;
   prompts: PromptStats[];
 }
 
@@ -160,6 +179,9 @@ interface ConversionRow {
   prompt_tokens: number;
   completion_tokens: number;
   total_tokens: number;
+  cached_tokens: number;
+  reasoning_tokens: number;
+  cost_usd: number | null;
   llm_calls: string | null;
   error_code: string | null;
   error_message: string | null;
@@ -224,6 +246,9 @@ function toListItem(row: ConversionRow): ConversionListItem {
     promptTokens: row.prompt_tokens,
     completionTokens: row.completion_tokens,
     totalTokens: row.total_tokens,
+    cachedTokens: row.cached_tokens,
+    reasoningTokens: row.reasoning_tokens,
+    costUsd: row.cost_usd,
     outputBytes: row.output_bytes,
     svgElements: row.svg_elements,
     svgPaths: row.svg_paths,
@@ -261,6 +286,9 @@ const LIST_COLUMNS = `
   c.prompt_tokens,
   c.completion_tokens,
   c.total_tokens,
+  c.cached_tokens,
+  c.reasoning_tokens,
+  c.cost_usd,
   c.error_code,
   CASE WHEN c.input_image IS NULL THEN 0 ELSE 1 END AS has_input
 `;
@@ -313,6 +341,9 @@ export class ConversionStore {
         prompt_tokens INTEGER NOT NULL DEFAULT 0,
         completion_tokens INTEGER NOT NULL DEFAULT 0,
         total_tokens INTEGER NOT NULL DEFAULT 0,
+        cached_tokens INTEGER NOT NULL DEFAULT 0,
+        reasoning_tokens INTEGER NOT NULL DEFAULT 0,
+        cost_usd REAL,
         llm_calls TEXT,
         error_code TEXT,
         error_message TEXT
@@ -331,6 +362,10 @@ export class ConversionStore {
     // Existing databases predate the parallax columns.
     this.ensureColumn("conversions", "output_rig", "TEXT");
     this.ensureColumn("conversions", "rig_nodes", "INTEGER");
+    // Existing databases predate cost telemetry.
+    this.ensureColumn("conversions", "cached_tokens", "INTEGER NOT NULL DEFAULT 0");
+    this.ensureColumn("conversions", "reasoning_tokens", "INTEGER NOT NULL DEFAULT 0");
+    this.ensureColumn("conversions", "cost_usd", "REAL");
   }
 
   private ensureColumn(
@@ -383,7 +418,8 @@ export class ConversionStore {
            input_image, output_svg, output_bytes, svg_elements, svg_paths,
            output_rig, rig_nodes,
            warnings, latency_ms, upstream_latency_ms,
-           prompt_tokens, completion_tokens, total_tokens, llm_calls,
+           prompt_tokens, completion_tokens, total_tokens,
+           cached_tokens, reasoning_tokens, cost_usd, llm_calls,
            error_code, error_message
          ) VALUES (
            ?, ?, ?, ?, ?, ?,
@@ -392,7 +428,7 @@ export class ConversionStore {
            ?, ?, ?, ?, ?,
            ?, ?,
            ?, ?, ?,
-           ?, ?, ?, ?,
+           ?, ?, ?, ?, ?, ?, ?,
            ?, ?
          )`,
       )
@@ -424,6 +460,9 @@ export class ConversionStore {
         entry.metrics.promptTokens,
         entry.metrics.completionTokens,
         entry.metrics.totalTokens,
+        entry.metrics.cachedTokens,
+        entry.metrics.reasoningTokens,
+        entry.metrics.costUsd,
         JSON.stringify(entry.metrics.calls),
         entry.error?.code ?? null,
         entry.error?.message ?? null,
@@ -571,7 +610,16 @@ export class ConversionStore {
            COALESCE(AVG(total_tokens), 0) AS avg_tokens,
            COALESCE(SUM(total_tokens), 0) AS total_tokens,
            COALESCE(SUM(prompt_tokens), 0) AS prompt_tokens,
-           COALESCE(SUM(completion_tokens), 0) AS completion_tokens
+           COALESCE(SUM(completion_tokens), 0) AS completion_tokens,
+           COALESCE(SUM(cached_tokens), 0) AS cached_tokens,
+           COALESCE(SUM(CASE WHEN cost_usd IS NOT NULL THEN prompt_tokens ELSE 0 END), 0)
+             AS measured_prompt_tokens,
+           COALESCE(SUM(CASE WHEN cost_usd IS NOT NULL THEN cached_tokens ELSE 0 END), 0)
+             AS measured_cached_tokens,
+           COALESCE(SUM(reasoning_tokens), 0) AS reasoning_tokens,
+           COALESCE(SUM(cost_usd), 0) AS total_cost_usd,
+           COALESCE(AVG(cost_usd), 0) AS avg_cost_usd,
+           COALESCE(SUM(cost_usd IS NOT NULL), 0) AS costed
          FROM conversions`,
       )
       .get() as
@@ -585,6 +633,13 @@ export class ConversionStore {
           total_tokens: number;
           prompt_tokens: number;
           completion_tokens: number;
+          cached_tokens: number;
+          measured_prompt_tokens: number;
+          measured_cached_tokens: number;
+          reasoning_tokens: number;
+          total_cost_usd: number;
+          avg_cost_usd: number;
+          costed: number;
         }
       | undefined;
 
@@ -597,7 +652,10 @@ export class ConversionStore {
            COALESCE(SUM(c.status = 'success'), 0) AS successes,
            COALESCE(SUM(c.status = 'error'), 0) AS errors,
            COALESCE(AVG(c.latency_ms), 0) AS avg_latency_ms,
-           COALESCE(AVG(c.total_tokens), 0) AS avg_tokens
+           COALESCE(AVG(c.total_tokens), 0) AS avg_tokens,
+           COALESCE(SUM(c.cost_usd), 0) AS total_cost_usd,
+           COALESCE(AVG(c.cost_usd), 0) AS avg_cost_usd,
+           COALESCE(SUM(c.cost_usd IS NOT NULL), 0) AS costed
          FROM conversions c
          JOIN prompts p ON p.id = c.prompt_id
          GROUP BY p.id
@@ -611,10 +669,15 @@ export class ConversionStore {
       errors: number;
       avg_latency_ms: number;
       avg_tokens: number;
+      total_cost_usd: number;
+      avg_cost_usd: number;
+      costed: number;
     }>;
 
     const total = row?.total ?? 0;
     const successes = row?.successes ?? 0;
+    const measuredPromptTokens = row?.measured_prompt_tokens ?? 0;
+    const measuredCachedTokens = row?.measured_cached_tokens ?? 0;
 
     return {
       total,
@@ -627,6 +690,13 @@ export class ConversionStore {
       totalTokens: row?.total_tokens ?? 0,
       promptTokens: row?.prompt_tokens ?? 0,
       completionTokens: row?.completion_tokens ?? 0,
+      totalCostUsd: row?.total_cost_usd ?? 0,
+      avgCostUsd: row?.avg_cost_usd ?? 0,
+      costedConversions: row?.costed ?? 0,
+      totalCachedTokens: row?.cached_tokens ?? 0,
+      cacheHitRate:
+        measuredPromptTokens > 0 ? measuredCachedTokens / measuredPromptTokens : 0,
+      totalReasoningTokens: row?.reasoning_tokens ?? 0,
       prompts: promptRows.map((prompt) => ({
         promptId: prompt.prompt_id,
         version: prompt.version,
@@ -635,6 +705,9 @@ export class ConversionStore {
         errors: prompt.errors,
         avgLatencyMs: prompt.avg_latency_ms,
         avgTokens: prompt.avg_tokens,
+        totalCostUsd: prompt.total_cost_usd,
+        avgCostUsd: prompt.avg_cost_usd,
+        costedConversions: prompt.costed,
       })),
     };
   }

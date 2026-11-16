@@ -72,6 +72,9 @@ function buildMetrics(
     promptTokens: usage?.promptTokens ?? 0,
     completionTokens: usage?.completionTokens ?? 0,
     totalTokens: usage?.totalTokens ?? 0,
+    cachedTokens: usage?.cachedTokens ?? 0,
+    reasoningTokens: usage?.reasoningTokens ?? 0,
+    costUsd: usage?.costUsd ?? null,
     calls,
   };
 }

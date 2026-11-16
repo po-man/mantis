@@ -60,6 +60,7 @@ real environment variables take precedence.
 | `OPENROUTER_BASE_URL` | `https://openrouter.ai/api/v1` | Upstream base URL |
 | `OPENROUTER_TEMPERATURE` | `0.2` | Sampling temperature |
 | `OPENROUTER_MAX_TOKENS` | `16384` | Completion budget (SVGs are token-heavy) |
+| `OPENROUTER_REASONING_EFFORT` | — | `none`/`minimal`/`low`/`medium`/`high`/`max`; unset keeps the model default (often `high`, which can spend most of the completion budget on hidden reasoning) |
 | `OPENROUTER_TIMEOUT_MS` | `120000` | Upstream request timeout |
 | `OPENROUTER_HTTP_REFERER` | — | Optional OpenRouter attribution header |
 | `OPENROUTER_APP_TITLE` | `vector` | OpenRouter `X-Title` header |
@@ -84,7 +85,9 @@ and `v013-idle-motion.md` with `PROMPT_VERSION=v013`. v013 builds on v012's
 depth-annotated Level-1 joint sockets/anchors, filled tapered lash silhouettes, and
 pose-faithful eye construction, and adds a closed idle-motion vocabulary
 (`data-anim`) plus the blink mask contract: each eye is a self-contained masked
-group that the rig can close by scaling vertically.
+group that the rig can close by scaling vertically. v014 is the same contract written
+lean: deduplicated rules, no mandatory `<reasoning>` plan, and about 61% fewer prompt
+characters (33 KB → 12.8 KB, roughly 8.8k → 3.9k prompt tokens).
 
 ## API
 
@@ -173,7 +176,14 @@ response (`?format=json`) to read the `warnings` array.
     "warnings": []
   },
   "model": "google/gemini-2.5-flash",
-  "usage": { "promptTokens": 1234, "completionTokens": 5678, "totalTokens": 6912 },
+  "usage": {
+    "promptTokens": 1234,
+    "completionTokens": 5678,
+    "totalTokens": 6912,
+    "cachedTokens": 1024,
+    "reasoningTokens": 0,
+    "costUsd": 0.003112
+  },
   "warnings": [],
   "requestId": "f47ac10b-58cc-4372-a567-0e02b2c3d479",
   "attempts": 1,
@@ -405,6 +415,7 @@ stores:
 - the successful SVG output, its size, element/path counts, and parser warnings;
 - total request latency, upstream latency, attempts, token usage, and per-attempt LLM
   metrics;
+- billed cost, prompt-cache hits and reasoning tokens per attempt;
 - failed conversions with their error code/message.
 
 Prompt text is stored once in a separate `prompts` table keyed by the prompt content
@@ -431,6 +442,26 @@ each welded joint (green dot), the member's pre-weld position (red ring), and th
 correction the weld applies. Older conversions without a stored rig are normalized
 and given synthetic paint-order depth on demand.
 
+### Cost telemetry
+
+Requests carry `usage: { "include": true }`, so OpenRouter reports the billed cost in
+USD and the prompt-cache statistics for every call. The service stores
+`cost_usd`, `cached_tokens` and `reasoning_tokens` next to the token counts, and
+`GET /review/api/stats` exposes:
+
+| Field | Meaning |
+| --- | --- |
+| `totalCostUsd` / `avgCostUsd` | Billed cost overall and per conversion |
+| `costedConversions` | Rows that reported a cost; older rows predate the feature |
+| `totalCachedTokens` / `cacheHitRate` | Prompt tokens served from the provider cache, and their share of all prompt tokens |
+| `totalReasoningTokens` | Reasoning tokens, a subset of completion tokens |
+
+Per-prompt-version statistics also carry `totalCostUsd` and `avgCostUsd`, so prompt
+variants can be compared on cost, not just tokens. Historical rows have no cost and
+are excluded from the averages rather than counted as free, which is why
+`costedConversions` is reported separately. Cost is whatever OpenRouter returns; it
+is `null` when the upstream provider does not report usage accounting.
+
 Read-only review endpoints:
 
 | Route | Description |
@@ -453,8 +484,9 @@ external retention/cleanup if you keep the service running for a long time.
 
 ## How the SVG parser works
 
-The prompt asks the model to emit `<reasoning>…</reasoning>` followed by a fenced
-`xml` block. The parser does not trust that contract:
+The prompt asks the model for the complete SVG in a fenced `xml` block (some prompt
+versions also encourage a short `<reasoning>` preamble). The parser does not trust
+that contract:
 
 1. Normalize the response (BOM, line endings, whitespace).
 2. Collect fenced blocks containing `<svg>`; fall back to the raw slice from the
@@ -491,7 +523,8 @@ wrapper groups; the rig references those ids.
 │   ├── v010-rig-joints.md    # parallax depth + Level-1 joint welds
 │   ├── v011-lash-silhouette.md # v010 + filled tapered lashes
 │   ├── v012-pose-faithful-eyes.md # v011 + pose-faithful eyes
-│   └── v013-idle-motion.md   # v012 + idle-motion presets + blink mask contract
+│   ├── v013-idle-motion.md   # v012 + idle-motion presets + blink mask contract
+│   └── v014-lean-idle-motion.md # v013 contract, deduplicated and shortened
 ├── public/
 │   └── review.html           # dependency-free review UI
 ├── samples/

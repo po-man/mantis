@@ -15,6 +15,12 @@ export interface TokenUsage {
   promptTokens: number;
   completionTokens: number;
   totalTokens: number;
+  /** Prompt tokens served from the provider cache and billed at a discount. */
+  cachedTokens: number;
+  /** Reasoning tokens, already included in completionTokens. */
+  reasoningTokens: number;
+  /** Billed cost in USD as reported by OpenRouter; null when unavailable. */
+  costUsd: number | null;
 }
 
 export interface OpenRouterResult {
@@ -61,6 +67,13 @@ interface OpenRouterResponse {
     prompt_tokens?: number;
     completion_tokens?: number;
     total_tokens?: number;
+    cost?: number;
+    prompt_tokens_details?: {
+      cached_tokens?: number;
+    };
+    completion_tokens_details?: {
+      reasoning_tokens?: number;
+    };
   };
 }
 
@@ -84,6 +97,9 @@ function mapUsage(usage: OpenRouterResponse["usage"]): TokenUsage | null {
     promptTokens: usage.prompt_tokens ?? 0,
     completionTokens: usage.completion_tokens ?? 0,
     totalTokens: usage.total_tokens ?? 0,
+    cachedTokens: usage.prompt_tokens_details?.cached_tokens ?? 0,
+    reasoningTokens: usage.completion_tokens_details?.reasoning_tokens ?? 0,
+    costUsd: typeof usage.cost === "number" ? usage.cost : null,
   };
 }
 
@@ -109,7 +125,13 @@ export class OpenRouterClient implements ChatClient {
       messages,
       temperature: this.config.openrouterTemperature,
       max_tokens: options.maxTokens ?? this.config.openrouterMaxTokens,
+      // Ask OpenRouter to include billed cost and cache statistics in `usage`.
+      usage: { include: true },
     };
+
+    if (this.config.openrouterReasoningEffort) {
+      body.reasoning = { effort: this.config.openrouterReasoningEffort };
+    }
 
     if (this.config.openrouterProvider) {
       try {
@@ -208,6 +230,9 @@ export class OpenRouterClient implements ChatClient {
         promptTokens: usage?.promptTokens ?? 0,
         completionTokens: usage?.completionTokens ?? 0,
         totalTokens: usage?.totalTokens ?? 0,
+        cachedTokens: usage?.cachedTokens ?? 0,
+        reasoningTokens: usage?.reasoningTokens ?? 0,
+        costUsd: usage?.costUsd ?? null,
         latencyMs,
         finishReason: choice?.finish_reason ?? null,
         contentLength: content.length,

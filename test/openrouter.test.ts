@@ -120,6 +120,9 @@ describe("OpenRouterClient", () => {
       promptTokens: 1,
       completionTokens: 2,
       totalTokens: 3,
+      cachedTokens: 0,
+      reasoningTokens: 0,
+      costUsd: null,
     });
 
     expect(captured?.url).toBe("/chat/completions");
@@ -128,6 +131,62 @@ describe("OpenRouterClient", () => {
     expect(captured?.body?.model).toBe("test/model");
     expect(captured?.body?.max_tokens).toBe(2048);
     expect(captured?.body?.temperature).toBe(0.2);
+    expect(captured?.body?.reasoning).toBeUndefined();
+    expect(captured?.body?.usage).toEqual({ include: true });
+  });
+
+  it("parses billed cost and cache statistics", async () => {
+    const baseUrl = await startServer((_request, respond) => {
+      respond(
+        200,
+        JSON.stringify({
+          model: "test/model",
+          choices: [{ message: { content: "hello" }, finish_reason: "stop" }],
+          usage: {
+            prompt_tokens: 1000,
+            completion_tokens: 200,
+            total_tokens: 1200,
+            cost: 0.000412,
+            prompt_tokens_details: { cached_tokens: 900 },
+            completion_tokens_details: { reasoning_tokens: 120 },
+          },
+        }),
+      );
+    });
+
+    const client = new OpenRouterClient(makeConfig(baseUrl));
+    const result = await client.complete([{ role: "user", content: "hi" }]);
+
+    expect(result.usage).toEqual({
+      promptTokens: 1000,
+      completionTokens: 200,
+      totalTokens: 1200,
+      cachedTokens: 900,
+      reasoningTokens: 120,
+      costUsd: 0.000412,
+    });
+  });
+
+  it("sends the configured reasoning effort", async () => {
+    let captured: CapturedRequest | undefined;
+
+    const baseUrl = await startServer((request, respond) => {
+      captured = request;
+      respond(
+        200,
+        JSON.stringify({
+          model: "test/model",
+          choices: [{ message: { content: "hello" }, finish_reason: "stop" }],
+        }),
+      );
+    });
+
+    const client = new OpenRouterClient(
+      makeConfig(baseUrl, { openrouterReasoningEffort: "low" }),
+    );
+    await client.complete([{ role: "user", content: "hi" }]);
+
+    expect(captured?.body?.reasoning).toEqual({ effort: "low" });
   });
 
   it("logs request id, token usage, and latency after a call", async () => {
@@ -143,6 +202,9 @@ describe("OpenRouterClient", () => {
             prompt_tokens: 1,
             completion_tokens: 2,
             total_tokens: 3,
+            cost: 0.5,
+            prompt_tokens_details: { cached_tokens: 1 },
+            completion_tokens_details: { reasoning_tokens: 1 },
           },
         }),
       );
@@ -169,6 +231,9 @@ describe("OpenRouterClient", () => {
       promptTokens: 1,
       completionTokens: 2,
       totalTokens: 3,
+      reasoningTokens: 1,
+      cachedTokens: 1,
+      costUsd: 0.5,
       finishReason: "stop",
       contentLength: 5,
     });

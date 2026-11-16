@@ -11,6 +11,7 @@ import type {
   OpenRouterResult,
 } from "../src/services/openrouter.js";
 import type { PromptBundle } from "../src/services/prompt.js";
+import { aggregateUsage, vectorizeImage, type LlmCallMetric } from "../src/services/vectorize.js";
 
 const VALID_SVG = [
   "```xml",
@@ -87,7 +88,14 @@ class FakeClient implements ChatClient {
     return {
       content: this.responses[index] ?? "",
       finishReason: "stop",
-      usage: { promptTokens: 10, completionTokens: 20, totalTokens: 30 },
+      usage: {
+        promptTokens: 10,
+        completionTokens: 20,
+        totalTokens: 30,
+        cachedTokens: 0,
+        reasoningTokens: 0,
+        costUsd: null,
+      },
       model: "test/model",
       latencyMs: 5,
     };
@@ -460,5 +468,97 @@ describe("ops endpoints", () => {
     const response = await app.inject({ method: "GET", url: "/nope" });
     expect(response.statusCode).toBe(404);
     expect(response.json().error.code).toBe("not_found");
+  });
+});
+
+describe("aggregateUsage", () => {
+  const call = (overrides: Partial<LlmCallMetric> = {}): LlmCallMetric => ({
+    attempt: 1,
+    model: "test/model",
+    latencyMs: 10,
+    promptTokens: 100,
+    completionTokens: 200,
+    totalTokens: 300,
+    cachedTokens: 0,
+    reasoningTokens: 0,
+    costUsd: null,
+    finishReason: "stop",
+    contentLength: 100,
+    ...overrides,
+  });
+
+  it("sums tokens and cost across attempts", () => {
+    const usage = aggregateUsage([
+      call({ costUsd: 0.001, cachedTokens: 80, reasoningTokens: 5 }),
+      call({ attempt: 2, costUsd: 0.002 }),
+    ]);
+
+    expect(usage).toEqual({
+      promptTokens: 200,
+      completionTokens: 400,
+      totalTokens: 600,
+      cachedTokens: 80,
+      reasoningTokens: 5,
+      costUsd: 0.003,
+    });
+  });
+
+  it("keeps cost null when no attempt reported one", () => {
+    const usage = aggregateUsage([call(), call({ attempt: 2 })]);
+    expect(usage?.costUsd).toBeNull();
+  });
+
+  it("returns null without calls", () => {
+    expect(aggregateUsage([])).toBeNull();
+  });
+});
+
+describe("retry token budget", () => {
+  it("never shrinks maxTokens when the first attempt is truncated", async () => {
+    const budgets: Array<number | undefined> = [];
+    const truncated = '```xml\n<svg xmlns="http://www.w3.org/2000/svg"><path d="M';
+    const client: ChatClient = {
+      async complete(_messages, options = {}) {
+        budgets.push(options.maxTokens);
+        const first = budgets.length === 1;
+        return {
+          content: first ? truncated : VALID_SVG,
+          finishReason: first ? "length" : "stop",
+          usage: {
+            promptTokens: 10,
+            completionTokens: 20,
+            totalTokens: 30,
+            cachedTokens: 0,
+            reasoningTokens: 0,
+            costUsd: null,
+          },
+          model: "test/model",
+          latencyMs: 5,
+        };
+      },
+    };
+
+    const result = await vectorizeImage(
+      {
+        config: makeConfig({ openrouterMaxTokens: 65_536 }),
+        prompt: PROMPT,
+        client,
+      },
+      {
+        dataUrl: "data:image/png;base64,AAAA",
+        data: Buffer.from("stub"),
+        mime: "image/png",
+        width: 16,
+        height: 16,
+        bytes: 4,
+        originalWidth: 16,
+        originalHeight: 16,
+        resized: false,
+      },
+    );
+
+    expect(result.attempts).toBe(2);
+    expect(budgets[0]).toBe(65_536);
+    expect(budgets[1]).toBe(65_536);
   });
 });

@@ -26,6 +26,9 @@ export interface LlmCallMetric {
   promptTokens: number;
   completionTokens: number;
   totalTokens: number;
+  cachedTokens: number;
+  reasoningTokens: number;
+  costUsd: number | null;
   finishReason: string | null;
   contentLength: number;
 }
@@ -52,14 +55,28 @@ export function aggregateUsage(calls: LlmCallMetric[]): TokenUsage | null {
   if (calls.length === 0) {
     return null;
   }
-  return calls.reduce<TokenUsage>(
-    (total, call) => ({
-      promptTokens: total.promptTokens + call.promptTokens,
-      completionTokens: total.completionTokens + call.completionTokens,
-      totalTokens: total.totalTokens + call.totalTokens,
+  const total = calls.reduce<TokenUsage>(
+    (acc, call) => ({
+      promptTokens: acc.promptTokens + call.promptTokens,
+      completionTokens: acc.completionTokens + call.completionTokens,
+      totalTokens: acc.totalTokens + call.totalTokens,
+      cachedTokens: acc.cachedTokens + call.cachedTokens,
+      reasoningTokens: acc.reasoningTokens + call.reasoningTokens,
+      costUsd:
+        call.costUsd === null
+          ? acc.costUsd
+          : (acc.costUsd ?? 0) + call.costUsd,
     }),
-    { promptTokens: 0, completionTokens: 0, totalTokens: 0 },
+    {
+      promptTokens: 0,
+      completionTokens: 0,
+      totalTokens: 0,
+      cachedTokens: 0,
+      reasoningTokens: 0,
+      costUsd: null,
+    },
   );
+  return total;
 }
 
 export type VectorizeContext = Pick<CompleteOptions, "requestId" | "logger">;
@@ -127,6 +144,9 @@ export async function vectorizeImage(
       promptTokens: result.usage?.promptTokens ?? 0,
       completionTokens: result.usage?.completionTokens ?? 0,
       totalTokens: result.usage?.totalTokens ?? 0,
+      cachedTokens: result.usage?.cachedTokens ?? 0,
+      reasoningTokens: result.usage?.reasoningTokens ?? 0,
+      costUsd: result.usage?.costUsd ?? null,
       finishReason: result.finishReason,
       contentLength: result.content.length,
     });
@@ -176,7 +196,12 @@ export async function vectorizeImage(
       }
 
       if (error.code === "truncated" || result.finishReason === "length") {
-        maxTokens = Math.min(maxTokens * 2, MAX_REPAIR_TOKENS);
+        // Never shrink the budget: a configured max_tokens above the repair cap
+        // would otherwise be lowered by the retry and truncate again.
+        maxTokens = Math.max(
+          maxTokens,
+          Math.min(maxTokens * 2, MAX_REPAIR_TOKENS),
+        );
       }
 
       messages.push({
