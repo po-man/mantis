@@ -442,6 +442,8 @@ The review UI at `http://localhost:8080/review` provides:
 - filtering by status, publication rating, model, prompt version, and request ID;
 - **Nice / Fair / Bad** publication ratings on each successful conversion, both in
   the table and in the detail view;
+- a separate **featured** pick (the star beside the ratings) for the idle-only hero
+  at the top of the published page;
 - a paginated conversion table with input thumbnails;
 - a publication export dialog that writes a curated bundle to `.publish/`;
 - a detail view with the input image, rendered SVG, an interactive parallax preview,
@@ -486,11 +488,12 @@ Review endpoints:
 | `GET /review/api/conversions` | Paginated list (`limit`, `offset`, `status`, `rating`, `model`, `promptVersion`, `q`) |
 | `GET /review/api/conversions/:id` | Metadata, prompt text, warnings, LLM calls, rating, and the parallax rig |
 | `PUT /review/api/conversions/:id/selection` | Set or clear a `nice`/`fair`/`bad` publication rating |
+| `PUT /review/api/publication/featured` | Set or clear the single featured conversion |
 | `GET /review/api/conversions/:id/input` | Stored input image |
 | `GET /review/api/conversions/:id/output.svg` | Stored SVG output |
 | `GET /review/api/conversions/:id/parallax.svg` | SVG normalized for the rig (ids + clip wrappers) |
 | `GET /review/api/conversions/:id/rig.json` | Stored or on-demand parallax rig |
-| `GET /review/api/publication` | Local staging metadata and selection counts |
+| `GET /review/api/publication` | Local staging metadata, selection counts, and featured pick |
 | `POST /review/api/publish` | Write the local `.publish/` manifest and assets |
 | `GET /review/api/stats` | Aggregate and per-prompt statistics |
 
@@ -513,7 +516,10 @@ separate `publish.*` branch carries the committed files.
 1. Open `http://localhost:8080/review`.
 2. Mark successful conversions **Nice**, **Fair**, or **Bad**. A rating is the
    selection; clicking the active rating clears it.
-3. Click **Publish**, review the counts and edit the intro (must be under 100 words),
+3. Optionally click the **star** beside the ratings to pick one conversion for the
+   idle-only hero at the top of the page. The featured pick is independent of the
+   rating and can be unrated.
+4. Click **Publish**, review the counts and edit the intro (must be under 100 words),
    then click **Write bundle**.
 
 The service writes:
@@ -524,7 +530,9 @@ The service writes:
 └── assets/
     ├── 0001-<id>-input.png
     ├── 0001-<id>.svg
-    └── 0001-<id>.rig.json
+    ├── 0001-<id>.rig.json
+    ├── featured-<id>.svg
+    └── featured-<id>.rig.json
 ```
 
 `.publish/` is gitignored and can be regenerated at any time. The manifest has this
@@ -551,7 +559,19 @@ shape:
         "rig": "assets/0001-42.rig.json"
       }
     }
-  ]
+  ],
+  "featured": {
+    "id": 7,
+    "rating": "nice",
+    "title": "Conversion #7",
+    "model": "google/gemini-2.5-flash",
+    "promptVersion": "v015",
+    "createdAt": 1760000000000,
+    "assets": {
+      "svg": "assets/featured-7.svg",
+      "rig": "assets/featured-7.rig.json"
+    }
+  }
 }
 ```
 
@@ -559,6 +579,11 @@ Ratings are stored as `nice`, `fair`, and `bad`; the published page labels the N
 tier **Good**. Historical conversions without a stored rig are normalized and given a
 rig on export. The export fails rather than publishing a partial item when an input,
 SVG, or rig is missing.
+
+The optional `featured` object is the single star pick. It has no input asset and is
+excluded from the Good/Fair/Bad galleries, so it appears only in the idle-only hero.
+`featured.rating` may be `null` when the pick is unrated. A publication may contain
+only a featured pick and no gallery items.
 
 ### 2. Create the publish branch
 
@@ -620,9 +645,12 @@ npm run publish:build -- --manifest .publish/selections.json --out site
 python3 -m http.server 4173 -d site
 ```
 
-Open `http://localhost:4173`. The published page has a short intro and three stacked
-**Good / Fair / Bad** galleries. Each card shows the input image and static SVG side by
-side on desktop and stacked on mobile. Clicking or tapping a card opens a modal:
+Open `http://localhost:4173`. If a featured conversion is selected, the page starts
+with its idle-only SVG: on desktop it sits to the right of the intro text, and on
+mobile it appears above the title and intro. The hero has no input image, modal,
+cursor, tilt, or swipe interaction. Below it are three stacked **Good / Fair / Bad**
+galleries. Each card shows the input image and static SVG side by side on desktop and
+stacked on mobile. Clicking or tapping a card opens a modal:
 
 - idle motion is always on;
 - the SVG moves in 2.5D from the cursor on desktop;

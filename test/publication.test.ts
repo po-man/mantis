@@ -1,4 +1,9 @@
-import { mkdtempSync, readFileSync, rmSync } from "node:fs";
+import {
+  mkdtempSync,
+  readFileSync,
+  readdirSync,
+  rmSync,
+} from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
@@ -167,6 +172,61 @@ describe("createPublicationBundle", () => {
       readFileSync(path.join(outDir, item!.assets.rig), "utf8"),
     ) as ParallaxRig;
     expect(rig.nodes.length).toBeGreaterThan(0);
+
+    store.close();
+    rmSync(outDir, { recursive: true, force: true });
+  });
+
+  it("publishes a featured-only conversion without an input image", async () => {
+    const { store, promptId, outDir } = setup();
+    const id = store.record(makeEntry(promptId, { input: null }));
+    store.setFeatured(id);
+
+    const result = await createPublicationBundle({
+      store,
+      outDir,
+      intro: "A featured-only publication.",
+    });
+
+    expect(result.manifest.items).toEqual([]);
+    expect(result.featured?.id).toBe(id);
+    expect(result.featured?.rating).toBeNull();
+    const featured = result.manifest.featured;
+    expect(featured).toBeDefined();
+    expect(Object.keys(featured!.assets).sort()).toEqual(["rig", "svg"]);
+    expect(readFileSync(path.join(outDir, featured!.assets.svg), "utf8")).toContain(
+      "<svg",
+    );
+    expect(
+      JSON.parse(readFileSync(path.join(outDir, featured!.assets.rig), "utf8"))
+        .format,
+    ).toBe("vector.parallax");
+    expect(
+      readdirSync(path.join(outDir, "assets")).some((name) =>
+        name.startsWith(`featured-${id}-input`),
+      ),
+    ).toBe(false);
+
+    store.close();
+    rmSync(outDir, { recursive: true, force: true });
+  });
+
+  it("keeps the featured conversion out of the rated galleries", async () => {
+    const { store, promptId, outDir } = setup();
+    const featuredId = store.record(
+      makeEntry(promptId, { requestId: "featured" }),
+    );
+    const galleryId = store.record(makeEntry(promptId, { requestId: "gallery" }));
+    store.setSelection(featuredId, "nice");
+    store.setSelection(galleryId, "nice");
+    store.setFeatured(featuredId);
+
+    const result = await createPublicationBundle({ store, outDir });
+
+    expect(result.manifest.items.map((item) => item.id)).toEqual([galleryId]);
+    expect(result.manifest.featured?.id).toBe(featuredId);
+    expect(result.manifest.featured?.rating).toBe("nice");
+    expect(result.counts).toEqual({ nice: 2, fair: 0, bad: 0, total: 2 });
 
     store.close();
     rmSync(outDir, { recursive: true, force: true });

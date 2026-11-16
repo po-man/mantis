@@ -179,6 +179,16 @@ export async function registerReviewRoutes(
         const publishDir = path.resolve(deps.publishDir);
         const manifestPath = path.join(publishDir, "selections.json");
         const counts = deps.store.selectionCounts();
+        const featuredId = deps.store.getFeaturedId();
+        const featuredDetail =
+          featuredId === null ? null : deps.store.get(featuredId);
+        const featured = featuredDetail
+          ? {
+              id: featuredDetail.id,
+              title: `Conversion #${featuredDetail.id}`,
+              rating: featuredDetail.rating,
+            }
+          : null;
         let exists = false;
         let intro = DEFAULT_PUBLICATION_INTRO;
         let title = PUBLICATION_TITLE;
@@ -209,9 +219,62 @@ export async function registerReviewRoutes(
           generatedAt,
           manifestError,
           counts,
+          featured,
           publishDir: path.relative(process.cwd(), publishDir) || ".",
           maxIntroWords: MAX_INTRO_WORDS,
         });
+      },
+    );
+
+    app.put(
+      "/review/api/publication/featured",
+      {
+        schema: {
+          tags: ["review"],
+          summary: "Set or clear the single featured publication conversion",
+        },
+      },
+      async (request, reply) => {
+        assertSameOrigin(request);
+        const body = request.body as { conversionId?: unknown } | undefined;
+        if (!body || !("conversionId" in body)) {
+          throw new AppError(
+            "bad_request",
+            "Expected a JSON body with a conversionId",
+            400,
+          );
+        }
+
+        const value = body.conversionId;
+        if (value === null) {
+          deps.store.setFeatured(null);
+          reply.header("cache-control", "no-store");
+          return reply.send({ conversionId: null });
+        }
+
+        if (
+          typeof value !== "number" ||
+          !Number.isInteger(value) ||
+          value < 1
+        ) {
+          throw new AppError("bad_request", "Invalid conversion id", 400);
+        }
+
+        const detail = deps.store.get(value);
+        if (!detail) {
+          throw new AppError("not_found", "Conversion not found", 404);
+        }
+        if (detail.status !== "success") {
+          throw new AppError(
+            "bad_request",
+            "Only successful conversions can be featured",
+            400,
+          );
+        }
+
+        deps.store.setFeatured(value);
+        reply.header("cache-control", "no-store");
+        return reply.send({ conversionId: value });
       },
     );
 
@@ -262,6 +325,7 @@ export async function registerReviewRoutes(
           counts: result.counts,
           introWords: result.introWords,
           itemCount: result.manifest.items.length,
+          featuredId: result.featured?.id ?? null,
         });
       },
     );

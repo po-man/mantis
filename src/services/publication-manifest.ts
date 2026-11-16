@@ -74,16 +74,49 @@ export const publicationItemSchema = z.object({
   }),
 });
 
-export const publicationManifestSchema = z.object({
-  format: z.literal(PUBLICATION_FORMAT),
-  version: z.literal(PUBLICATION_VERSION),
+export const publicationFeaturedSchema = z.object({
+  id: z.number().int().positive(),
+  rating: z.enum(PUBLISH_RATINGS).nullable(),
   title: z.string().min(1),
-  intro,
-  generatedAt: z.string().min(1),
-  items: z.array(publicationItemSchema).min(1),
+  model: z.string().nullable(),
+  promptVersion: z.string().min(1),
+  createdAt: z.number().int().nonnegative(),
+  assets: z.object({
+    svg: assetPath,
+    rig: assetPath,
+  }),
 });
 
+export const publicationManifestSchema = z
+  .object({
+    format: z.literal(PUBLICATION_FORMAT),
+    version: z.literal(PUBLICATION_VERSION),
+    title: z.string().min(1),
+    intro,
+    generatedAt: z.string().min(1),
+    items: z.array(publicationItemSchema),
+    featured: publicationFeaturedSchema.nullable().optional(),
+  })
+  .superRefine((value, ctx) => {
+    if (value.items.length === 0 && !value.featured) {
+      ctx.addIssue({
+        code: "custom",
+        message: "Publication must include at least one result",
+      });
+    }
+    if (
+      value.featured &&
+      value.items.some((item) => item.id === value.featured?.id)
+    ) {
+      ctx.addIssue({
+        code: "custom",
+        message: "Featured conversion must not also appear in the galleries",
+      });
+    }
+  });
+
 export type PublicationItem = z.infer<typeof publicationItemSchema>;
+export type PublicationFeatured = z.infer<typeof publicationFeaturedSchema>;
 export type PublicationManifest = z.infer<typeof publicationManifestSchema>;
 
 export function parsePublicationManifest(value: unknown): PublicationManifest {

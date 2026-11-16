@@ -150,18 +150,18 @@
     nextButton.disabled = currentIndex >= manifest.items.length - 1;
   }
 
-  async function loadAssets(item) {
-    if (!assetCache.has(item.id)) {
+  async function loadAssetPair(key, assets) {
+    if (!assetCache.has(key)) {
       assetCache.set(
-        item.id,
+        key,
         Promise.all([
-          fetch(item.assets.svg, { cache: "force-cache" }).then((response) => {
+          fetch(assets.svg, { cache: "force-cache" }).then((response) => {
             if (!response.ok) {
               throw new Error("Could not load the SVG (" + response.status + ")");
             }
             return response.text();
           }),
-          fetch(item.assets.rig, { cache: "force-cache" }).then((response) => {
+          fetch(assets.rig, { cache: "force-cache" }).then((response) => {
             if (!response.ok) {
               throw new Error("Could not load the rig (" + response.status + ")");
             }
@@ -170,7 +170,11 @@
         ]).then(([svg, rig]) => ({ svg, rig })),
       );
     }
-    return assetCache.get(item.id);
+    return assetCache.get(key);
+  }
+
+  async function loadAssets(item) {
+    return loadAssetPair(item.id, item.assets);
   }
 
   async function loadCurrent() {
@@ -471,5 +475,25 @@
     }
   });
 
+  async function initFeatured() {
+    const stage = $("featured-stage");
+    if (!stage) return;
+    try {
+      const data = await getManifest();
+      if (!data.featured) return;
+      const assets = await loadAssetPair(
+        "featured-" + data.featured.id,
+        data.featured.assets,
+      );
+      window.VectorParallax.create(stage, assets.svg, assets.rig, {
+        idle: true,
+      });
+      stage.dataset.ready = "true";
+    } catch {
+      // Leave the static fallback <img> in place.
+    }
+  }
+
   syncBackgroundButton();
+  initFeatured();
 })();

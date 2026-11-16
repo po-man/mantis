@@ -70,6 +70,25 @@ function makeManifest(intro = "A short publication intro.") {
   };
 }
 
+function makeFeatured() {
+  return {
+    id: 99,
+    rating: "nice",
+    title: "Conversion #99",
+    model: "test/model",
+    promptVersion: "v015",
+    createdAt: 3,
+    assets: {
+      svg: "assets/featured-99.svg",
+      rig: "assets/featured-99.rig.json",
+    },
+  };
+}
+
+type TestManifest = ReturnType<typeof makeManifest> & {
+  featured?: ReturnType<typeof makeFeatured>;
+};
+
 function setup() {
   const dir = mkdtempSync(path.join(tmpdir(), "vector-build-site-"));
   mkdirSync(path.join(dir, "assets"), { recursive: true });
@@ -81,6 +100,11 @@ function setup() {
       JSON.stringify(RIG),
     );
   }
+  writeFileSync(path.join(dir, "assets", "featured-99.svg"), SVG);
+  writeFileSync(
+    path.join(dir, "assets", "featured-99.rig.json"),
+    JSON.stringify(RIG),
+  );
   const manifestPath = path.join(dir, "selections.json");
   writeFileSync(manifestPath, JSON.stringify(makeManifest()));
   const outDir = path.join(dir, "site");
@@ -117,6 +141,74 @@ describe("buildSite", () => {
     expect(existsSync(path.join(outDir, "parallax-player.js"))).toBe(true);
     expect(existsSync(path.join(outDir, ".nojekyll"))).toBe(true);
 
+    rmSync(dir, { recursive: true, force: true });
+  });
+
+  it("renders a featured idle hero outside the galleries", async () => {
+    const { dir, manifestPath, outDir } = setup();
+    const manifest: TestManifest = makeManifest();
+    manifest.items = [manifest.items[0]!];
+    manifest.featured = makeFeatured();
+    writeFileSync(manifestPath, JSON.stringify(manifest));
+
+    const result = await buildSite({
+      rootDir: process.cwd(),
+      manifestPath,
+      outDir,
+    });
+
+    expect(result.itemCount).toBe(1);
+    const html = readFileSync(path.join(outDir, "index.html"), "utf8");
+    expect(html).toContain('class="hero has-feature"');
+    expect(html).toContain('id="featured-stage"');
+    expect(html).toContain("./assets/featured-99.svg");
+    expect(html).toContain("Featured vector sample");
+    expect(html).toContain('data-index="0"');
+    expect(html).not.toContain('data-index="1"');
+    expect(
+      readFileSync(path.join(outDir, "publication.json"), "utf8"),
+    ).toContain('"featured"');
+    expect(existsSync(path.join(outDir, "assets", "featured-99.svg"))).toBe(
+      true,
+    );
+
+    rmSync(dir, { recursive: true, force: true });
+  });
+
+  it("allows a featured-only publication", async () => {
+    const { dir, manifestPath, outDir } = setup();
+    const manifest: TestManifest = makeManifest();
+    manifest.items = [];
+    manifest.featured = makeFeatured();
+    writeFileSync(manifestPath, JSON.stringify(manifest));
+
+    const result = await buildSite({
+      rootDir: process.cwd(),
+      manifestPath,
+      outDir,
+    });
+
+    expect(result.itemCount).toBe(0);
+    expect(result.counts).toEqual({ nice: 0, fair: 0, bad: 0 });
+    const html = readFileSync(path.join(outDir, "index.html"), "utf8");
+    expect(html).toContain('class="hero has-feature"');
+    expect(html).toContain('id="featured-stage"');
+    expect(html).toContain("No results in this tier.");
+
+    rmSync(dir, { recursive: true, force: true });
+  });
+
+  it("rejects a featured conversion that also appears in a gallery", async () => {
+    const { dir, manifestPath, outDir } = setup();
+    const manifest: TestManifest = makeManifest();
+    manifest.featured = {
+      ...makeFeatured(),
+      id: manifest.items[0]!.id,
+    };
+    writeFileSync(manifestPath, JSON.stringify(manifest));
+    await expect(
+      buildSite({ rootDir: process.cwd(), manifestPath, outDir }),
+    ).rejects.toThrow(/must not also appear/);
     rmSync(dir, { recursive: true, force: true });
   });
 

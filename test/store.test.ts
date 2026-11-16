@@ -284,6 +284,34 @@ describe("ConversionStore", () => {
     store.close();
   });
 
+  it("stores a single featured conversion independently of ratings", () => {
+    const store = makeStore();
+    const promptId = store.upsertPrompt(PROMPT);
+    const first = store.record(makeEntry(promptId, { requestId: "req-first" }));
+    const second = store.record(
+      makeEntry(promptId, { requestId: "req-second" }),
+    );
+
+    expect(store.getFeaturedId()).toBeNull();
+    expect(store.setFeatured(first)).toBe(first);
+    expect(store.getFeaturedId()).toBe(first);
+    expect(store.list().items.find((item) => item.id === first)?.featured).toBe(
+      true,
+    );
+    expect(store.get(first)?.featured).toBe(true);
+    expect(store.list({ rating: "unrated" }).items).toHaveLength(2);
+
+    store.setFeatured(second);
+    expect(store.getFeaturedId()).toBe(second);
+    expect(store.get(first)?.featured).toBe(false);
+    expect(store.get(second)?.featured).toBe(true);
+
+    expect(store.setFeatured(null)).toBeNull();
+    expect(store.getFeaturedId()).toBeNull();
+    expect(store.get(second)?.featured).toBe(false);
+    store.close();
+  });
+
   it("computes aggregate statistics", () => {
     const store = makeStore();
     const promptId = store.upsertPrompt(PROMPT);

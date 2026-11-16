@@ -92,6 +92,7 @@ export interface ConversionListItem {
   errorCode: string | null;
   hasInput: boolean;
   rating: PublishRating | null;
+  featured: boolean;
 }
 
 export interface ConversionDetail extends ConversionListItem {
@@ -197,6 +198,7 @@ interface ConversionRow {
   error_message: string | null;
   has_input: number;
   publish_rating: PublishRating | null;
+  featured: number;
   prompt_id: number;
   prompt_text: string;
   prompt_path: string;
@@ -269,6 +271,7 @@ function toListItem(row: ConversionRow): ConversionListItem {
     errorCode: row.error_code,
     hasInput: row.has_input === 1,
     rating: row.publish_rating,
+    featured: row.featured === 1,
   };
 }
 
@@ -303,7 +306,8 @@ const LIST_COLUMNS = `
   c.cost_usd,
   c.error_code,
   CASE WHEN c.input_image IS NULL THEN 0 ELSE 1 END AS has_input,
-  s.rating AS publish_rating
+  s.rating AS publish_rating,
+  CASE WHEN f.conversion_id IS NULL THEN 0 ELSE 1 END AS featured
 `;
 
 export class ConversionStore {
@@ -380,6 +384,13 @@ export class ConversionStore {
 
       CREATE INDEX IF NOT EXISTS idx_publication_selections_rating
         ON publication_selections(rating);
+
+      CREATE TABLE IF NOT EXISTS publication_featured (
+        id INTEGER PRIMARY KEY CHECK (id = 1),
+        conversion_id INTEGER NOT NULL
+          REFERENCES conversions(id) ON DELETE CASCADE,
+        updated_at INTEGER NOT NULL
+      );
     `);
 
     // Existing databases predate the parallax columns.
@@ -532,6 +543,7 @@ export class ConversionStore {
          FROM conversions c
          JOIN prompts p ON p.id = c.prompt_id
          LEFT JOIN publication_selections s ON s.conversion_id = c.id
+         LEFT JOIN publication_featured f ON f.conversion_id = c.id
          ${where}`,
       )
       .get(...values) as { total: number } | undefined;
@@ -542,6 +554,7 @@ export class ConversionStore {
          FROM conversions c
          JOIN prompts p ON p.id = c.prompt_id
          LEFT JOIN publication_selections s ON s.conversion_id = c.id
+         LEFT JOIN publication_featured f ON f.conversion_id = c.id
          ${where}
          ORDER BY c.created_at DESC, c.id DESC
          LIMIT ? OFFSET ?`,
@@ -570,6 +583,7 @@ export class ConversionStore {
          FROM conversions c
          JOIN prompts p ON p.id = c.prompt_id
          LEFT JOIN publication_selections s ON s.conversion_id = c.id
+         LEFT JOIN publication_featured f ON f.conversion_id = c.id
          WHERE c.id = ?`,
       )
       .get(id) as unknown as ConversionRow | undefined;
@@ -650,6 +664,31 @@ export class ConversionStore {
     return rating;
   }
 
+  getFeaturedId(): number | null {
+    const row = this.db
+      .prepare("SELECT conversion_id FROM publication_featured WHERE id = 1")
+      .get() as { conversion_id: number } | undefined;
+    return row?.conversion_id ?? null;
+  }
+
+  setFeatured(id: number | null): number | null {
+    if (id === null) {
+      this.db.prepare("DELETE FROM publication_featured WHERE id = 1").run();
+      return null;
+    }
+
+    this.db
+      .prepare(
+        `INSERT INTO publication_featured (id, conversion_id, updated_at)
+         VALUES (1, ?, ?)
+         ON CONFLICT(id) DO UPDATE SET
+           conversion_id = excluded.conversion_id,
+           updated_at = excluded.updated_at`,
+      )
+      .run(id, Date.now());
+    return id;
+  }
+
   listSelected(): ConversionListItem[] {
     const rows = this.db
       .prepare(
@@ -657,6 +696,7 @@ export class ConversionStore {
          FROM conversions c
          JOIN prompts p ON p.id = c.prompt_id
          JOIN publication_selections s ON s.conversion_id = c.id
+         LEFT JOIN publication_featured f ON f.conversion_id = c.id
          ORDER BY
            CASE s.rating WHEN 'nice' THEN 1 WHEN 'fair' THEN 2 ELSE 3 END,
            s.updated_at ASC,

@@ -10,6 +10,7 @@ import {
   PUBLICATION_VERSION,
   countWords,
   parsePublicationManifest,
+  type PublicationFeatured,
   type PublicationItem,
   type PublicationManifest,
 } from "./publication-manifest.js";
@@ -29,6 +30,7 @@ export interface PublicationBundleResult {
   manifest: PublicationManifest;
   counts: SelectionCounts;
   introWords: number;
+  featured: PublicationFeatured | null;
 }
 
 function inputExtension(mime: string): string {
@@ -71,10 +73,11 @@ export async function createPublicationBundle(
   }
 
   const selected = options.store.listSelected();
-  if (selected.length === 0) {
+  const featuredId = options.store.getFeaturedId();
+  if (selected.length === 0 && featuredId === null) {
     throw new AppError(
       "bad_request",
-      "Select at least one conversion before publishing",
+      "Select at least one conversion or a featured conversion before publishing",
       400,
     );
   }
@@ -84,8 +87,14 @@ export async function createPublicationBundle(
   await rm(assetsDir, { recursive: true, force: true });
   await mkdir(assetsDir, { recursive: true });
 
+  // The featured item is presented only in the idle-only hero, so keep it out
+  // of the interactive galleries and do not export its input image.
+  const galleryItems = selected.filter(
+    (conversion) => conversion.id !== featuredId,
+  );
+
   const items: PublicationItem[] = [];
-  for (const [index, conversion] of selected.entries()) {
+  for (const [index, conversion] of galleryItems.entries()) {
     if (conversion.status !== "success" || !conversion.rating) {
       throw new AppError(
         "bad_request",
@@ -160,6 +169,67 @@ export async function createPublicationBundle(
     });
   }
 
+  let featured: PublicationFeatured | null = null;
+  if (featuredId !== null) {
+    const detail = options.store.get(featuredId);
+    if (!detail || detail.status !== "success") {
+      throw new AppError(
+        "bad_request",
+        `Featured conversion ${featuredId} cannot be published`,
+        400,
+      );
+    }
+
+    const storedSvg = options.store.getOutput(featuredId);
+    if (!storedSvg) {
+      throw new AppError(
+        "bad_request",
+        `Featured conversion ${featuredId} has no stored SVG output`,
+        400,
+      );
+    }
+
+    let svg = storedSvg;
+    let rig = detail.rig;
+    if (!rig) {
+      try {
+        const derived = deriveParallaxRig(storedSvg);
+        svg = derived.svg;
+        rig = derived.rig;
+      } catch (error) {
+        throw new AppError(
+          "bad_request",
+          `Featured conversion ${featuredId} has no usable parallax rig: ` +
+            (error instanceof Error ? error.message : String(error)),
+          400,
+        );
+      }
+    }
+
+    const base = `featured-${featuredId}`;
+    const svgName = `${base}.svg`;
+    const rigName = `${base}.rig.json`;
+    await writeFile(path.join(assetsDir, svgName), svg, "utf8");
+    await writeFile(
+      path.join(assetsDir, rigName),
+      `${JSON.stringify(rig, null, 2)}\n`,
+      "utf8",
+    );
+
+    featured = {
+      id: featuredId,
+      rating: detail.rating,
+      title: `Conversion #${featuredId}`,
+      model: detail.model,
+      promptVersion: detail.promptVersion,
+      createdAt: detail.createdAt,
+      assets: {
+        svg: path.posix.join("assets", svgName),
+        rig: path.posix.join("assets", rigName),
+      },
+    };
+  }
+
   const manifest = parsePublicationManifest({
     format: PUBLICATION_FORMAT,
     version: PUBLICATION_VERSION,
@@ -167,6 +237,7 @@ export async function createPublicationBundle(
     intro,
     generatedAt: (options.generatedAt ?? new Date()).toISOString(),
     items,
+    featured,
   });
 
   const manifestPath = path.join(outDir, "selections.json");
@@ -184,5 +255,6 @@ export async function createPublicationBundle(
     manifest,
     counts: options.store.selectionCounts(),
     introWords,
+    featured,
   };
 }

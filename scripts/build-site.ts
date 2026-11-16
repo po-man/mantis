@@ -89,6 +89,33 @@ function sectionsHtml(manifest: PublicationManifest): string {
   }).join("\n      ");
 }
 
+function featuredHtml(manifest: PublicationManifest): string {
+  if (!manifest.featured) {
+    return "";
+  }
+  const src = escapeHtml(`./${manifest.featured.assets.svg}`);
+  return (
+    '<div class="hero-feature">' +
+    '<div class="feature-stage" id="featured-stage" aria-label="Featured vector sample">' +
+    `<img src="${src}" alt="Featured vector sample" />` +
+    "</div>" +
+    "</div>"
+  );
+}
+
+function heroHtml(manifest: PublicationManifest): string {
+  return (
+    `<div class="hero${manifest.featured ? " has-feature" : ""}">` +
+    '<div class="hero-copy">' +
+    '<p class="eyebrow">vector</p>' +
+    `<h1>${escapeHtml(manifest.title)}</h1>` +
+    `<div class="intro">${introHtml(manifest.intro)}</div>` +
+    "</div>" +
+    featuredHtml(manifest) +
+    "</div>"
+  );
+}
+
 function assetCounts(
   manifest: PublicationManifest,
 ): Record<PublishRating, number> {
@@ -114,9 +141,12 @@ function buildMeta(manifest: PublicationManifest): string {
       : undefined;
   const commit = shortCommit();
   const parts = [
-    `${manifest.items.length} selected result${manifest.items.length === 1 ? "" : "s"}`,
+    `${manifest.items.length} gallery result${manifest.items.length === 1 ? "" : "s"}`,
     `generated ${escapeHtml(manifest.generatedAt)}`,
   ];
+  if (manifest.featured) {
+    parts.push(`featured <code>#${manifest.featured.id}</code>`);
+  }
   if (tag) {
     parts.push(`tag <code>${escapeHtml(tag)}</code>`);
   } else {
@@ -126,6 +156,68 @@ function buildMeta(manifest: PublicationManifest): string {
     parts.push(`commit <code>${escapeHtml(commit)}</code>`);
   }
   return parts.join(" · ");
+}
+
+async function validateAsset(
+  manifestDir: string,
+  assetPath: string,
+  kind: string,
+  id: number,
+  assets: Map<string, string>,
+): Promise<void> {
+  if (assets.has(assetPath)) {
+    throw new Error(`Asset path is reused: ${assetPath}`);
+  }
+  const absolute = path.resolve(manifestDir, assetPath);
+  const relative = path.relative(manifestDir, absolute);
+  if (
+    relative.startsWith("..") ||
+    path.isAbsolute(relative) ||
+    relative.length === 0
+  ) {
+    throw new Error(`Asset escapes the publication directory: ${assetPath}`);
+  }
+
+  let info;
+  try {
+    info = await stat(absolute);
+  } catch {
+    throw new Error(`Missing ${kind} asset for conversion ${id}: ${assetPath}`);
+  }
+  if (!info.isFile() || info.size === 0) {
+    throw new Error(`Empty ${kind} asset for conversion ${id}: ${assetPath}`);
+  }
+
+  if (kind === "svg") {
+    const svg = await readFile(absolute, "utf8");
+    try {
+      parseSvg(svg);
+    } catch (error) {
+      throw new Error(
+        `Invalid SVG for conversion ${id}: ` +
+          (error instanceof Error ? error.message : String(error)),
+      );
+    }
+  }
+
+  if (kind === "rig") {
+    const rig = JSON.parse(await readFile(absolute, "utf8")) as {
+      format?: unknown;
+      nodes?: unknown;
+      viewBox?: unknown;
+      anchors?: unknown;
+    };
+    if (
+      rig.format !== "vector.parallax" ||
+      !Array.isArray(rig.nodes) ||
+      !Array.isArray(rig.viewBox) ||
+      rig.viewBox.length !== 4
+    ) {
+      throw new Error(`Invalid parallax rig for conversion ${id}`);
+    }
+  }
+
+  assets.set(assetPath, absolute);
 }
 
 async function validateAssets(
@@ -143,64 +235,30 @@ async function validateAssets(
     seen.add(item.id);
 
     for (const [kind, assetPath] of Object.entries(item.assets)) {
-      if (assets.has(assetPath)) {
-        throw new Error(`Asset path is reused: ${assetPath}`);
-      }
-      const absolute = path.resolve(manifestDir, assetPath);
-      const relative = path.relative(manifestDir, absolute);
-      if (
-        relative.startsWith("..") ||
-        path.isAbsolute(relative) ||
-        relative.length === 0
-      ) {
-        throw new Error(`Asset escapes the publication directory: ${assetPath}`);
-      }
-
-      let info;
-      try {
-        info = await stat(absolute);
-      } catch {
-        throw new Error(
-          `Missing ${kind} asset for conversion ${item.id}: ${assetPath}`,
-        );
-      }
-      if (!info.isFile() || info.size === 0) {
-        throw new Error(
-          `Empty ${kind} asset for conversion ${item.id}: ${assetPath}`,
-        );
-      }
-
-      if (kind === "svg") {
-        const svg = await readFile(absolute, "utf8");
-        try {
-          parseSvg(svg);
-        } catch (error) {
-          throw new Error(
-            `Invalid SVG for conversion ${item.id}: ` +
-              (error instanceof Error ? error.message : String(error)),
-          );
-        }
-      }
-
-      if (kind === "rig") {
-        const rig = JSON.parse(await readFile(absolute, "utf8")) as {
-          format?: unknown;
-          nodes?: unknown;
-          viewBox?: unknown;
-          anchors?: unknown;
-        };
-        if (
-          rig.format !== "vector.parallax" ||
-          !Array.isArray(rig.nodes) ||
-          !Array.isArray(rig.viewBox) ||
-          rig.viewBox.length !== 4
-        ) {
-          throw new Error(`Invalid parallax rig for conversion ${item.id}`);
-        }
-      }
-
-      assets.set(assetPath, absolute);
+      await validateAsset(manifestDir, assetPath, kind, item.id, assets);
     }
+  }
+
+  if (manifest.featured) {
+    if (seen.has(manifest.featured.id)) {
+      throw new Error(
+        `Featured conversion ${manifest.featured.id} also appears in the galleries`,
+      );
+    }
+    await validateAsset(
+      manifestDir,
+      manifest.featured.assets.svg,
+      "svg",
+      manifest.featured.id,
+      assets,
+    );
+    await validateAsset(
+      manifestDir,
+      manifest.featured.assets.rig,
+      "rig",
+      manifest.featured.id,
+      assets,
+    );
   }
 
   return assets;
@@ -268,7 +326,7 @@ export async function buildSite(
     "<!--DESCRIPTION-->",
     escapeHtml(description(manifest.intro)),
   );
-  html = replaceSlot(html, "<!--INTRO-->", introHtml(manifest.intro));
+  html = replaceSlot(html, "<!--HERO-->", heroHtml(manifest));
   html = replaceSlot(html, "<!--SECTIONS-->", sectionsHtml(manifest));
   html = replaceSlot(html, "<!--BUILD_META-->", buildMeta(manifest));
 
