@@ -10,17 +10,20 @@ Gallery (Demo): <https://po-man.github.io/mantis/>
 
 ```
 POST /v1/vectorize
-  image ──► validate + normalize ──► OpenRouter (prompt + image)
-                                          │
-                                          ▼
-                                extract SVG ──► validate/sanitize ──► normalize
-                                          │
-                                          ├─ invalid? ──► one repair retry
-                                          ▼
-                              derive parallax rig from data-z
-                                          │
-                                          ▼
-                              image/svg+xml (+ rig in JSON)
+  image (validate + normalize)
+     │
+     ▼
+  OpenRouter (prompt + image)
+     │
+     ▼
+  extract SVG (validate/sanitize + normalize)
+     │
+     ├─ invalid? ──► one repair retry
+     ▼
+  derive parallax rig from data-z
+     │
+     ▼
+  image/svg+xml (+ rig in JSON)
 ```
 
 ## Requirements
