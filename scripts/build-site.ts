@@ -3,6 +3,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { parseSvg } from "../src/services/svg-parser.js";
 import {
+  PUBLICATION_BRAND,
   RATING_SECTIONS,
   parsePublicationManifest,
   type PublicationItem,
@@ -15,6 +16,7 @@ export interface BuildSiteOptions {
   manifestPath?: string;
   outDir?: string;
   check?: boolean;
+  builtAt?: Date;
 }
 
 export interface BuildSiteResult {
@@ -107,7 +109,7 @@ function heroHtml(manifest: PublicationManifest): string {
   return (
     `<div class="hero${manifest.featured ? " has-feature" : ""}">` +
     '<div class="hero-copy">' +
-    '<p class="eyebrow">vector</p>' +
+    `<p class="eyebrow">${escapeHtml(PUBLICATION_BRAND)}</p>` +
     `<h1>${escapeHtml(manifest.title)}</h1>` +
     `<div class="intro">${introHtml(manifest.intro)}</div>` +
     "</div>" +
@@ -126,36 +128,49 @@ function assetCounts(
   return counts;
 }
 
-function shortCommit(): string | null {
-  const value =
-    process.env.GITHUB_ACTIONS === "true"
-      ? process.env.GITHUB_SHA
-      : undefined;
-  return value ? value.slice(0, 7) : null;
+function repositoryUrl(): string {
+  const override = process.env.PUBLICATION_REPO_URL?.trim();
+  if (override) {
+    return override;
+  }
+  const repository = process.env.GITHUB_REPOSITORY?.trim();
+  if (repository) {
+    return `https://github.com/${repository}`;
+  }
+  return "https://github.com/po-man/mantis";
 }
 
-function buildMeta(manifest: PublicationManifest): string {
-  const tag =
-    process.env.GITHUB_ACTIONS === "true"
-      ? process.env.GITHUB_REF_NAME
-      : undefined;
-  const commit = shortCommit();
-  const parts = [
-    `${manifest.items.length} gallery result${manifest.items.length === 1 ? "" : "s"}`,
-    `generated ${escapeHtml(manifest.generatedAt)}`,
-  ];
-  if (manifest.featured) {
-    parts.push(`featured <code>#${manifest.featured.id}</code>`);
-  }
-  if (tag) {
-    parts.push(`tag <code>${escapeHtml(tag)}</code>`);
-  } else {
-    parts.push("local build");
-  }
-  if (commit) {
-    parts.push(`commit <code>${escapeHtml(commit)}</code>`);
-  }
-  return parts.join(" · ");
+function formatPublishedAt(value: Date): string {
+  return (
+    new Intl.DateTimeFormat("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false,
+      timeZone: "UTC",
+    }).format(value) + " UTC"
+  );
+}
+
+function buildMeta(builtAt: Date): string {
+  return (
+    'Last published at <time datetime="' +
+    escapeHtml(builtAt.toISOString()) +
+    '">' +
+    escapeHtml(formatPublishedAt(builtAt)) +
+    "</time> · " +
+    '<a href="' +
+    escapeHtml(repositoryUrl()) +
+    '" target="_blank" rel="noreferrer">GitHub repository</a>'
+  );
+}
+
+function documentTitle(title: string): string {
+  return title.startsWith(PUBLICATION_BRAND)
+    ? title
+    : `${PUBLICATION_BRAND} · ${title}`;
 }
 
 async function validateAsset(
@@ -296,6 +311,7 @@ export async function buildSite(
 
   const assets = await validateAssets(manifestPath, manifest);
   const counts = assetCounts(manifest);
+  const builtAt = options.builtAt ?? new Date();
 
   if (options.check) {
     return { outDir, manifestPath, itemCount: manifest.items.length, counts };
@@ -320,7 +336,11 @@ export async function buildSite(
   }
 
   let html = template;
-  html = replaceSlot(html, "<!--TITLE-->", escapeHtml(manifest.title));
+  html = replaceSlot(
+    html,
+    "<!--TITLE-->",
+    escapeHtml(documentTitle(manifest.title)),
+  );
   html = replaceSlot(
     html,
     "<!--DESCRIPTION-->",
@@ -328,7 +348,7 @@ export async function buildSite(
   );
   html = replaceSlot(html, "<!--HERO-->", heroHtml(manifest));
   html = replaceSlot(html, "<!--SECTIONS-->", sectionsHtml(manifest));
-  html = replaceSlot(html, "<!--BUILD_META-->", buildMeta(manifest));
+  html = replaceSlot(html, "<!--BUILD_META-->", buildMeta(builtAt));
 
   await writeFile(path.join(outDir, "index.html"), html, "utf8");
   await writeFile(

@@ -261,6 +261,7 @@
         margin-bottom: 14px;
       }
       .publish-summary .metric .v { font-size: 20px; }
+      .publish-title { width: 100%; }
       .publish-intro { width: 100%; min-height: 150px; resize: vertical; }
       .word-count { color: var(--muted); font-size: 12px; margin-top: 4px; }
       .word-count.over { color: var(--bad); }
@@ -794,7 +795,10 @@
               "without an input image or interaction. It is excluded from the " +
               "rated galleries.</p>"
             : '<p class="publish-note">No featured pick. The top hero will be omitted.</p>') +
-          '<label class="preview-label" for="publish-intro">Intro (less than 100 words)</label>' +
+          '<label class="preview-label" for="publish-heading">Page heading</label>' +
+          '<input class="publish-title" id="publish-heading" value="' +
+          escapeHtml(meta.title) + '" />' +
+          '<label class="preview-label" for="publish-intro" style="display:block;margin-top:12px">Intro (less than 100 words)</label>' +
           '<textarea class="publish-intro" id="publish-intro">' +
           escapeHtml(meta.intro || meta.defaultIntro) + "</textarea>" +
           '<div class="word-count" id="publish-word-count"></div>' +
@@ -805,19 +809,22 @@
           "</div>" +
           '<div class="publish-out" id="publish-out"></div>';
 
+        const title = $("publish-heading");
         const intro = $("publish-intro");
         const counter = $("publish-word-count");
-        const updateCounter = () => {
+        const updateForm = () => {
           const words = wordCount(intro.value);
           counter.textContent = words + " / " + meta.maxIntroWords + " words";
           counter.classList.toggle("over", words > meta.maxIntroWords);
           $("publish-write").disabled =
+            title.value.trim().length === 0 ||
             words === 0 ||
             words > meta.maxIntroWords ||
             (counts.total === 0 && !meta.featured);
         };
-        intro.addEventListener("input", updateCounter);
-        updateCounter();
+        title.addEventListener("input", updateForm);
+        intro.addEventListener("input", updateForm);
+        updateForm();
 
         $("publish-write").addEventListener("click", async () => {
           const button = $("publish-write");
@@ -827,7 +834,10 @@
             const response = await fetch("/review/api/publish", {
               method: "POST",
               headers: { "content-type": "application/json" },
-              body: JSON.stringify({ intro: intro.value }),
+              body: JSON.stringify({
+                title: title.value.trim(),
+                intro: intro.value,
+              }),
             });
             if (!response.ok) {
               let message = response.status + " " + response.statusText;
@@ -875,7 +885,7 @@
               '<div class="error-box">' + escapeHtml(error.message) + "</div>";
           } finally {
             button.textContent = "Write bundle";
-            updateCounter();
+            updateForm();
           }
         });
       }

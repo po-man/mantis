@@ -519,8 +519,8 @@ separate `publish.*` branch carries the committed files.
 3. Optionally click the **star** beside the ratings to pick one conversion for the
    idle-only hero at the top of the page. The featured pick is independent of the
    rating and can be unrated.
-4. Click **Publish**, review the counts and edit the intro (must be under 100 words),
-   then click **Write bundle**.
+4. Click **Publish**, review the counts, edit the page heading and intro (under 100
+   words), then click **Write bundle**.
 
 The service writes:
 
@@ -542,8 +542,8 @@ shape:
 {
   "format": "vector.publication",
   "version": 1,
-  "title": "vector · selected results",
-  "intro": "vector is a small image-to-SVG service...",
+  "title": "Selected vector studies",
+  "intro": "Mantis is a small image-to-SVG service...",
   "generatedAt": "2026-11-16T...",
   "items": [
     {
@@ -584,6 +584,13 @@ The optional `featured` object is the single star pick. It has no input asset an
 excluded from the Good/Fair/Bad galleries, so it appears only in the idle-only hero.
 `featured.rating` may be `null` when the pick is unrated. A publication may contain
 only a featured pick and no gallery items.
+
+The page uses **Mantis** as the eyebrow brand. The H1 is the editable page heading,
+defaulting to `Selected vector studies`; the document title becomes
+`Mantis · <heading>`. The footer shows the publish build time in UTC and links to the
+repository. `PUBLICATION_REPO_URL` overrides the link; otherwise GitHub Actions uses
+`GITHUB_REPOSITORY` and local builds fall back to
+`https://github.com/po-man/mantis`.
 
 ### 2. Create the publish branch
 
@@ -650,7 +657,8 @@ with its idle-only SVG: on desktop it sits to the right of the intro text, and o
 mobile it appears above the title and intro. The hero has no input image, modal,
 cursor, tilt, or swipe interaction. Below it are three stacked **Good / Fair / Bad**
 galleries. Each card shows the input image and static SVG side by side on desktop and
-stacked on mobile. Clicking or tapping a card opens a modal:
+stacked on mobile. The footer shows the last published time in UTC and a link to the
+repository. Clicking or tapping a card opens a modal:
 
 - idle motion is always on;
 - the SVG moves in 2.5D from the cursor on desktop;

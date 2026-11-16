@@ -424,7 +424,10 @@ describe("POST /v1/vectorize", () => {
     const published = await app.inject({
       method: "POST",
       url: "/review/api/publish",
-      payload: { intro: "A short publication intro." },
+      payload: {
+        title: "Custom selected studies",
+        intro: "A short publication intro.",
+      },
     });
     expect(published.statusCode).toBe(200);
     const publishedBody = published.json() as {
@@ -437,6 +440,7 @@ describe("POST /v1/vectorize", () => {
     expect(publishedBody.introWords).toBe(4);
     expect(publishedBody.featuredId).toBe(second.id);
     const manifestText = readFileSync(publishedBody.manifestPath, "utf8");
+    expect(manifestText).toContain('"title": "Custom selected studies"');
     expect(manifestText).toContain('"rating": "nice"');
     expect(manifestText).toContain('"featured"');
     expect(manifestText).toContain(`"id": ${second.id}`);

@@ -11,11 +11,12 @@ export const RATING_SECTIONS = [
 
 export const PUBLICATION_FORMAT = "vector.publication";
 export const PUBLICATION_VERSION = 1;
-export const PUBLICATION_TITLE = "vector · selected results";
+export const PUBLICATION_BRAND = "Mantis";
+export const PUBLICATION_TITLE = "Selected vector studies";
 export const MAX_INTRO_WORDS = 99;
 
 export const DEFAULT_PUBLICATION_INTRO =
-  "vector is a small image-to-SVG service. You give it one photo of a " +
+  "Mantis is a small image-to-SVG service. You give it one photo of a " +
   "centered object; a vision model traces the subject into clean, layered " +
   "vector shapes, annotates depth, and the service derives a tiny parallax " +
   "rig. The result is a static SVG that also responds to a cursor or a " +

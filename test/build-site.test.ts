@@ -32,7 +32,7 @@ function makeManifest(intro = "A short publication intro.") {
   return {
     format: "vector.publication",
     version: 1,
-    title: "vector · selected results",
+    title: "Selected vector studies",
     intro,
     generatedAt: "2026-11-16T00:00:00.000Z",
     items: [
@@ -118,11 +118,20 @@ describe("buildSite", () => {
       rootDir: process.cwd(),
       manifestPath,
       outDir,
+      builtAt: new Date("2026-11-16T09:28:46.654Z"),
     });
 
     expect(result.counts).toEqual({ nice: 1, fair: 1, bad: 0 });
     const html = readFileSync(path.join(outDir, "index.html"), "utf8");
-    expect(html).toContain("<h1>vector · selected results</h1>");
+    expect(html).toContain('<p class="eyebrow">Mantis</p>');
+    expect(html).toContain("<h1>Selected vector studies</h1>");
+    expect(html).toContain("<title>Mantis · Selected vector studies</title>");
+    expect(html).toContain("Last published at");
+    expect(html).toContain("Nov 16, 2026, 09:28 UTC");
+    expect(html).toMatch(/href="https:\/\/github\.com\/[^"]+"/);
+    expect(html).toContain("GitHub repository");
+    expect(html).not.toContain("gallery result");
+    expect(html).not.toContain("tag publish");
     expect(html).toContain('id="good"');
     expect(html).toContain('id="fair"');
     expect(html).toContain('id="bad"');

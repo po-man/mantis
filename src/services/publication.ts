@@ -58,9 +58,12 @@ export async function createPublicationBundle(
   options: CreatePublicationOptions,
 ): Promise<PublicationBundleResult> {
   const intro = options.intro ?? DEFAULT_PUBLICATION_INTRO;
-  const title = options.title ?? PUBLICATION_TITLE;
+  const title = (options.title ?? PUBLICATION_TITLE).trim();
   const introWords = countWords(intro);
 
+  if (title.length === 0) {
+    throw new AppError("bad_request", "The publication title cannot be empty", 400);
+  }
   if (introWords === 0) {
     throw new AppError("bad_request", "The publication intro cannot be empty", 400);
   }
