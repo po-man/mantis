@@ -1,0 +1,61 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="100%" height="100%">
+  <defs>
+    <clipPath id="clip-ball">
+      <circle cx="450" cy="285" r="118"/>
+    </clipPath>
+    <clipPath id="clip-backboard">
+      <rect x="815" y="-40" width="120" height="730" rx="14"/>
+    </clipPath>
+    <clipPath id="clip-rim">
+      <path clip-rule="evenodd" d="M 240 548 A 320 46 0 1 1 880 548 A 320 46 0 1 1 240 548 Z M 256 548 A 304 34 0 1 1 864 548 A 304 34 0 1 1 256 548 Z"/>
+    </clipPath>
+  </defs>
+
+  <g id="subject" data-z="0.5" data-pivot="512,512">
+
+    
+    <g id="backboard" data-z="0.15" data-pivot="875,350" data-sockets="rim-mount:880,548">
+      <rect id="backboard-frame" x="930" y="-40" width="58" height="762" rx="8" fill="#3C3A3C" data-z="0.13" data-pivot="959,341"/>
+      <rect id="backboard-arm" x="930" y="512" width="94" height="60" fill="#4A484C" data-z="0.14" data-pivot="977,542"/>
+      <g id="backboard-surface" clip-path="url(#clip-backboard)" data-z="0.15" data-pivot="875,350">
+        <rect id="backboard-base" x="815" y="-40" width="120" height="730" rx="14" fill="#EFEDE6" data-z="0.15" data-pivot="875,350"/>
+        <rect id="backboard-shade" x="815" y="-40" width="26" height="730" fill="#D8D3C5" data-z="0.17" data-pivot="828,350"/>
+        <rect id="backboard-bottom-shade" x="815" y="636" width="120" height="54" fill="#D8D3C5" data-z="0.18" data-pivot="875,663"/>
+      </g>
+      <path id="backboard-bracket" d="M 872 526 L 926 526 L 926 574 L 872 574 Z" fill="#4A484C" data-z="0.16" data-pivot="899,550"/>
+    </g>
+
+    
+    <g id="net" data-z="0.38" data-pivot="560,556" data-anchor="net-hang" data-anim="sway" data-anim-period="4.5" data-anim-amplitude="2">
+      <path id="net-back" fill="none" stroke="#BDB6A6" stroke-width="7" stroke-linecap="round" stroke-linejoin="round" data-z="0.36" data-pivot="560,556" d="M 870 556 L 796 676 M 870 556 L 796 655 M 811 581 L 704 693 M 811 581 L 796 676 M 656 596 L 556 699 M 656 596 L 704 693 M 464 596 L 408 693 M 464 596 L 556 699 M 309 581 L 316 676 M 309 581 L 408 693 M 250 556 L 316 655 M 250 556 L 316 676 M 309 531 L 408 638 M 309 531 L 316 655 M 464 516 L 556 631 M 464 516 L 408 638 M 656 516 L 704 638 M 656 516 L 556 631 M 811 531 L 796 655 M 811 531 L 704 638 M 796 676 L 716 785 M 796 676 L 684 770 M 704 693 L 684 800 M 704 693 L 716 785 M 556 699 L 600 810 M 556 699 L 684 800 M 408 693 L 496 810 M 408 693 L 600 810 M 316 676 L 412 800 M 316 676 L 496 810 M 316 655 L 380 785 M 316 655 L 412 800 M 408 638 L 412 770 M 408 638 L 380 785 M 556 631 L 496 760 M 556 631 L 412 770 M 704 638 L 600 760 M 704 638 L 496 760 M 796 655 L 684 770 M 796 655 L 600 760 M 716 785 L 635 883 M 716 785 L 635 873 M 684 800 L 599 891 M 684 800 L 635 883 M 600 810 L 540 894 M 600 810 L 599 891 M 496 810 L 481 891 M 496 810 L 540 894 M 412 800 L 445 883 M 412 800 L 481 891 M 380 785 L 445 873 M 380 785 L 445 883 M 412 770 L 481 865 M 412 770 L 445 873 M 496 760 L 540 862 M 496 760 L 481 865 M 600 760 L 599 865 M 600 760 L 540 862 M 684 770 L 635 873 M 684 770 L 599 865"/>
+      <ellipse id="net-top-ring" cx="560" cy="556" rx="308" ry="42" fill="none" stroke="#BDB6A6" stroke-width="6" data-z="0.37" data-pivot="560,556"/>
+      <path id="net-front" fill="none" stroke="#F4F1E8" stroke-width="7" stroke-linecap="round" stroke-linejoin="round" data-z="0.40" data-pivot="560,556" d="M 870 556 L 796 676 M 811 581 L 704 693 M 811 581 L 796 676 M 656 596 L 556 699 M 656 596 L 704 693 M 464 596 L 408 693 M 464 596 L 556 699 M 309 581 L 316 676 M 309 581 L 408 693 M 250 556 L 316 676 M 796 676 L 716 785 M 704 693 L 684 800 M 704 693 L 716 785 M 556 699 L 600 810 M 556 699 L 684 800 M 408 693 L 496 810 M 408 693 L 600 810 M 316 676 L 412 800 M 316 676 L 496 810 M 316 655 L 412 800 M 716 785 L 635 883 M 684 800 L 599 891 M 684 800 L 635 883 M 600 810 L 540 894 M 600 810 L 599 891 M 496 810 L 481 891 M 496 810 L 540 894 M 412 800 L 445 883 M 412 800 L 481 891 M 380 785 L 445 883"/>
+      <ellipse id="net-bottom" cx="540" cy="878" rx="100" ry="16" fill="none" stroke="#F4F1E8" stroke-width="7" data-z="0.41" data-pivot="540,878"/>
+    </g>
+
+    
+    <g id="rim" data-z="0.45" data-pivot="880,548" data-anchor="rim-mount" data-sockets="net-hang:560,556">
+      <g id="rim-surface" clip-path="url(#clip-rim)" data-z="0.45" data-pivot="560,548">
+        <path id="rim-base" fill-rule="evenodd" d="M 240 548 A 320 46 0 1 1 880 548 A 320 46 0 1 1 240 548 Z M 256 548 A 304 34 0 1 1 864 548 A 304 34 0 1 1 256 548 Z" fill="#E8622A" data-z="0.45" data-pivot="560,548"/>
+        <path id="rim-shadow" d="M 290 548 A 316 44 0 0 0 830 548" fill="none" stroke="#A83A12" stroke-width="6" stroke-linecap="round" data-z="0.47" data-pivot="560,548"/>
+        <path id="rim-highlight" d="M 330 548 A 306 36 0 0 0 790 548" fill="none" stroke="#F79A5E" stroke-width="5" stroke-linecap="round" data-z="0.49" data-pivot="560,548"/>
+      </g>
+    </g>
+
+    
+    <g id="basketball" data-z="0.80" data-pivot="450,285" data-anim="bob" data-anim-period="3.6" data-anim-amplitude="9" data-parallax="1.2">
+      <g id="ball-surface" clip-path="url(#clip-ball)" data-z="0.80" data-pivot="450,285">
+        <circle id="ball-base" cx="450" cy="285" r="118" fill="#C06A32" data-z="0.80" data-pivot="450,285"/>
+        <ellipse id="ball-shadow" cx="525" cy="360" rx="95" ry="95" fill="#9A4E22" data-z="0.82" data-pivot="450,285"/>
+        <path id="ball-highlight" d="M 340 268 C 348 198 394 168 452 170 C 396 182 358 214 340 268 Z" fill="#D98A4E" data-z="0.84" data-pivot="450,285"/>
+      </g>
+      <g id="ball-seams" data-z="0.86" data-pivot="450,285">
+        <path d="M 462 172 C 480 230 480 340 462 398" fill="none" stroke="#5A2E14" stroke-width="7" stroke-linecap="round"/>
+        <path d="M 338 273 C 400 292 500 292 562 273" fill="none" stroke="#5A2E14" stroke-width="7" stroke-linecap="round"/>
+        <path d="M 390 189 C 344 232 344 338 390 381" fill="none" stroke="#5A2E14" stroke-width="7" stroke-linecap="round"/>
+        <path d="M 510 189 C 556 232 556 338 510 381" fill="none" stroke="#5A2E14" stroke-width="7" stroke-linecap="round"/>
+      </g>
+    </g>
+
+  </g>
+</svg>

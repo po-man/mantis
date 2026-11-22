@@ -1,0 +1,189 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="100%" height="100%">
+  <defs>
+    <clipPath id="clip-carapace">
+      <path d="M 805,415 C 790,360 760,330 700,320 C 640,308 560,296 480,300 C 390,305 320,335 270,370 C 210,412 170,450 165,490 C 160,535 175,565 200,590 C 250,635 320,650 400,655 C 490,660 560,650 620,630 C 690,608 745,570 770,530 C 790,495 805,455 805,415 Z"/>
+    </clipPath>
+    <clipPath id="clip-head">
+      <path d="M 785,355 C 795,315 830,298 872,302 C 915,306 945,330 952,368 C 956,392 948,412 928,425 C 900,442 860,448 828,438 C 800,430 782,400 785,355 Z"/>
+    </clipPath>
+    <clipPath id="clip-neck">
+      <path d="M 735,390 C 770,372 815,378 842,400 C 862,416 862,442 845,458 C 818,482 775,482 748,462 C 722,442 715,405 735,390 Z"/>
+    </clipPath>
+    <clipPath id="clip-flipper-near">
+      <path d="M 645,540 C 700,555 760,610 800,690 C 825,740 838,790 830,815 C 822,838 800,838 780,818 C 740,775 700,700 670,630 C 650,585 635,555 645,540 Z"/>
+    </clipPath>
+    <clipPath id="clip-flipper-far">
+      <path d="M 852,415 C 878,438 898,490 903,540 C 906,582 898,612 883,622 C 868,630 856,612 850,577 C 843,532 838,468 843,425 Z"/>
+    </clipPath>
+    <clipPath id="clip-rear-flipper">
+      <path d="M 240,585 C 195,578 140,592 95,622 C 62,644 45,668 52,686 C 60,704 88,706 120,692 C 165,672 210,640 240,612 C 252,600 252,588 240,585 Z"/>
+    </clipPath>
+    <clipPath id="clip-small-flipper">
+      <path d="M 205,505 C 178,498 148,508 128,528 C 114,542 112,556 122,562 C 134,568 158,556 178,538 C 196,522 210,510 205,505 Z"/>
+    </clipPath>
+    <clipPath id="clip-plastron">
+      <path d="M 205,560 C 320,600 500,620 660,600 C 700,595 725,585 730,570 C 725,615 660,645 520,650 C 380,655 265,630 205,595 Z"/>
+    </clipPath>
+    <clipPath id="clip-left-eye">
+      <path d="M 830,350 C 838,336 856,332 868,340 C 876,345 878,354 872,362 C 862,372 844,372 836,364 C 830,359 828,354 830,350 Z"/>
+    </clipPath>
+  </defs>
+
+  <g id="subject" data-z="0.5" data-pivot="512,512" data-anim="bob" data-anim-period="4" data-anim-amplitude="8">
+
+    
+    <g id="rear-flipper" data-z="0.12" data-pivot="240,600" data-anchor="rear-flipper">
+      <g id="rear-flipper-surface" clip-path="url(#clip-rear-flipper)">
+        <path id="rear-flipper-base" d="M 240,585 C 195,578 140,592 95,622 C 62,644 45,668 52,686 C 60,704 88,706 120,692 C 165,672 210,640 240,612 C 252,600 252,588 240,585 Z" fill="#8A6A50" stroke="none"/>
+        <path id="rear-flipper-shadow" data-z="0.14" data-pivot="150,660" d="M 40,700 L 260,700 L 260,640 C 200,672 130,690 40,700 Z" fill="#6A4E38" stroke="none"/>
+        <path id="rear-flipper-mid" data-z="0.16" data-pivot="170,620" d="M 240,585 C 195,578 140,592 95,622 C 80,632 68,644 60,656 C 110,628 170,606 240,600 Z" fill="#B89A78" stroke="none"/>
+        <g id="rear-flipper-scales" data-z="0.18" data-pivot="150,640">
+          <circle cx="110" cy="640" r="9" fill="#C4A882" stroke="none"/>
+          <circle cx="140" cy="628" r="8" fill="#C4A882" stroke="none"/>
+          <circle cx="170" cy="618" r="7" fill="#C4A882" stroke="none"/>
+          <circle cx="90" cy="662" r="7" fill="#C4A882" stroke="none"/>
+          <circle cx="125" cy="668" r="6" fill="#C4A882" stroke="none"/>
+          <circle cx="200" cy="608" r="6" fill="#C4A882" stroke="none"/>
+        </g>
+      </g>
+    </g>
+
+    
+    <g id="small-rear-flipper" data-z="0.16" data-pivot="200,520" data-anchor="small-flipper">
+      <g id="small-rear-flipper-surface" clip-path="url(#clip-small-flipper)">
+        <path id="small-rear-flipper-base" d="M 205,505 C 178,498 148,508 128,528 C 114,542 112,556 122,562 C 134,568 158,556 178,538 C 196,522 210,510 205,505 Z" fill="#7A5A44" stroke="none"/>
+        <path id="small-rear-flipper-shadow" data-z="0.18" data-pivot="150,550" d="M 100,580 L 220,580 L 220,540 C 180,560 140,572 100,580 Z" fill="#5C4232" stroke="none"/>
+        <path id="small-rear-flipper-mid" data-z="0.20" data-pivot="170,525" d="M 205,505 C 178,498 148,508 128,528 C 122,534 118,540 116,546 C 140,524 172,510 205,505 Z" fill="#B89A78" stroke="none"/>
+      </g>
+    </g>
+
+    
+    <g id="plastron" data-z="0.22" data-pivot="460,610" data-anchor="plastron">
+      <g id="plastron-surface" clip-path="url(#clip-plastron)">
+        <path id="plastron-base" d="M 205,560 C 320,600 500,620 660,600 C 700,595 725,585 730,570 C 725,615 660,645 520,650 C 380,655 265,630 205,595 Z" fill="#C9D9A8" stroke="none"/>
+        <path id="plastron-shadow" data-z="0.24" data-pivot="480,640" d="M 180,660 L 760,660 L 760,610 C 640,645 400,655 180,620 Z" fill="#A8BC88" stroke="none"/>
+        <path id="plastron-mid" data-z="0.26" data-pivot="450,585" d="M 205,560 C 320,600 500,620 660,600 C 690,596 712,590 724,582 C 660,606 480,592 205,566 Z" fill="#DCE8C0" stroke="none"/>
+        <g id="plastron-speckles" data-z="0.28" data-pivot="460,615">
+          <circle cx="300" cy="612" r="5" fill="#8FA070" stroke="none"/>
+          <circle cx="360" cy="622" r="4" fill="#8FA070" stroke="none"/>
+          <circle cx="430" cy="628" r="5" fill="#8FA070" stroke="none"/>
+          <circle cx="500" cy="628" r="4" fill="#8FA070" stroke="none"/>
+          <circle cx="570" cy="620" r="5" fill="#8FA070" stroke="none"/>
+          <circle cx="630" cy="606" r="4" fill="#8FA070" stroke="none"/>
+        </g>
+      </g>
+    </g>
+
+    
+    <g id="far-front-flipper" data-z="0.28" data-pivot="870,470" data-anchor="flipper-far">
+      <g id="far-front-flipper-surface" clip-path="url(#clip-flipper-far)">
+        <path id="far-front-flipper-base" d="M 852,415 C 878,438 898,490 903,540 C 906,582 898,612 883,622 C 868,630 856,612 850,577 C 843,532 838,468 843,425 Z" fill="#D8E0D0" stroke="none"/>
+        <path id="far-front-flipper-shadow" data-z="0.30" data-pivot="860,540" d="M 830,650 L 880,650 L 880,430 C 862,470 848,540 830,650 Z" fill="#B8C4B0" stroke="none"/>
+        <path id="far-front-flipper-mid" data-z="0.32" data-pivot="890,500" d="M 852,415 C 878,438 898,490 903,540 C 905,566 903,588 897,604 C 898,540 880,470 852,415 Z" fill="#EEF2E8" stroke="none"/>
+      </g>
+    </g>
+
+    
+    <g id="carapace" data-z="0.42" data-pivot="480,470" data-sockets="neck:770,420 flipper-near:660,560 flipper-far:840,470 rear-flipper:240,600 small-flipper:200,520 plastron:460,610">
+      <g id="carapace-surface" clip-path="url(#clip-carapace)">
+        <path id="carapace-base" d="M 805,415 C 790,360 760,330 700,320 C 640,308 560,296 480,300 C 390,305 320,335 270,370 C 210,412 170,450 165,490 C 160,535 175,565 200,590 C 250,635 320,650 400,655 C 490,660 560,650 620,630 C 690,608 745,570 770,530 C 790,495 805,455 805,415 Z" fill="#B85A2A" stroke="none"/>
+
+        <path id="carapace-shadow" data-z="0.45" data-pivot="620,560" d="M 250,700 L 900,700 L 900,380 C 860,500 720,610 520,655 C 420,675 320,690 250,700 Z" fill="#8E3E1C" stroke="none"/>
+
+        <path id="carapace-mid" data-z="0.47" data-pivot="400,370" d="M 140,520 C 160,420 240,350 360,315 C 460,288 580,290 690,315 L 690,270 L 140,270 Z" fill="#D9803E" stroke="none"/>
+
+        <path id="carapace-highlight" data-z="0.50" data-pivot="450,330" d="M 200,420 C 260,350 380,310 520,305 C 620,302 700,315 740,335 C 660,310 540,305 440,320 C 330,338 250,375 200,420 Z" fill="#E8A05E" stroke="none"/>
+
+        <path id="carapace-rim" data-z="0.49" data-pivot="480,620" d="M 200,590 C 250,635 320,650 400,655 C 490,660 560,650 620,630 C 690,608 745,570 770,530 C 720,600 620,640 480,645 C 350,650 250,625 200,590 Z" fill="#E8C89A" stroke="none"/>
+
+        <g id="carapace-seams" data-z="0.48" data-pivot="480,470">
+          <path d="M 300,400 C 340,470 380,540 400,620" fill="none" stroke="#F0C9A0" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M 470,310 C 490,420 500,530 490,640" fill="none" stroke="#F0C9A0" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M 640,315 C 650,420 650,520 630,620" fill="none" stroke="#F0C9A0" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M 740,350 C 750,430 750,500 730,560" fill="none" stroke="#F0C9A0" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M 200,500 C 350,520 550,520 780,470" fill="none" stroke="#F0C9A0" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M 240,430 C 300,470 340,520 350,580" fill="none" stroke="#F0C9A0" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M 560,310 C 580,400 590,500 580,600" fill="none" stroke="#F0C9A0" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+        </g>
+      </g>
+    </g>
+
+    
+    <g id="neck" data-z="0.52" data-pivot="770,420" data-anchor="neck" data-sockets="head:820,400">
+      <g id="neck-surface" clip-path="url(#clip-neck)">
+        <path id="neck-base" d="M 735,390 C 770,372 815,378 842,400 C 862,416 862,442 845,458 C 818,482 775,482 748,462 C 722,442 715,405 735,390 Z" fill="#7A8B6A" stroke="none"/>
+        <path id="neck-shadow" data-z="0.54" data-pivot="790,460" d="M 700,500 L 880,500 L 880,440 C 840,470 780,482 700,470 Z" fill="#5A6B4E" stroke="none"/>
+        <path id="neck-mid" data-z="0.56" data-pivot="790,395" d="M 735,390 C 770,372 815,378 842,400 C 850,406 856,414 858,422 C 830,398 780,388 735,396 Z" fill="#A8B896" stroke="none"/>
+        <g id="neck-folds" data-z="0.57" data-pivot="790,430">
+          <path d="M 760,412 C 780,420 800,424 822,422" fill="none" stroke="#5A6B4E" stroke-width="4" stroke-linecap="round"/>
+          <path d="M 752,436 C 776,444 800,446 824,442" fill="none" stroke="#5A6B4E" stroke-width="4" stroke-linecap="round"/>
+        </g>
+      </g>
+    </g>
+
+    
+    <g id="head" data-z="0.62" data-pivot="860,375" data-anchor="head">
+      <g id="head-surface" clip-path="url(#clip-head)">
+        <path id="head-base" d="M 785,355 C 795,315 830,298 872,302 C 915,306 945,330 952,368 C 956,392 948,412 928,425 C 900,442 860,448 828,438 C 800,430 782,400 785,355 Z" fill="#7A8B6A" stroke="none"/>
+
+        <path id="head-shadow" data-z="0.64" data-pivot="870,430" d="M 760,470 L 980,470 L 980,400 C 930,432 860,442 760,430 Z" fill="#5E6E50" stroke="none"/>
+
+        <path id="head-mid" data-z="0.66" data-pivot="870,320" d="M 782,370 C 792,315 832,296 878,302 C 918,307 946,330 952,368 C 930,330 890,312 850,312 C 815,312 792,335 782,370 Z" fill="#A8B896" stroke="none"/>
+
+        <path id="head-highlight" data-z="0.68" data-pivot="850,315" d="M 800,340 C 820,315 850,308 880,315 C 860,312 830,320 812,340 Z" fill="#C2D0B0" stroke="none"/>
+
+        <path id="head-beak" data-z="0.67" data-pivot="935,395" d="M 928,368 C 945,372 955,385 952,398 C 948,412 935,420 922,418 C 930,405 932,385 928,368 Z" fill="#C9B896" stroke="none"/>
+
+        <g id="head-spots" data-z="0.69" data-pivot="870,400">
+          <circle cx="820" cy="400" r="7" fill="#5E6E50" stroke="none"/>
+          <circle cx="858" cy="416" r="6" fill="#5E6E50" stroke="none"/>
+          <circle cx="890" cy="392" r="5" fill="#5E6E50" stroke="none"/>
+          <circle cx="906" cy="420" r="6" fill="#5E6E50" stroke="none"/>
+          <circle cx="800" cy="378" r="5" fill="#5E6E50" stroke="none"/>
+          <circle cx="880" cy="428" r="4" fill="#5E6E50" stroke="none"/>
+        </g>
+
+        <path id="eye-ring" data-z="0.70" data-pivot="851,350" d="M 822,348 C 830,326 858,320 876,330 C 890,338 892,356 882,368 C 868,382 840,382 828,370 C 820,362 818,354 822,348 Z" fill="#9FB4B8" stroke="none"/>
+      </g>
+
+      
+      <g id="left-eye" data-z="0.72" data-pivot="851,352" data-anim="blink" data-anim-period="5">
+        <g id="left-eye-inner" data-z="0.72" data-pivot="851,352" clip-path="url(#clip-left-eye)">
+          <path id="left-eye-sclera" data-z="0.62" data-pivot="851,352" d="M 830,350 C 838,336 856,332 868,340 C 876,345 878,354 872,362 C 862,372 844,372 836,364 C 830,359 828,354 830,350 Z" fill="#C8D4D8" stroke="none"/>
+          <path id="left-eye-iris" data-z="0.64" data-pivot="853,353" d="M 836,350 C 842,340 858,338 866,346 C 872,352 872,360 866,366 C 856,372 842,370 836,362 C 832,357 832,354 836,350 Z" fill="#3A2A22" stroke="none"/>
+          <circle id="left-eye-pupil" data-z="0.66" data-pivot="853,353" cx="853" cy="353" r="7" fill="#161421" stroke="none"/>
+          <path id="left-eye-lid-shadow" data-z="0.69" data-pivot="851,340" d="M 826,344 C 838,330 858,328 872,338 C 878,342 880,348 878,352 C 866,340 844,338 828,350 Z" fill="#1E2A2E" opacity="0.35" stroke="none"/>
+          <circle id="left-eye-catchlight" data-z="0.71" data-pivot="845,345" cx="845" cy="345" r="4" fill="#FFFFFF" stroke="none"/>
+        </g>
+        <path id="left-lash" data-z="0.74" data-pivot="870,340" d="M 862,336 C 872,333 880,336 884,342 C 878,339 870,339 864,342 Z" fill="#2A1E1A" stroke="none"/>
+      </g>
+    </g>
+
+    
+    <g id="near-front-flipper" data-z="0.80" data-pivot="660,560" data-anchor="flipper-near" data-anim="sway" data-anim-period="3.5" data-anim-amplitude="4">
+      <g id="near-front-flipper-surface" clip-path="url(#clip-flipper-near)">
+        <path id="near-front-flipper-base" d="M 645,540 C 700,555 760,610 800,690 C 825,740 838,790 830,815 C 822,838 800,838 780,818 C 740,775 700,700 670,630 C 650,585 635,555 645,540 Z" fill="#4A2E22" stroke="none"/>
+
+        <path id="near-front-flipper-shadow" data-z="0.82" data-pivot="700,700" d="M 600,560 L 700,560 L 700,860 L 600,860 Z" fill="#33201A" stroke="none"/>
+
+        <path id="near-front-flipper-mid" data-z="0.84" data-pivot="780,700" d="M 660,545 C 720,570 780,640 815,720 C 830,760 838,795 832,818 C 838,780 828,730 800,675 C 765,610 705,560 660,545 Z" fill="#6B4432" stroke="none"/>
+
+        <g id="near-front-flipper-scales" data-z="0.86" data-pivot="750,690">
+          <circle cx="690" cy="590" r="12" fill="#B08A66" stroke="none"/>
+          <circle cx="722" cy="632" r="14" fill="#B08A66" stroke="none"/>
+          <circle cx="752" cy="682" r="13" fill="#B08A66" stroke="none"/>
+          <circle cx="778" cy="732" r="12" fill="#B08A66" stroke="none"/>
+          <circle cx="798" cy="778" r="10" fill="#B08A66" stroke="none"/>
+          <circle cx="700" cy="652" r="10" fill="#B08A66" stroke="none"/>
+          <circle cx="732" cy="702" r="11" fill="#B08A66" stroke="none"/>
+          <circle cx="762" cy="752" r="9" fill="#B08A66" stroke="none"/>
+          <circle cx="672" cy="612" r="8" fill="#B08A66" stroke="none"/>
+          <circle cx="790" cy="806" r="7" fill="#B08A66" stroke="none"/>
+        </g>
+
+        <path id="near-front-flipper-rim" data-z="0.88" data-pivot="800,760" d="M 800,690 C 825,740 838,790 830,815 C 822,838 800,838 780,818 C 800,820 818,800 818,770 C 818,745 810,715 800,690 Z" fill="#7A5238" stroke="none"/>
+      </g>
+    </g>
+
+  </g>
+</svg>

@@ -1,0 +1,66 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="100%" height="100%">
+  <defs>
+    <clipPath id="clip-elytra">
+      <path d="M 500 348 C 618 346 722 438 732 552 C 740 642 700 732 612 772 C 556 796 448 796 392 772 C 300 730 268 642 276 552 C 284 446 382 346 500 348 Z"/>
+    </clipPath>
+    <clipPath id="clip-pronotum">
+      <path d="M 400 266 C 478 246 546 248 602 272 C 630 318 644 356 630 396 C 552 416 442 416 364 394 C 350 350 360 298 400 266 Z"/>
+    </clipPath>
+    <clipPath id="clip-head">
+      <path d="M 450 284 C 444 242 466 212 500 212 C 534 212 556 242 550 284 C 520 302 480 302 450 284 Z"/>
+    </clipPath>
+  </defs>
+
+  <g id="subject" data-z="0.5" data-pivot="512,512">
+
+    <g id="elytra" data-z="0.30" data-pivot="506,571" data-anim="breathe" data-anim-period="3.6" data-anim-amplitude="2" data-sockets="pronotum-base:500,398">
+
+      <g id="elytra-surface" clip-path="url(#clip-elytra)">
+        <path id="elytra-base" data-z="0.30" data-pivot="506,571" fill="#E23A1E" stroke="none" d="M 500 348 C 618 346 722 438 732 552 C 740 642 700 732 612 772 C 556 796 448 796 392 772 C 300 730 268 642 276 552 C 284 446 382 346 500 348 Z"/>
+
+        <path id="elytra-shadow" data-z="0.33" data-pivot="620,700" fill="#A81F12" stroke="none" d="M 400 900 C 400 718 570 570 780 570 C 990 570 1160 718 1160 900 C 1160 1082 990 1230 780 1230 C 570 1230 400 1082 400 900 Z"/>
+
+        <path id="elytra-midtone" data-z="0.36" data-pivot="380,470" fill="#F4623C" stroke="none" d="M -80 460 C -80 317 32 200 170 200 C 308 200 420 317 420 460 C 420 603 308 720 170 720 C 32 720 -80 603 -80 460 Z"/>
+
+        <path id="spot-upper-left" data-z="0.39" data-pivot="398,446" fill="#161421" stroke="none" d="M 398 392 C 428 390 452 412 454 444 C 456 476 434 500 402 500 C 372 500 348 480 344 450 C 341 420 366 394 398 392 Z"/>
+
+        <path id="spot-left-mid" data-z="0.39" data-pivot="402,620" fill="#161421" stroke="none" d="M 402 556 C 438 554 468 582 468 620 C 468 658 440 684 404 684 C 368 684 340 656 338 620 C 337 584 366 558 402 556 Z"/>
+
+        <path id="spot-lower-left" data-z="0.39" data-pivot="478,730" fill="#161421" stroke="none" d="M 478 680 C 506 680 528 702 528 730 C 528 758 506 780 478 780 C 450 780 428 758 428 730 C 428 702 450 680 478 680 Z"/>
+
+        <path id="spot-right-mid" data-z="0.39" data-pivot="618,590" fill="#161421" stroke="none" d="M 618 522 C 656 522 690 550 690 590 C 690 630 656 658 618 658 C 580 658 546 630 546 590 C 546 550 580 522 618 522 Z"/>
+
+        <path id="spot-upper-right" data-z="0.39" data-pivot="648,442" fill="#161421" stroke="none" d="M 648 392 C 676 392 700 414 700 442 C 700 470 676 492 648 492 C 620 492 596 470 596 442 C 596 414 620 392 648 392 Z"/>
+
+        <path id="elytra-specular" data-z="0.43" data-pivot="507,424" fill="#FFF2EC" stroke="none" d="M 440 428 C 440 408 470 396 506 396 C 544 396 574 410 574 428 C 574 442 548 452 510 452 C 470 452 440 444 440 428 Z"/>
+      </g>
+
+      <path id="elytra-seam" data-z="0.45" data-pivot="502,580" fill="none" stroke="#8E1A0E" stroke-width="4" stroke-linecap="round" opacity="0.45" d="M 505 374 C 502 480 500 620 497 776"/>
+    </g>
+
+    <g id="head" data-z="0.48" data-pivot="500,268" data-anchor="head-base" data-sockets="ant-left:478,226 ant-right:522,226">
+      <g id="head-surface" clip-path="url(#clip-head)">
+        <path id="head-base" data-z="0.48" data-pivot="500,268" fill="#161421" stroke="none" d="M 450 284 C 444 242 466 212 500 212 C 534 212 556 242 550 284 C 520 302 480 302 450 284 Z"/>
+        <path id="head-sheen" data-z="0.51" data-pivot="500,240" fill="#2E2B3D" stroke="none" d="M 458 268 C 462 234 484 216 514 214 C 528 214 540 218 548 224 C 512 222 482 240 468 274 Z"/>
+      </g>
+    </g>
+
+    <g id="pronotum" data-z="0.55" data-pivot="500,398" data-anchor="pronotum-base" data-sockets="head-base:500,268">
+      <g id="pronotum-surface" clip-path="url(#clip-pronotum)">
+        <path id="pronotum-base" data-z="0.55" data-pivot="500,330" fill="#161421" stroke="none" d="M 400 266 C 478 246 546 248 602 272 C 630 318 644 356 630 396 C 552 416 442 416 364 394 C 350 350 360 298 400 266 Z"/>
+        <path id="pronotum-sheen" data-z="0.58" data-pivot="450,290" fill="#2B2838" stroke="none" d="M 372 302 C 398 272 460 252 528 254 C 480 258 424 278 390 316 Z"/>
+        <path id="pronotum-patch-left" data-z="0.62" data-pivot="384,348" fill="#F4F6FA" stroke="none" d="M 368 328 C 384 324 398 334 396 350 C 394 366 376 374 364 366 C 356 356 358 336 368 328 Z"/>
+        <path id="pronotum-patch-right" data-z="0.62" data-pivot="614,342" fill="#F4F6FA" stroke="none" d="M 622 322 C 632 330 634 344 628 354 C 618 364 604 360 598 350 C 594 340 606 326 622 322 Z"/>
+      </g>
+    </g>
+
+    <g id="antenna-left" data-z="0.70" data-pivot="478,226" data-anchor="ant-left" data-anim="twitch" data-anim-period="4.2" data-anim-amplitude="4">
+      <path id="antenna-left-stem" data-z="0.70" data-pivot="478,226" fill="none" stroke="#161421" stroke-width="7" stroke-linecap="round" stroke-linejoin="round" d="M 478 226 C 462 196 438 176 410 168"/>
+    </g>
+
+    <g id="antenna-right" data-z="0.70" data-pivot="522,226" data-anchor="ant-right" data-anim="twitch" data-anim-period="5.1" data-anim-amplitude="3">
+      <path id="antenna-right-stem" data-z="0.70" data-pivot="522,226" fill="none" stroke="#161421" stroke-width="7" stroke-linecap="round" stroke-linejoin="round" d="M 522 226 C 538 196 562 176 590 168"/>
+    </g>
+
+  </g>
+</svg>

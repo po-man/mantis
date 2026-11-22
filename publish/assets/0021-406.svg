@@ -1,0 +1,147 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="100%" height="100%">
+  <defs>
+    <clipPath id="clip-torso">
+      <path d="M 420 556 C 400 600 394 660 408 706 C 420 742 436 768 438 792 C 428 830 418 880 420 1024 L 604 1024 C 606 880 596 830 586 792 C 588 768 604 742 616 706 C 630 660 624 600 604 556 C 590 536 566 526 548 520 L 548 470 C 548 452 540 444 512 444 C 484 444 476 452 476 470 L 476 520 C 458 526 434 536 420 556 Z"/>
+    </clipPath>
+    <clipPath id="clip-bra">
+      <path d="M 442 540 C 438 600 434 660 432 700 C 431 725 430 740 430 748 L 594 748 C 594 740 593 725 592 700 C 590 660 586 600 582 540 L 554 540 C 556 582 556 608 548 626 C 540 643 527 652 512 654 C 497 652 484 643 476 626 C 468 608 468 582 470 540 Z"/>
+    </clipPath>
+    <clipPath id="clip-leggings">
+      <path d="M 434 790 C 470 806 554 806 590 790 C 598 830 604 880 602 1024 L 422 1024 C 420 880 426 830 434 790 Z"/>
+    </clipPath>
+    <clipPath id="clip-head">
+      <path d="M 512 348 C 468 348 444 380 444 426 C 444 472 474 502 512 502 C 550 502 580 472 580 426 C 580 380 556 348 512 348 Z"/>
+    </clipPath>
+    <clipPath id="clip-bun">
+      <path d="M 512 258 C 546 258 570 282 572 312 C 574 340 556 366 528 372 C 512 376 496 374 482 366 C 456 352 448 326 452 302 C 458 274 480 258 512 258 Z"/>
+    </clipPath>
+    <clipPath id="clip-left-arm">
+      <path d="M 398 578 C 372 530 340 470 325 425 C 316 390 310 350 312 320 L 348 318 C 352 355 362 395 382 425 C 405 465 438 520 462 552 C 470 575 450 595 425 592 C 410 590 400 585 398 578 Z"/>
+    </clipPath>
+    <clipPath id="clip-right-arm">
+      <path d="M 626 578 C 652 530 684 470 699 425 C 708 390 714 350 712 320 L 676 318 C 672 355 662 395 642 425 C 619 465 586 520 562 552 C 554 575 574 595 599 592 C 614 590 624 585 626 578 Z"/>
+    </clipPath>
+  </defs>
+
+  <g id="subject" data-z="0.5" data-pivot="512,512">
+
+    
+    <g id="hair-bun" data-z="0.25" data-pivot="512,360" data-anchor="crown" data-anim="sway" data-anim-period="3.5" data-anim-amplitude="3">
+      <g id="bun-surface" clip-path="url(#clip-bun)">
+        <path id="bun-base" d="M 512 258 C 546 258 570 282 572 312 C 574 340 556 366 528 372 C 512 376 496 374 482 366 C 456 352 448 326 452 302 C 458 274 480 258 512 258 Z" fill="#33221A" stroke="none"/>
+        <path id="bun-shadow" d="M 452 302 C 448 326 456 352 482 366 C 496 374 512 376 528 372 C 506 372 486 362 472 344 C 460 328 454 314 452 302 Z" fill="#241710" stroke="none"/>
+        <path id="bun-highlight" d="M 512 258 C 546 258 570 282 572 312 C 573 328 568 342 558 354 C 566 336 566 314 558 296 C 548 274 532 262 512 258 Z" fill="#55392A" stroke="none"/>
+      </g>
+      <path id="bun-strand-1" d="M 484 276 C 472 256 464 238 460 224 C 472 240 484 258 496 272 Z" fill="#33221A" stroke="none"/>
+      <path id="bun-strand-2" d="M 504 262 C 508 244 512 228 516 214 C 520 230 522 246 522 264 Z" fill="#33221A" stroke="none"/>
+      <path id="bun-strand-3" d="M 532 274 C 544 256 554 242 562 230 C 558 246 550 262 542 278 Z" fill="#33221A" stroke="none"/>
+    </g>
+
+    
+    <g id="barbell" data-z="0.30" data-pivot="512,300">
+      <rect id="bar" x="52" y="292" width="920" height="14" rx="7" fill="#8E949C" stroke="none"/>
+      <rect id="bar-highlight" x="52" y="294" width="920" height="4" rx="2" fill="#B9BFC7" stroke="none"/>
+      <rect id="left-sleeve" x="150" y="286" width="62" height="26" rx="5" fill="#6B717A" stroke="none"/>
+      <rect id="right-sleeve" x="812" y="286" width="62" height="26" rx="5" fill="#6B717A" stroke="none"/>
+      <g id="left-plate" data-z="0.32" data-pivot="112,300">
+        <ellipse cx="112" cy="300" rx="36" ry="110" fill="#26262E" stroke="none"/>
+        <ellipse cx="112" cy="300" rx="23" ry="88" fill="#3A3A46" stroke="none"/>
+        <ellipse cx="103" cy="300" rx="7" ry="90" fill="#4E4E5C" stroke="none"/>
+        <circle cx="112" cy="300" r="13" fill="#5A5A66" stroke="none"/>
+      </g>
+      <g id="right-plate" data-z="0.32" data-pivot="912,300">
+        <ellipse cx="912" cy="300" rx="36" ry="110" fill="#26262E" stroke="none"/>
+        <ellipse cx="912" cy="300" rx="23" ry="88" fill="#3A3A46" stroke="none"/>
+        <ellipse cx="903" cy="300" rx="7" ry="90" fill="#4E4E5C" stroke="none"/>
+        <circle cx="912" cy="300" r="13" fill="#5A5A66" stroke="none"/>
+      </g>
+    </g>
+
+    
+    <g id="torso" data-z="0.45" data-pivot="512,700" data-sockets="neck:512,500 left-shoulder:430,560 right-shoulder:594,560" data-anim="breathe" data-anim-period="4" data-anim-amplitude="0.02">
+      <g id="torso-surface" clip-path="url(#clip-torso)">
+        <path id="torso-base" d="M 420 556 C 400 600 394 660 408 706 C 420 742 436 768 438 792 C 428 830 418 880 420 1024 L 604 1024 C 606 880 596 830 586 792 C 588 768 604 742 616 706 C 630 660 624 600 604 556 C 590 536 566 526 548 520 L 548 470 C 548 452 540 444 512 444 C 484 444 476 452 476 470 L 476 520 C 458 526 434 536 420 556 Z" fill="#C98A63" stroke="none"/>
+        <path id="torso-shadow" d="M 420 556 C 400 600 394 660 408 706 C 420 742 436 768 438 792 C 428 830 418 880 420 1024 L 468 1024 C 462 880 452 830 452 792 C 452 760 442 730 434 700 C 426 660 430 600 448 560 Z" fill="#A96C48" stroke="none"/>
+        <path id="torso-highlight" d="M 580 570 C 596 610 600 660 596 706 C 592 740 584 770 582 792 C 580 830 584 880 586 1024 L 604 1024 C 606 880 596 830 586 792 C 588 768 604 742 616 706 C 630 660 624 600 604 556 Z" fill="#E3AC80" stroke="none"/>
+      </g>
+
+      <g id="leggings" data-z="0.46" data-pivot="512,900">
+        <g id="leggings-surface" clip-path="url(#clip-leggings)">
+          <path id="leggings-base" d="M 434 790 C 470 806 554 806 590 790 C 598 830 604 880 602 1024 L 422 1024 C 420 880 426 830 434 790 Z" fill="#1A1A22" stroke="none"/>
+          <path id="leggings-highlight" d="M 556 802 C 578 816 590 850 594 900 C 596 950 596 990 596 1024 L 602 1024 C 604 880 598 830 590 790 C 578 797 566 800 556 802 Z" fill="#2C2C38" stroke="none"/>
+        </g>
+      </g>
+
+      <g id="bra" data-z="0.47" data-pivot="512,650">
+        <g id="bra-surface" clip-path="url(#clip-bra)">
+          <path id="bra-base" d="M 442 540 C 438 600 434 660 432 700 C 431 725 430 740 430 748 L 594 748 C 594 740 593 725 592 700 C 590 660 586 600 582 540 L 554 540 C 556 582 556 608 548 626 C 540 643 527 652 512 654 C 497 652 484 643 476 626 C 468 608 468 582 470 540 Z" fill="#F2F4F8" stroke="none"/>
+          <path id="bra-shadow" d="M 442 540 C 438 600 434 660 432 700 C 431 725 430 740 430 748 L 462 748 C 460 700 458 640 462 540 Z" fill="#D5DAE4" stroke="none"/>
+          <path id="bra-highlight" d="M 552 540 C 560 600 574 660 582 700 C 586 725 588 740 588 748 L 594 748 C 594 740 593 725 592 700 C 590 660 586 600 582 540 Z" fill="#FFFFFF" stroke="none"/>
+        </g>
+        <path id="bra-hem" d="M 430 748 L 594 748" fill="none" stroke="#C8CED8" stroke-width="3" stroke-linecap="round"/>
+        <path id="bra-keyhole-edge" d="M 470 540 C 468 582 468 608 476 626 C 484 643 497 652 512 654 C 527 652 540 643 548 626 C 556 608 556 582 554 540" fill="none" stroke="#C8CED8" stroke-width="3" stroke-linecap="round"/>
+        <circle id="bra-badge" cx="512" cy="672" r="10" fill="#2A2A32" stroke="none"/>
+        <circle id="bra-badge-inner" cx="512" cy="672" r="5" fill="#F2F4F8" stroke="none"/>
+        <g id="bra-logo" data-z="0.49" data-pivot="512,724">
+          <rect x="478" y="716" width="68" height="16" rx="3" fill="#2A2A32" stroke="none"/>
+          <rect x="484" y="721" width="8" height="6" fill="#F2F4F8" stroke="none"/>
+          <rect x="496" y="721" width="6" height="6" fill="#F2F4F8" stroke="none"/>
+          <rect x="506" y="721" width="8" height="6" fill="#F2F4F8" stroke="none"/>
+          <rect x="518" y="721" width="6" height="6" fill="#F2F4F8" stroke="none"/>
+          <rect x="528" y="721" width="8" height="6" fill="#F2F4F8" stroke="none"/>
+        </g>
+      </g>
+    </g>
+
+    
+    <g id="head" data-z="0.50" data-pivot="512,500" data-anchor="neck" data-sockets="crown:512,360" data-anim="nod" data-anim-period="5" data-anim-amplitude="2">
+      <g id="head-surface" clip-path="url(#clip-head)">
+        <path id="head-base" d="M 512 348 C 468 348 444 380 444 426 C 444 472 474 502 512 502 C 550 502 580 472 580 426 C 580 380 556 348 512 348 Z" fill="#C98A63" stroke="none"/>
+        <path id="head-shadow" d="M 444 440 C 444 472 474 502 512 502 C 550 502 580 472 580 440 C 570 476 544 492 512 492 C 480 492 454 476 444 440 Z" fill="#A96C48" stroke="none"/>
+      </g>
+      <g id="head-hair" data-z="0.52" data-pivot="512,420">
+        <path id="hair-cap" d="M 512 342 C 464 342 440 376 440 426 C 440 458 450 480 464 492 C 472 480 480 488 488 496 C 496 484 504 492 512 498 C 520 486 528 492 536 494 C 544 484 552 478 558 488 C 574 474 584 452 584 426 C 584 376 560 342 512 342 Z" fill="#33221A" stroke="none"/>
+        <path id="hair-cap-highlight" d="M 520 344 C 562 350 584 382 584 426 C 584 450 578 470 568 484 C 576 458 574 420 560 396 C 548 376 534 360 516 350 Z" fill="#55392A" stroke="none"/>
+      </g>
+    </g>
+
+    
+    <g id="left-arm" data-z="0.60" data-pivot="430,560" data-anchor="left-shoulder">
+      <g id="left-arm-surface" clip-path="url(#clip-left-arm)">
+        <path id="left-arm-base" d="M 398 578 C 372 530 340 470 325 425 C 316 390 310 350 312 320 L 348 318 C 352 355 362 395 382 425 C 405 465 438 520 462 552 C 470 575 450 595 425 592 C 410 590 400 585 398 578 Z" fill="#C98A63" stroke="none"/>
+        <path id="left-arm-shadow" d="M 348 318 C 352 355 362 395 382 425 C 405 465 438 520 462 552 C 470 575 450 595 425 592 C 448 570 440 530 420 490 C 400 450 372 380 348 318 Z" fill="#A96C48" stroke="none"/>
+        <path id="left-arm-highlight" d="M 398 578 C 372 530 340 470 325 425 C 316 390 310 350 312 320 L 326 320 C 324 352 330 392 340 426 C 356 480 380 530 404 570 Z" fill="#E3AC80" stroke="none"/>
+      </g>
+      <g id="left-wrist-wrap" data-z="0.66" data-pivot="330,344">
+        <path id="left-wrap-base" d="M 306 336 C 320 330 342 328 356 330 L 358 352 C 344 350 322 352 308 360 Z" fill="#1E1E26" stroke="none"/>
+        <path id="left-wrap-highlight" d="M 310 340 C 322 335 340 333 352 334 L 353 339 C 341 338 323 340 311 345 Z" fill="#3A3A46" stroke="none"/>
+      </g>
+      <g id="left-hand" data-z="0.70" data-pivot="330,300">
+        <path id="left-hand-base" d="M 300 280 C 300 272 306 266 314 266 L 320 266 C 322 260 328 260 330 266 L 336 266 C 338 260 344 260 346 266 L 352 266 C 358 266 362 272 362 280 L 362 316 C 362 326 354 332 344 332 L 318 332 C 308 332 300 326 300 316 Z" fill="#C98A63" stroke="none"/>
+        <path id="left-hand-shadow" d="M 300 280 C 300 272 306 266 314 266 L 320 266 L 320 332 L 318 332 C 308 332 300 326 300 316 Z" fill="#A96C48" stroke="none"/>
+        <path id="left-finger-crease-1" d="M 323 268 L 323 288" fill="none" stroke="#A96C48" stroke-width="3" stroke-linecap="round"/>
+        <path id="left-finger-crease-2" d="M 339 268 L 339 288" fill="none" stroke="#A96C48" stroke-width="3" stroke-linecap="round"/>
+      </g>
+    </g>
+
+    
+    <g id="right-arm" data-z="0.62" data-pivot="594,560" data-anchor="right-shoulder">
+      <g id="right-arm-surface" clip-path="url(#clip-right-arm)">
+        <path id="right-arm-base" d="M 626 578 C 652 530 684 470 699 425 C 708 390 714 350 712 320 L 676 318 C 672 355 662 395 642 425 C 619 465 586 520 562 552 C 554 575 574 595 599 592 C 614 590 624 585 626 578 Z" fill="#C98A63" stroke="none"/>
+        <path id="right-arm-shadow" d="M 676 318 C 672 355 662 395 642 425 C 619 465 586 520 562 552 C 554 575 574 595 599 592 C 576 570 584 530 604 490 C 624 450 652 380 676 318 Z" fill="#A96C48" stroke="none"/>
+        <path id="right-arm-highlight" d="M 626 578 C 652 530 684 470 699 425 C 708 390 714 350 712 320 L 698 320 C 700 352 694 392 684 426 C 668 480 644 530 620 570 Z" fill="#E3AC80" stroke="none"/>
+      </g>
+      <g id="right-wrist-wrap" data-z="0.66" data-pivot="694,344">
+        <path id="right-wrap-base" d="M 718 336 C 704 330 682 328 668 330 L 666 352 C 680 350 702 352 716 360 Z" fill="#1E1E26" stroke="none"/>
+        <path id="right-wrap-highlight" d="M 714 340 C 702 335 684 333 672 334 L 671 339 C 683 338 701 340 713 345 Z" fill="#3A3A46" stroke="none"/>
+      </g>
+      <g id="right-hand" data-z="0.70" data-pivot="694,300">
+        <path id="right-hand-base" d="M 724 280 C 724 272 718 266 710 266 L 704 266 C 702 260 696 260 694 266 L 688 266 C 686 260 680 260 678 266 L 672 266 C 666 266 662 272 662 280 L 662 316 C 662 326 670 332 680 332 L 706 332 C 716 332 724 326 724 316 Z" fill="#C98A63" stroke="none"/>
+        <path id="right-hand-shadow" d="M 724 280 C 724 272 718 266 710 266 L 704 266 L 704 332 L 706 332 C 716 332 724 326 724 316 Z" fill="#A96C48" stroke="none"/>
+        <path id="right-finger-crease-1" d="M 701 268 L 701 288" fill="none" stroke="#A96C48" stroke-width="3" stroke-linecap="round"/>
+        <path id="right-finger-crease-2" d="M 685 268 L 685 288" fill="none" stroke="#A96C48" stroke-width="3" stroke-linecap="round"/>
+      </g>
+    </g>
+
+  </g>
+</svg>
