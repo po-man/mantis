@@ -197,6 +197,7 @@ export async function buildApp(
       store,
       publishDir: config.publishDir,
       publishEnabled: config.publishEnabled,
+      publishInputDimension: config.publishInputDimension,
     });
   }
 

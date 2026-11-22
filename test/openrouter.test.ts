@@ -29,6 +29,7 @@ function makeConfig(baseUrl: string, overrides: Partial<Config> = {}): Config {
     reviewUiEnabled: false,
     publishEnabled: false,
     publishDir: ".publish",
+    publishInputDimension: 384,
     ...overrides,
   };
 }

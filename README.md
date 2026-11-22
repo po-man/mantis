@@ -84,6 +84,7 @@ real environment variables take precedence.
 | `REVIEW_UI_ENABLED` | `true` | Enable the developer review UI and review API |
 | `PUBLISH_ENABLED` | `true` | Allow the review UI to write local publication bundles; disable in public deployments |
 | `PUBLISH_DIR` | `.publish` | Gitignored local staging directory for publication manifests and assets |
+| `PUBLISH_INPUT_DIMENSION` | `384` | Longest side of the downsampled WebP input thumbnails written to a publication bundle |
 
 The service fails fast at boot if `OPENROUTER_API_KEY` is missing. It also fails if
 `PROMPT_VERSION` matches no prompt file or more than one prompt file in `PROMPT_DIR`.
@@ -482,4 +483,9 @@ usage. See [`samples/README.md`](samples/README.md) for the naming convention.
   longest side**) before the VLM call. 1568 is a common vision-model sweet spot: it
   preserves enough detail for edge tracing while keeping image tokens low. The
   `MAX_UPLOAD_BYTES` limit is a separate safety cap on the raw upload.
+- Publication bundles downscale each stored input image to
+  `PUBLISH_INPUT_DIMENSION` (default **384 px on the longest side**) and re-encode
+  it as WebP. The published input is only ever shown as a thumbnail, so this keeps
+  the bundle small. If a stored image cannot be decoded, the raw bytes are written
+  unchanged and a warning is reported.
 - The model is responsible for mapping the subject onto the 1024×1024 canvas.

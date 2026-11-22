@@ -7,6 +7,7 @@ import {
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
+import sharp from "sharp";
 import { createPublicationBundle } from "../src/services/publication.js";
 import {
   parsePublicationManifest,
@@ -49,6 +50,19 @@ const SVG_WITH_DEPTH =
   '<g id="front" data-z="0.8" data-pivot="512,512"><circle cx="512" cy="512" r="200" fill="#f00"/></g>' +
   "</svg>";
 
+// A real decodable image so the publish-time downsample has something to work
+// with; the longest side (800) exceeds the 384 px publication cap.
+const INPUT_PNG = await sharp({
+  create: {
+    width: 800,
+    height: 600,
+    channels: 3,
+    background: { r: 200, g: 100, b: 50 },
+  },
+})
+  .png()
+  .toBuffer();
+
 function makeEntry(
   promptId: number,
   overrides: Partial<ConversionRecordInput> = {},
@@ -61,14 +75,14 @@ function makeEntry(
     attempts: 1,
     input: {
       mime: "image/png",
-      width: 100,
-      height: 80,
-      bytes: 4,
-      originalWidth: 100,
-      originalHeight: 80,
-      originalBytes: 4,
+      width: 800,
+      height: 600,
+      bytes: INPUT_PNG.length,
+      originalWidth: 800,
+      originalHeight: 600,
+      originalBytes: INPUT_PNG.length,
       downsampled: false,
-      data: Buffer.from([1, 2, 3, 4]),
+      data: INPUT_PNG,
     },
     output: {
       svg: SVG_WITH_DEPTH,
@@ -133,9 +147,15 @@ describe("createPublicationBundle", () => {
     ]);
 
     for (const item of manifest.items) {
-      expect(readFileSync(path.join(outDir, item.assets.input))).toEqual(
-        Buffer.from([1, 2, 3, 4]),
+      expect(item.assets.input.endsWith(".webp")).toBe(true);
+      const input = readFileSync(path.join(outDir, item.assets.input));
+      const metadata = await sharp(input).metadata();
+      expect(metadata.format).toBe("webp");
+      expect(Math.max(metadata.width ?? 0, metadata.height ?? 0)).toBeLessThanOrEqual(
+        384,
       );
+      expect(item.inputWidth).toBe(metadata.width);
+      expect(item.inputHeight).toBe(metadata.height);
       expect(readFileSync(path.join(outDir, item.assets.svg), "utf8")).toContain(
         "<svg",
       );
@@ -227,6 +247,38 @@ describe("createPublicationBundle", () => {
     expect(result.manifest.featured?.id).toBe(featuredId);
     expect(result.manifest.featured?.rating).toBe("nice");
     expect(result.counts).toEqual({ nice: 2, fair: 0, bad: 0, total: 2 });
+
+    store.close();
+    rmSync(outDir, { recursive: true, force: true });
+  });
+
+  it("falls back to the stored bytes when the input cannot be decoded", async () => {
+    const { store, promptId, outDir } = setup();
+    const raw = Buffer.from([1, 2, 3, 4]);
+    const id = store.record(
+      makeEntry(promptId, {
+        input: {
+          mime: "image/png",
+          width: 100,
+          height: 80,
+          bytes: raw.length,
+          originalWidth: 100,
+          originalHeight: 80,
+          originalBytes: raw.length,
+          downsampled: false,
+          data: raw,
+        },
+      }),
+    );
+    store.setSelection(id, "nice");
+
+    const result = await createPublicationBundle({ store, outDir });
+
+    expect(result.warnings).toHaveLength(1);
+    expect(result.warnings[0]).toMatch(/could not be downsampled/);
+    const item = result.manifest.items[0]!;
+    expect(item.assets.input.endsWith(".png")).toBe(true);
+    expect(readFileSync(path.join(outDir, item.assets.input))).toEqual(raw);
 
     store.close();
     rmSync(outDir, { recursive: true, force: true });
