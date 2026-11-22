@@ -1,6 +1,7 @@
 import { mkdir, rename, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { AppError } from "../lib/errors.js";
+import { downsampleForPublication } from "./image.js";
 import { deriveParallaxRig } from "./parallax.js";
 import {
   DEFAULT_PUBLICATION_INTRO,
@@ -22,6 +23,8 @@ export interface CreatePublicationOptions {
   intro?: string;
   title?: string;
   generatedAt?: Date;
+  /** Longest side of the downsampled input thumbnails, in pixels. */
+  inputMaxDimension?: number;
 }
 
 export interface PublicationBundleResult {
@@ -31,7 +34,10 @@ export interface PublicationBundleResult {
   counts: SelectionCounts;
   introWords: number;
   featured: PublicationFeatured | null;
+  warnings: string[];
 }
+
+const DEFAULT_INPUT_MAX_DIMENSION = 384;
 
 function inputExtension(mime: string): string {
   switch (mime) {
@@ -84,6 +90,10 @@ export async function createPublicationBundle(
       400,
     );
   }
+
+  const inputMaxDimension =
+    options.inputMaxDimension ?? DEFAULT_INPUT_MAX_DIMENSION;
+  const warnings: string[] = [];
 
   const outDir = path.resolve(options.outDir);
   const assetsDir = path.join(outDir, "assets");
@@ -142,12 +152,27 @@ export async function createPublicationBundle(
       }
     }
 
+    // The published input is only ever shown as a small thumbnail, so store a
+    // downsampled WebP instead of the (potentially multi-megabyte) stored image.
+    const thumbnail = await downsampleForPublication(
+      input.data,
+      inputMaxDimension,
+    );
+    const inputMime = thumbnail?.mime ?? input.mime;
+    const inputData = thumbnail?.data ?? input.data;
+    if (!thumbnail) {
+      warnings.push(
+        `Conversion ${conversion.id}: input image could not be downsampled, ` +
+          "publishing the stored bytes unchanged",
+      );
+    }
+
     const base = assetBase(index, conversion.id);
-    const inputName = `${base}-input.${inputExtension(input.mime)}`;
+    const inputName = `${base}-input.${inputExtension(inputMime)}`;
     const svgName = `${base}.svg`;
     const rigName = `${base}.rig.json`;
 
-    await writeFile(path.join(assetsDir, inputName), input.data);
+    await writeFile(path.join(assetsDir, inputName), inputData);
     await writeFile(path.join(assetsDir, svgName), svg, "utf8");
     await writeFile(
       path.join(assetsDir, rigName),
@@ -162,8 +187,8 @@ export async function createPublicationBundle(
       model: conversion.model,
       promptVersion: conversion.promptVersion,
       createdAt: conversion.createdAt,
-      inputWidth: conversion.inputWidth,
-      inputHeight: conversion.inputHeight,
+      inputWidth: thumbnail?.width ?? conversion.inputWidth,
+      inputHeight: thumbnail?.height ?? conversion.inputHeight,
       assets: {
         input: path.posix.join("assets", inputName),
         svg: path.posix.join("assets", svgName),
@@ -259,5 +284,6 @@ export async function createPublicationBundle(
     counts: options.store.selectionCounts(),
     introWords,
     featured,
+    warnings,
   };
 }

@@ -72,6 +72,7 @@ function makeConfig(overrides: Partial<Config> = {}): Config {
     reviewUiEnabled: true,
     publishEnabled: true,
     publishDir: ".publish",
+    publishInputDimension: 384,
     ...overrides,
   };
 }

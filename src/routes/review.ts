@@ -19,6 +19,8 @@ export interface ReviewRouteDeps {
   store: ConversionStore;
   publishDir: string;
   publishEnabled: boolean;
+  /** Longest side of the downsampled input thumbnails written when publishing. */
+  publishInputDimension: number;
 }
 
 const REVIEW_HTML_PATH = fileURLToPath(
@@ -313,7 +315,12 @@ export async function registerReviewRoutes(
           outDir: deps.publishDir,
           intro,
           title,
+          inputMaxDimension: deps.publishInputDimension,
         });
+
+        for (const warning of result.warnings) {
+          request.log.warn({ publish: true }, warning);
+        }
 
         reply.header("cache-control", "no-store");
         return reply.send({
@@ -326,6 +333,7 @@ export async function registerReviewRoutes(
           introWords: result.introWords,
           itemCount: result.manifest.items.length,
           featuredId: result.featured?.id ?? null,
+          warnings: result.warnings,
         });
       },
     );

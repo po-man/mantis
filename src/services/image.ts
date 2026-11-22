@@ -136,3 +136,53 @@ export async function normalizeImage(
     resized,
   };
 }
+
+export interface DownsampledImage {
+  data: Buffer;
+  mime: "image/webp";
+  width: number;
+  height: number;
+}
+
+/**
+ * Downscales a stored input image for the static publication site. The
+ * published input is only ever shown as a small thumbnail, so it is re-encoded
+ * to WebP and capped at `maxDimension` on the longest side. Returns `null` when
+ * the stored bytes cannot be decoded, so the caller can fall back to raw bytes.
+ */
+export async function downsampleForPublication(
+  input: Buffer,
+  maxDimension: number,
+): Promise<DownsampledImage | null> {
+  if (input.length === 0) {
+    return null;
+  }
+
+  let output: Buffer;
+  try {
+    output = await sharp(input, {
+      failOn: "error",
+      limitInputPixels: MAX_INPUT_PIXELS,
+    })
+      .rotate()
+      .toColorspace("srgb")
+      .resize({
+        width: maxDimension,
+        height: maxDimension,
+        fit: "inside",
+        withoutEnlargement: true,
+      })
+      .webp({ quality: 82 })
+      .toBuffer();
+  } catch {
+    return null;
+  }
+
+  const metadata = await sharp(output).metadata();
+  return {
+    data: output,
+    mime: "image/webp",
+    width: metadata.width ?? maxDimension,
+    height: metadata.height ?? maxDimension,
+  };
+}

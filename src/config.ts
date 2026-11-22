@@ -75,6 +75,7 @@ const EnvSchema = z.object({
   REVIEW_UI_ENABLED: booleanString.default(true),
   PUBLISH_ENABLED: booleanString.default(true),
   PUBLISH_DIR: z.string().min(1).default(".publish"),
+  PUBLISH_INPUT_DIMENSION: z.coerce.number().int().positive().default(384),
 });
 
 export interface Config {
@@ -108,6 +109,8 @@ export interface Config {
   reviewUiEnabled: boolean;
   publishEnabled: boolean;
   publishDir: string;
+  /** Longest side of the downsampled input thumbnails written when publishing. */
+  publishInputDimension: number;
 }
 
 export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
@@ -150,5 +153,6 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
     reviewUiEnabled: value.REVIEW_UI_ENABLED,
     publishEnabled: value.PUBLISH_ENABLED,
     publishDir: value.PUBLISH_DIR,
+    publishInputDimension: value.PUBLISH_INPUT_DIMENSION,
   };
 }
